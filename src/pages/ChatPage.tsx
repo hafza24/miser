@@ -6,7 +6,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
+import ChatTimer from '@/components/ChatTimer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
 
