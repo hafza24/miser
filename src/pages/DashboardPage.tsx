@@ -49,6 +49,7 @@ const DashboardPage = () => {
   const [sent, setSent] = useState<SentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [randomLoading, setRandomLoading] = useState(false);
 
   const reload = useCallback(async () => {
     if (!user) return;
