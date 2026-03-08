@@ -14,16 +14,186 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      chat_participants: {
+        Row: {
+          chat_id: string
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chats: {
+        Row: {
+          created_at: string
+          id: string
+          is_group: boolean
+          mode: Database["public"]["Enums"]["mode_preference"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          mode?: Database["public"]["Enums"]["mode_preference"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_group?: boolean
+          mode?: Database["public"]["Enums"]["mode_preference"]
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          self_destruct_minutes: number | null
+          sender_id: string
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          self_destruct_minutes?: number | null
+          sender_id: string
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          self_destruct_minutes?: number | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message_text: string | null
+          user_id: string
+          violation_type: Database["public"]["Enums"]["violation_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_text?: string | null
+          user_id: string
+          violation_type: Database["public"]["Enums"]["violation_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_text?: string | null
+          user_id?: string
+          violation_type?: Database["public"]["Enums"]["violation_type"]
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          age_verified: boolean
+          alias: string
+          availability: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          emoji_avatar: string
+          id: string
+          interests: string[] | null
+          is_suspended: boolean
+          mode_preference: Database["public"]["Enums"]["mode_preference"]
+          mood_preference: string | null
+          region: string | null
+          updated_at: string
+          user_id: string
+          violation_count: number
+        }
+        Insert: {
+          age_verified?: boolean
+          alias: string
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          emoji_avatar?: string
+          id?: string
+          interests?: string[] | null
+          is_suspended?: boolean
+          mode_preference?: Database["public"]["Enums"]["mode_preference"]
+          mood_preference?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id: string
+          violation_count?: number
+        }
+        Update: {
+          age_verified?: boolean
+          alias?: string
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          emoji_avatar?: string
+          id?: string
+          interests?: string[] | null
+          is_suspended?: boolean
+          mode_preference?: Database["public"]["Enums"]["mode_preference"]
+          mood_preference?: string | null
+          region?: string | null
+          updated_at?: string
+          user_id?: string
+          violation_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_alias: { Args: never; Returns: string }
+      generate_emoji_avatar: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      mode_preference: "light" | "dark"
+      violation_type: "warning" | "mute" | "suspension"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +320,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      mode_preference: ["light", "dark"],
+      violation_type: ["warning", "mute", "suspension"],
+    },
   },
 } as const
