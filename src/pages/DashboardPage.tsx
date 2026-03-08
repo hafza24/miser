@@ -184,36 +184,104 @@ const DashboardPage = () => {
         const { data: chat, error: chatErr } = await supabase
           .from('chats')
           .insert({ mode: mode as 'light' | 'dark', expires_at: expiresAt } as any)
-          .select()
+          .select('id')
           .single();
 
         if (chatErr) throw chatErr;
+        if (!chat) throw new Error('Failed to create chat');
 
-        if (chat) {
-          const { error: e1 } = await supabase
-            .from('chat_participants')
-            .insert({ chat_id: chat.id, user_id: user.id });
-          if (e1) throw e1;
+        const { error: participantsError } = await supabase
+          .from('chat_participants')
+          .insert([
+            { chat_id: chat.id, user_id: user.id },
+            { chat_id: chat.id, user_id: req.sender_id },
+          ]);
 
-          const { error: e2 } = await supabase
-            .from('chat_participants')
-            .insert({ chat_id: chat.id, user_id: req.sender_id });
-          if (e2) throw e2;
-        }
+        if (participantsError) throw participantsError;
       }
 
-      await supabase
+      const { error: updateError } = await supabase
         .from('chat_requests')
         .update({ status: accept ? 'accepted' : 'declined' })
         .eq('id', requestId);
 
+      if (updateError) throw updateError;
+
       toast.success(accept ? 'Request accepted! Chat created.' : 'Request declined.');
       setIncoming(prev => prev.filter(r => r.id !== requestId));
-      if (accept) await loadChats();
+      await Promise.all([loadChats(), loadIncoming(), loadSent()]);
     } catch (err: any) {
       toast.error('Something went wrong: ' + (err.message || 'Unknown error'));
     }
     setActionId(null);
+  };
+
+  const connectRandomUser = async () => {
+    if (!user || randomLoading) return;
+    setRandomLoading(true);
+
+    try {
+      const [{ data: allProfiles }, { data: myRequests }, { data: myParts }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('user_id, is_suspended')
+          .neq('user_id', user.id)
+          .eq('is_suspended', false)
+          .limit(100),
+        supabase
+          .from('chat_requests')
+          .select('receiver_id, status')
+          .eq('sender_id', user.id),
+        supabase
+          .from('chat_participants')
+          .select('chat_id')
+          .eq('user_id', user.id),
+      ]);
+
+      const requestedIds = new Set(
+        (myRequests || [])
+          .filter(r => r.status === 'pending' || r.status === 'accepted')
+          .map(r => r.receiver_id)
+      );
+
+      let connectedIds = new Set<string>();
+      const chatIds = (myParts || []).map(p => p.chat_id);
+      if (chatIds.length > 0) {
+        const { data: allParts } = await supabase
+          .from('chat_participants')
+          .select('chat_id, user_id')
+          .in('chat_id', chatIds);
+
+        connectedIds = new Set(
+          (allParts || [])
+            .filter(p => p.user_id !== user.id)
+            .map(p => p.user_id)
+        );
+      }
+
+      const candidates = (allProfiles || [])
+        .map(p => p.user_id)
+        .filter(id => !requestedIds.has(id) && !connectedIds.has(id));
+
+      if (candidates.length === 0) {
+        toast.info('No available users right now. Try again soon.');
+        return;
+      }
+
+      const randomId = candidates[Math.floor(Math.random() * candidates.length)];
+      const { error } = await supabase
+        .from('chat_requests')
+        .insert({ sender_id: user.id, receiver_id: randomId });
+
+      if (error) throw error;
+
+      toast.success('Random chat request sent!');
+      await loadSent();
+    } catch (err: any) {
+      toast.error('Could not create random request: ' + (err.message || 'Unknown error'));
+    } finally {
+      setRandomLoading(false);
+    }
   };
 
   // ─── Cancel sent request ───
