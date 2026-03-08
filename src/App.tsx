@@ -14,6 +14,7 @@ import ModeSelectPage from "./pages/ModeSelectPage";
 import DashboardPage from "./pages/DashboardPage";
 import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
+import BrowseProfilesPage from "./pages/BrowseProfilesPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
