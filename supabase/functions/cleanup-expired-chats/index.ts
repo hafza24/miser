@@ -29,13 +29,12 @@ Deno.serve(async (req) => {
 
     const chatIds = (expiredChats || []).map((c) => c.id);
 
-    // Delete stale chat requests older than 24 hours (except accepted)
+    // Delete stale chat requests older than 24 hours
     const staleThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const { error: requestsError } = await supabase
       .from("chat_requests")
       .delete()
-      .lt("created_at", staleThreshold)
-      .neq("status", "accepted");
+      .lt("created_at", staleThreshold);
 
     if (requestsError) throw requestsError;
 
