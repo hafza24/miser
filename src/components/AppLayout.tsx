@@ -2,7 +2,7 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
