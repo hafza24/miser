@@ -49,6 +49,7 @@ const DashboardPage = () => {
     if (!user) return;
     loadChats();
     loadRequests();
+    loadSentRequests();
   }, [user]);
 
   const loadChats = async () => {
