@@ -185,6 +185,23 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
+  const handleEndChat = async () => {
+    if (!chatId || !user) return;
+    try {
+      // Remove current user from participants (leave the chat)
+      const { error } = await supabase
+        .from('chat_participants')
+        .delete()
+        .eq('chat_id', chatId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast.success('You left the chat.');
+      navigate('/dashboard');
+    } catch (err: any) {
+      toast.error('Failed to end chat: ' + (err.message || 'Unknown error'));
+    }
+  
+
   if (loadingChat) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
