@@ -313,10 +313,22 @@ const DashboardPage = () => {
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Find People
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSurpriseMe}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={surpriseLoading}
+            >
+              <Sparkles className="h-4 w-4" />
+              {surpriseLoading ? 'Searching...' : 'Surprise Me'}
+            </Button>
+            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Find People
+            </Button>
+          </div>
         </div>
 
         {/* Incoming Requests */}
