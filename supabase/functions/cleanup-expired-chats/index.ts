@@ -27,27 +27,23 @@ Deno.serve(async (req) => {
 
     if (fetchError) throw fetchError;
 
-    const chatIds = (expiredChats || []).map((c) => c.id);
-
-    // Delete stale chat requests older than 24 hours
-    const staleThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { error: requestsError } = await supabase
-      .from("chat_requests")
-      .delete()
-      .lt("created_at", staleThreshold);
-
-    if (requestsError) throw requestsError;
-
-    if (chatIds.length > 0) {
-      // Delete messages, participants, timer_stop_requests, then chats
-      await supabase.from("messages").delete().in("chat_id", chatIds);
-      await supabase.from("timer_stop_requests").delete().in("chat_id", chatIds);
-      await supabase.from("chat_participants").delete().in("chat_id", chatIds);
-      await supabase.from("chats").delete().in("id", chatIds);
+    if (!expiredChats || expiredChats.length === 0) {
+      return new Response(
+        JSON.stringify({ deleted: 0 }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
+    const chatIds = expiredChats.map((c) => c.id);
+
+    // Delete messages, participants, timer_stop_requests, then chats
+    await supabase.from("messages").delete().in("chat_id", chatIds);
+    await supabase.from("timer_stop_requests").delete().in("chat_id", chatIds);
+    await supabase.from("chat_participants").delete().in("chat_id", chatIds);
+    await supabase.from("chats").delete().in("id", chatIds);
+
     return new Response(
-      JSON.stringify({ deletedChats: chatIds.length, cleanedRequests: true }),
+      JSON.stringify({ deleted: chatIds.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {

@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Users, MessageCircle, Check, X,
-  Inbox, SendHorizontal, Clock, Trash2, Shuffle,
+  Inbox, SendHorizontal, Clock, Trash2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -49,7 +49,6 @@ const DashboardPage = () => {
   const [sent, setSent] = useState<SentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
-  const [randomLoading, setRandomLoading] = useState(false);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -184,104 +183,36 @@ const DashboardPage = () => {
         const { data: chat, error: chatErr } = await supabase
           .from('chats')
           .insert({ mode: mode as 'light' | 'dark', expires_at: expiresAt } as any)
-          .select('id')
+          .select()
           .single();
 
         if (chatErr) throw chatErr;
-        if (!chat) throw new Error('Failed to create chat');
 
-        const { error: participantsError } = await supabase
-          .from('chat_participants')
-          .insert([
-            { chat_id: chat.id, user_id: user.id },
-            { chat_id: chat.id, user_id: req.sender_id },
-          ]);
+        if (chat) {
+          const { error: e1 } = await supabase
+            .from('chat_participants')
+            .insert({ chat_id: chat.id, user_id: user.id });
+          if (e1) throw e1;
 
-        if (participantsError) throw participantsError;
+          const { error: e2 } = await supabase
+            .from('chat_participants')
+            .insert({ chat_id: chat.id, user_id: req.sender_id });
+          if (e2) throw e2;
+        }
       }
 
-      const { error: updateError } = await supabase
+      await supabase
         .from('chat_requests')
         .update({ status: accept ? 'accepted' : 'declined' })
         .eq('id', requestId);
 
-      if (updateError) throw updateError;
-
       toast.success(accept ? 'Request accepted! Chat created.' : 'Request declined.');
       setIncoming(prev => prev.filter(r => r.id !== requestId));
-      await Promise.all([loadChats(), loadIncoming(), loadSent()]);
+      if (accept) await loadChats();
     } catch (err: any) {
       toast.error('Something went wrong: ' + (err.message || 'Unknown error'));
     }
     setActionId(null);
-  };
-
-  const connectRandomUser = async () => {
-    if (!user || randomLoading) return;
-    setRandomLoading(true);
-
-    try {
-      const [{ data: allProfiles }, { data: myRequests }, { data: myParts }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('user_id, is_suspended')
-          .neq('user_id', user.id)
-          .eq('is_suspended', false)
-          .limit(100),
-        supabase
-          .from('chat_requests')
-          .select('receiver_id, status')
-          .eq('sender_id', user.id),
-        supabase
-          .from('chat_participants')
-          .select('chat_id')
-          .eq('user_id', user.id),
-      ]);
-
-      const requestedIds = new Set(
-        (myRequests || [])
-          .filter(r => r.status === 'pending' || r.status === 'accepted')
-          .map(r => r.receiver_id)
-      );
-
-      let connectedIds = new Set<string>();
-      const chatIds = (myParts || []).map(p => p.chat_id);
-      if (chatIds.length > 0) {
-        const { data: allParts } = await supabase
-          .from('chat_participants')
-          .select('chat_id, user_id')
-          .in('chat_id', chatIds);
-
-        connectedIds = new Set(
-          (allParts || [])
-            .filter(p => p.user_id !== user.id)
-            .map(p => p.user_id)
-        );
-      }
-
-      const candidates = (allProfiles || [])
-        .map(p => p.user_id)
-        .filter(id => !requestedIds.has(id) && !connectedIds.has(id));
-
-      if (candidates.length === 0) {
-        toast.info('No available users right now. Try again soon.');
-        return;
-      }
-
-      const randomId = candidates[Math.floor(Math.random() * candidates.length)];
-      const { error } = await supabase
-        .from('chat_requests')
-        .insert({ sender_id: user.id, receiver_id: randomId });
-
-      if (error) throw error;
-
-      toast.success('Random chat request sent!');
-      await loadSent();
-    } catch (err: any) {
-      toast.error('Could not create random request: ' + (err.message || 'Unknown error'));
-    } finally {
-      setRandomLoading(false);
-    }
   };
 
   // ─── Cancel sent request ───
@@ -313,7 +244,7 @@ const DashboardPage = () => {
     <AppLayout>
       <div className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6 gap-3">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-heading text-2xl font-bold text-foreground">
               {mode === 'light' ? '🌞 Light Space' : '🌑 Dark Space'}
@@ -322,22 +253,10 @@ const DashboardPage = () => {
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={connectRandomUser}
-              size="sm"
-              variant="secondary"
-              className="gap-2"
-              disabled={randomLoading}
-            >
-              <Shuffle className={`h-4 w-4 ${randomLoading ? 'animate-spin' : ''}`} />
-              Random
-            </Button>
-            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
-              <Plus className="h-4 w-4" />
-              Find People
-            </Button>
-          </div>
+          <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
+            <Plus className="h-4 w-4" />
+            Find People
+          </Button>
         </div>
 
         {/* Incoming Requests */}
