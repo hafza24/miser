@@ -165,11 +165,14 @@ const DashboardPage = () => {
   // ─── Load incoming requests ───
   const loadIncoming = async () => {
     if (!user) return;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data } = await supabase
       .from('chat_requests')
       .select('id, sender_id, status, created_at')
       .eq('receiver_id', user.id)
       .eq('status', 'pending')
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false });
 
     if (!data?.length) { setIncoming([]); return; }
