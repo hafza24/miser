@@ -139,6 +139,36 @@ const DashboardPage = () => {
     }
   };
 
+  const loadSentRequests = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('chat_requests')
+      .select('id, receiver_id, status, created_at')
+      .eq('sender_id', user.id)
+      .in('status', ['pending', 'declined'])
+      .order('created_at', { ascending: false });
+
+    if (data && data.length > 0) {
+      const receiverIds = data.map(r => r.receiver_id);
+      const { data: receiverProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, alias, emoji_avatar')
+        .in('user_id', receiverIds);
+
+      const enriched = data.map(r => {
+        const rp = receiverProfiles?.find(p => p.user_id === r.receiver_id);
+        return {
+          ...r,
+          receiver_alias: rp?.alias || 'Anonymous',
+          receiver_emoji: rp?.emoji_avatar || '💫',
+        };
+      });
+      setSentRequests(enriched);
+    } else {
+      setSentRequests([]);
+    }
+  };
+
   const respondToRequest = async (requestId: string, accept: boolean) => {
     if (!user) return;
     setRespondingTo(requestId);
