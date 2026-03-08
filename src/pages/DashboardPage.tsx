@@ -26,6 +26,15 @@ interface ChatRequest {
   sender_emoji?: string;
 }
 
+interface SentRequest {
+  id: string;
+  receiver_id: string;
+  status: string;
+  created_at: string;
+  receiver_alias?: string;
+  receiver_emoji?: string;
+}
+
 const DashboardPage = () => {
   const { user, profile } = useAuth();
   const { mode } = useMode();
