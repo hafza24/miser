@@ -41,6 +41,7 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [requests, setRequests] = useState<ChatRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
