@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Users, MessageCircle, Check, X,
-  Inbox, SendHorizontal, Clock, Trash2,
+  Inbox, SendHorizontal, Clock, Trash2, Sparkles,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -49,6 +49,7 @@ const DashboardPage = () => {
   const [sent, setSent] = useState<SentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
+  const [surpriseLoading, setSurpriseLoading] = useState(false);
 
   const reload = useCallback(async () => {
     if (!user) return;
@@ -277,7 +278,27 @@ const DashboardPage = () => {
     return new Date(chat.expires_at).getTime() <= Date.now();
   };
 
-  const activeChats = chats.filter(c => !isChatExpired(c));
+  // ─── Surprise Me (random chat) ───
+  const handleSurpriseMe = async () => {
+    setSurpriseLoading(true);
+    try {
+      const { data: chatId, error } = await supabase.rpc('start_random_chat', {
+        p_mode: mode as 'light' | 'dark',
+      });
+      if (error) throw error;
+      if (chatId) {
+        toast.success('Matched! Opening chat...');
+        navigate(`/chat/${chatId}`);
+      } else {
+        toast.info('No one available right now. Try again later!');
+      }
+    } catch (err: any) {
+      toast.error('Something went wrong: ' + (err.message || 'Unknown error'));
+    }
+    setSurpriseLoading(false);
+  };
+
+  const activeChats = chats.filter(c => c.mode === mode && !isChatExpired(c));
 
   return (
     <AppLayout>
@@ -292,10 +313,22 @@ const DashboardPage = () => {
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Find People
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSurpriseMe}
+              variant="outline"
+              size="sm"
+              className="gap-2"
+              disabled={surpriseLoading}
+            >
+              <Sparkles className="h-4 w-4" />
+              {surpriseLoading ? 'Searching...' : 'Surprise Me'}
+            </Button>
+            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Find People
+            </Button>
+          </div>
         </div>
 
         {/* Incoming Requests */}
