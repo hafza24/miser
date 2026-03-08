@@ -313,7 +313,7 @@ const DashboardPage = () => {
     <AppLayout>
       <div className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 gap-3">
           <div>
             <h2 className="font-heading text-2xl font-bold text-foreground">
               {mode === 'light' ? '🌞 Light Space' : '🌑 Dark Space'}
@@ -322,10 +322,22 @@ const DashboardPage = () => {
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Find People
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={connectRandomUser}
+              size="sm"
+              variant="secondary"
+              className="gap-2"
+              disabled={randomLoading}
+            >
+              <Shuffle className={`h-4 w-4 ${randomLoading ? 'animate-spin' : ''}`} />
+              Random
+            </Button>
+            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Find People
+            </Button>
+          </div>
         </div>
 
         {/* Incoming Requests */}
