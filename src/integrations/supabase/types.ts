@@ -253,6 +253,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_chat_request: {
+        Args: {
+          p_mode?: Database["public"]["Enums"]["mode_preference"]
+          p_request_id: string
+        }
+        Returns: string
+      }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
       is_chat_participant: {

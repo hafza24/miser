@@ -62,6 +62,45 @@ const DashboardPage = () => {
     reload();
   }, [user, reload]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        void reload();
+      }, 200);
+    };
+
+    const channel = supabase
+      .channel(`dashboard-live-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_requests',
+        filter: `receiver_id=eq.${user.id}`,
+      }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_requests',
+        filter: `sender_id=eq.${user.id}`,
+      }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `user_id=eq.${user.id}`,
+      }, scheduleReload)
+      .subscribe();
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      supabase.removeChannel(channel);
+    };
+  }, [user, reload]);
+
   // ─── Load chats ───
   const loadChats = async () => {
     if (!user) return;
@@ -126,11 +165,14 @@ const DashboardPage = () => {
   // ─── Load incoming requests ───
   const loadIncoming = async () => {
     if (!user) return;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data } = await supabase
       .from('chat_requests')
       .select('id, sender_id, status, created_at')
       .eq('receiver_id', user.id)
       .eq('status', 'pending')
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false });
 
     if (!data?.length) { setIncoming([]); return; }
@@ -150,11 +192,14 @@ const DashboardPage = () => {
   // ─── Load sent requests ───
   const loadSent = async () => {
     if (!user) return;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data } = await supabase
       .from('chat_requests')
       .select('id, receiver_id, status, created_at')
       .eq('sender_id', user.id)
       .in('status', ['pending', 'declined'])
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false });
 
     if (!data?.length) { setSent([]); return; }
@@ -175,43 +220,37 @@ const DashboardPage = () => {
   const respondToRequest = async (requestId: string, accept: boolean) => {
     if (!user) return;
     setActionId(requestId);
-    const req = incoming.find(r => r.id === requestId);
 
     try {
-      if (accept && req) {
-        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-        const { data: chat, error: chatErr } = await supabase
-          .from('chats')
-          .insert({ mode: mode as 'light' | 'dark', expires_at: expiresAt } as any)
-          .select()
-          .single();
+      if (accept) {
+        const { data: chatId, error: acceptError } = await supabase.rpc('accept_chat_request', {
+          p_request_id: requestId,
+          p_mode: mode as 'light' | 'dark',
+        });
 
-        if (chatErr) throw chatErr;
+        if (acceptError) throw acceptError;
 
-        if (chat) {
-          const { error: e1 } = await supabase
-            .from('chat_participants')
-            .insert({ chat_id: chat.id, user_id: user.id });
-          if (e1) throw e1;
+        toast.success('Request accepted! Chat created.');
+        setIncoming(prev => prev.filter(r => r.id !== requestId));
 
-          const { error: e2 } = await supabase
-            .from('chat_participants')
-            .insert({ chat_id: chat.id, user_id: req.sender_id });
-          if (e2) throw e2;
+        if (chatId) {
+          await loadChats();
         }
+      } else {
+        const { error } = await supabase
+          .from('chat_requests')
+          .update({ status: 'declined' })
+          .eq('id', requestId);
+
+        if (error) throw error;
+
+        toast.success('Request declined.');
+        setIncoming(prev => prev.filter(r => r.id !== requestId));
       }
-
-      await supabase
-        .from('chat_requests')
-        .update({ status: accept ? 'accepted' : 'declined' })
-        .eq('id', requestId);
-
-      toast.success(accept ? 'Request accepted! Chat created.' : 'Request declined.');
-      setIncoming(prev => prev.filter(r => r.id !== requestId));
-      if (accept) await loadChats();
     } catch (err: any) {
       toast.error('Something went wrong: ' + (err.message || 'Unknown error'));
     }
+
     setActionId(null);
   };
 
