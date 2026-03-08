@@ -260,11 +260,19 @@ export type Database = {
         }
         Returns: string
       }
+      find_random_user: {
+        Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
+        Returns: string
+      }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
+      }
+      start_random_chat: {
+        Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
+        Returns: string
       }
     }
     Enums: {
