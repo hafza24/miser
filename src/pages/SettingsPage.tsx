@@ -1,0 +1,190 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMode } from '@/contexts/ModeContext';
+import { supabase } from '@/integrations/supabase/client';
+import AppLayout from '@/components/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Sun, Moon, Trash2, Shield } from 'lucide-react';
+import { toast } from 'sonner';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+const SettingsPage = () => {
+  const { user, profile, signOut, refreshProfile } = useAuth();
+  const { mode, setMode } = useMode();
+  const navigate = useNavigate();
+  const [showAgeVerify, setShowAgeVerify] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
+
+  const handleModeSwitch = async (newMode: 'light' | 'dark') => {
+    if (newMode === 'dark' && !profile?.age_verified) {
+      setShowAgeVerify(true);
+      return;
+    }
+    setMode(newMode);
+    if (user) {
+      await supabase.from('profiles').update({ mode_preference: newMode }).eq('user_id', user.id);
+      await refreshProfile();
+    }
+  };
+
+  const confirmAgeAndSwitch = async () => {
+    if (!ageConfirmed || !consentConfirmed) {
+      toast.error('Please confirm both checkboxes');
+      return;
+    }
+    if (user) {
+      await supabase.from('profiles').update({ age_verified: true, mode_preference: 'dark' }).eq('user_id', user.id);
+      await refreshProfile();
+    }
+    setMode('dark');
+    setShowAgeVerify(false);
+    toast.success('Welcome to Dark Mode');
+  };
+
+  const handleDeleteAccount = async () => {
+    // Delete profile (cascade will handle related data)
+    if (user) {
+      await supabase.from('profiles').delete().eq('user_id', user.id);
+    }
+    await signOut();
+    toast.success('Account data deleted');
+    navigate('/');
+  };
+
+  return (
+    <AppLayout>
+      <div className="p-4 space-y-6 animate-fade-in">
+        <h2 className="font-heading text-2xl font-bold text-foreground">Settings</h2>
+
+        {/* Mode switch */}
+        <div className="bg-card rounded-2xl p-6 shadow-card space-y-4">
+          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+            {mode === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            Experience Mode
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground">
+                {mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {mode === 'light' ? 'Emotional support & friendship' : '18+ romantic connections'}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleModeSwitch(mode === 'light' ? 'dark' : 'light')}
+            >
+              Switch to {mode === 'light' ? '🌑 Dark' : '🌞 Light'}
+            </Button>
+          </div>
+        </div>
+
+        {/* Privacy */}
+        <div className="bg-card rounded-2xl p-6 shadow-card space-y-3">
+          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Privacy
+          </h3>
+          <ul className="text-sm text-muted-foreground space-y-2">
+            <li>✅ Anonymous username & emoji avatar</li>
+            <li>✅ No public profile browsing</li>
+            <li>✅ Messages encrypted in database</li>
+            <li>✅ Self-destruct chat support</li>
+          </ul>
+        </div>
+
+        {/* Delete account */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <h3 className="font-heading font-semibold text-destructive flex items-center gap-2 mb-3">
+            <Trash2 className="h-5 w-5" />
+            Danger Zone
+          </h3>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full">Delete Account</Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will permanently delete your profile, chats, and all data. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteAccount}>Delete Everything</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      </div>
+
+      {/* Age verification dialog */}
+      <Dialog open={showAgeVerify} onOpenChange={setShowAgeVerify}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-heading">🌑 Dark Mode — Age Verification</DialogTitle>
+            <DialogDescription>
+              Dark Mode contains 18+ content. You must verify your age and consent to continue.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="age"
+                checked={ageConfirmed}
+                onCheckedChange={(c) => setAgeConfirmed(c === true)}
+              />
+              <Label htmlFor="age" className="text-sm">
+                I confirm I am 18 years of age or older
+              </Label>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="consent"
+                checked={consentConfirmed}
+                onCheckedChange={(c) => setConsentConfirmed(c === true)}
+              />
+              <Label htmlFor="consent" className="text-sm">
+                I consent to view and participate in 18+ content. All interactions must remain legal and consensual.
+              </Label>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAgeVerify(false)}>Cancel</Button>
+            <Button onClick={confirmAgeAndSwitch} disabled={!ageConfirmed || !consentConfirmed}>
+              Enter Dark Mode
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AppLayout>
+  );
+};
+
+export default SettingsPage;

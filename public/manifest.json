@@ -1,0 +1,17 @@
+{
+  "name": "MrsMrB",
+  "short_name": "MrsMrB",
+  "description": "One Brand. Two Modes. Your Choice. Anonymous emotional & romantic connection.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9f6f4",
+  "theme_color": "#d46b8c",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
