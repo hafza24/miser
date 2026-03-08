@@ -4,11 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => localStorage.getItem('mrsmrb_saved_email') || '');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(() => !!localStorage.getItem('mrsmrb_saved_email'));
   const [loading, setLoading] = useState(false);
   const { signIn } = useAuth();
   const navigate = useNavigate();
@@ -22,6 +24,11 @@ const LoginPage = () => {
     if (error) {
       toast.error(error.message || 'Login failed');
     } else {
+      if (rememberMe) {
+        localStorage.setItem('mrsmrb_saved_email', email.trim());
+      } else {
+        localStorage.removeItem('mrsmrb_saved_email');
+      }
       navigate('/mode-select');
     }
   };
@@ -58,6 +65,15 @@ const LoginPage = () => {
               required
               minLength={6}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+            />
+            <Label htmlFor="rememberMe" className="text-sm cursor-pointer">Remember Me</Label>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

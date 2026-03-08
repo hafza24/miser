@@ -4,12 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
@@ -30,6 +32,9 @@ const RegisterPage = () => {
     if (error) {
       toast.error(error.message || 'Registration failed');
     } else {
+      if (rememberMe) {
+        localStorage.setItem('mrsmrb_saved_email', email.trim());
+      }
       toast.success('Check your email for a verification link!');
       navigate('/login');
     }
@@ -79,6 +84,15 @@ const RegisterPage = () => {
               required
               minLength={6}
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="rememberMe"
+              checked={rememberMe}
+              onCheckedChange={(checked) => setRememberMe(checked === true)}
+            />
+            <Label htmlFor="rememberMe" className="text-sm cursor-pointer">Remember Me</Label>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
