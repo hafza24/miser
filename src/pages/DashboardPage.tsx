@@ -278,7 +278,27 @@ const DashboardPage = () => {
     return new Date(chat.expires_at).getTime() <= Date.now();
   };
 
-  const activeChats = chats.filter(c => !isChatExpired(c));
+  // ─── Surprise Me (random chat) ───
+  const handleSurpriseMe = async () => {
+    setSurpriseLoading(true);
+    try {
+      const { data: chatId, error } = await supabase.rpc('start_random_chat', {
+        p_mode: mode as 'light' | 'dark',
+      });
+      if (error) throw error;
+      if (chatId) {
+        toast.success('Matched! Opening chat...');
+        navigate(`/chat/${chatId}`);
+      } else {
+        toast.info('No one available right now. Try again later!');
+      }
+    } catch (err: any) {
+      toast.error('Something went wrong: ' + (err.message || 'Unknown error'));
+    }
+    setSurpriseLoading(false);
+  };
+
+  const activeChats = chats.filter(c => c.mode === mode && !isChatExpired(c));
 
   return (
     <AppLayout>
