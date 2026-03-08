@@ -73,21 +73,27 @@ export type Database = {
       chats: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           is_group: boolean
           mode: Database["public"]["Enums"]["mode_preference"]
+          timer_stopped: boolean
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_group?: boolean
           mode?: Database["public"]["Enums"]["mode_preference"]
+          timer_stopped?: boolean
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_group?: boolean
           mode?: Database["public"]["Enums"]["mode_preference"]
+          timer_stopped?: boolean
         }
         Relationships: []
       }
@@ -209,6 +215,38 @@ export type Database = {
           violation_count?: number
         }
         Relationships: []
+      }
+      timer_stop_requests: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timer_stop_requests_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
