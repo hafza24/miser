@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Send, Check, Clock } from 'lucide-react';
+import { Search, Send, Check, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface BrowseProfile {
@@ -19,19 +19,26 @@ interface BrowseProfile {
   availability: string | null;
 }
 
+type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
+
+interface RequestInfo {
+  id: string;
+  status: RequestStatus;
+}
+
 const BrowseProfilesPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
-  const [sendingTo, setSendingTo] = useState<string | null>(null);
+  const [requestMap, setRequestMap] = useState<Record<string, RequestInfo>>({});
+  const [actionId, setActionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     loadProfiles();
-    loadSentRequests();
+    loadMyRequests();
   }, [user]);
 
   const loadProfiles = async () => {
@@ -46,34 +53,67 @@ const BrowseProfilesPage = () => {
     setLoading(false);
   };
 
-  const loadSentRequests = async () => {
+  const loadMyRequests = async () => {
     if (!user) return;
     const { data } = await supabase
       .from('chat_requests')
-      .select('receiver_id, status')
+      .select('id, receiver_id, status')
       .eq('sender_id', user.id);
+
     if (data) {
-      const pending = new Set(data.filter(r => r.status === 'pending' || r.status === 'accepted').map(r => r.receiver_id));
-      setSentRequests(pending);
+      const map: Record<string, RequestInfo> = {};
+      data.forEach(r => {
+        map[r.receiver_id] = { id: r.id, status: r.status as RequestStatus };
+      });
+      setRequestMap(map);
     }
   };
 
   const sendRequest = async (receiverId: string) => {
     if (!user) return;
-    setSendingTo(receiverId);
-    const { error } = await supabase
+    setActionId(receiverId);
+    const { data, error } = await supabase
       .from('chat_requests')
-      .insert({ sender_id: user.id, receiver_id: receiverId });
-    setSendingTo(null);
+      .insert({ sender_id: user.id, receiver_id: receiverId })
+      .select('id')
+      .single();
+
+    setActionId(null);
     if (error) {
       if (error.code === '23505') {
         toast.info('Request already sent');
       } else {
         toast.error('Failed to send request');
       }
-    } else {
-      setSentRequests(prev => new Set([...prev, receiverId]));
+    } else if (data) {
+      setRequestMap(prev => ({
+        ...prev,
+        [receiverId]: { id: data.id, status: 'pending' },
+      }));
       toast.success('Chat request sent!');
+    }
+  };
+
+  const cancelRequest = async (receiverId: string) => {
+    const info = requestMap[receiverId];
+    if (!info) return;
+    setActionId(receiverId);
+
+    const { error } = await supabase
+      .from('chat_requests')
+      .delete()
+      .eq('id', info.id);
+
+    setActionId(null);
+    if (error) {
+      toast.error('Failed to cancel');
+    } else {
+      setRequestMap(prev => {
+        const next = { ...prev };
+        delete next[receiverId];
+        return next;
+      });
+      toast.success('Request cancelled');
     }
   };
 
@@ -88,6 +128,69 @@ const BrowseProfilesPage = () => {
     );
   });
 
+  const renderRequestButton = (profile: BrowseProfile) => {
+    const info = requestMap[profile.user_id];
+    const status: RequestStatus = info?.status as RequestStatus || 'none';
+    const isActing = actionId === profile.user_id;
+
+    if (status === 'accepted') {
+      return (
+        <Button size="sm" variant="secondary" disabled className="flex-shrink-0 gap-1.5">
+          <Check className="h-3.5 w-3.5" />
+          Connected
+        </Button>
+      );
+    }
+
+    if (status === 'pending') {
+      return (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isActing}
+          onClick={() => cancelRequest(profile.user_id)}
+          className="flex-shrink-0 gap-1.5 text-muted-foreground"
+        >
+          <Clock className="h-3.5 w-3.5" />
+          Pending
+          <X className="h-3 w-3 ml-0.5" />
+        </Button>
+      );
+    }
+
+    if (status === 'declined') {
+      return (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={isActing}
+          onClick={() => cancelRequest(profile.user_id)}
+          className="flex-shrink-0 gap-1.5 text-destructive"
+        >
+          <X className="h-3.5 w-3.5" />
+          Declined
+        </Button>
+      );
+    }
+
+    return (
+      <Button
+        size="sm"
+        variant="default"
+        disabled={isActing}
+        onClick={() => sendRequest(profile.user_id)}
+        className="flex-shrink-0 gap-1.5"
+      >
+        {isActing ? (
+          <Clock className="h-3.5 w-3.5 animate-spin" />
+        ) : (
+          <Send className="h-3.5 w-3.5" />
+        )}
+        {isActing ? 'Sending' : 'Chat'}
+      </Button>
+    );
+  };
+
   return (
     <AppLayout>
       <div className="p-4">
@@ -98,7 +201,6 @@ const BrowseProfilesPage = () => {
           <p className="text-sm text-muted-foreground">Browse anonymous profiles and send chat requests</p>
         </div>
 
-        {/* Search */}
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -110,7 +212,6 @@ const BrowseProfilesPage = () => {
           />
         </div>
 
-        {/* Profiles grid */}
         {loading ? (
           <div className="flex items-center justify-center py-20 text-muted-foreground">Loading profiles...</div>
         ) : filtered.length === 0 ? (
@@ -120,72 +221,46 @@ const BrowseProfilesPage = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {filtered.map((p) => {
-              const alreadySent = sentRequests.has(p.user_id);
-              return (
-                <div
-                  key={p.user_id}
-                  className="flex items-start gap-3 p-4 rounded-xl bg-card shadow-card border border-border"
-                >
-                  <div className="text-3xl flex-shrink-0">{p.emoji_avatar}</div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
-                    {p.bio && (
-                      <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{p.bio}</p>
+            {filtered.map((p) => (
+              <div
+                key={p.user_id}
+                className="flex items-start gap-3 p-4 rounded-xl bg-card shadow-card border border-border"
+              >
+                <div className="text-3xl flex-shrink-0">{p.emoji_avatar}</div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
+                  {p.bio && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{p.bio}</p>
+                  )}
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {p.mood_preference && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                        {p.mood_preference}
+                      </span>
                     )}
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {p.mood_preference && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                          {p.mood_preference}
-                        </span>
-                      )}
-                      {p.region && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                          📍 {p.region}
-                        </span>
-                      )}
-                      {p.availability && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                          🕐 {p.availability}
-                        </span>
-                      )}
-                      {p.interests?.slice(0, 3).map((interest) => (
-                        <span
-                          key={interest}
-                          className="text-xs px-2 py-0.5 rounded-full bg-accent text-accent-foreground"
-                        >
-                          {interest}
-                        </span>
-                      ))}
-                    </div>
+                    {p.region && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                        📍 {p.region}
+                      </span>
+                    )}
+                    {p.availability && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                        🕐 {p.availability}
+                      </span>
+                    )}
+                    {p.interests?.slice(0, 3).map((interest) => (
+                      <span
+                        key={interest}
+                        className="text-xs px-2 py-0.5 rounded-full bg-accent text-accent-foreground"
+                      >
+                        {interest}
+                      </span>
+                    ))}
                   </div>
-                  <Button
-                    size="sm"
-                    variant={alreadySent ? 'secondary' : 'default'}
-                    disabled={alreadySent || sendingTo === p.user_id}
-                    onClick={() => sendRequest(p.user_id)}
-                    className="flex-shrink-0 gap-1.5"
-                  >
-                    {alreadySent ? (
-                      <>
-                        <Check className="h-3.5 w-3.5" />
-                        Sent
-                      </>
-                    ) : sendingTo === p.user_id ? (
-                      <>
-                        <Clock className="h-3.5 w-3.5 animate-spin" />
-                        Sending
-                      </>
-                    ) : (
-                      <>
-                        <Send className="h-3.5 w-3.5" />
-                        Chat
-                      </>
-                    )}
-                  </Button>
                 </div>
-              );
-            })}
+                {renderRequestButton(p)}
+              </div>
+            ))}
           </div>
         )}
       </div>

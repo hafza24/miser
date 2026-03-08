@@ -39,25 +39,34 @@ const ChatPage = () => {
   const [otherUser, setOtherUser] = useState<{ alias: string; emoji_avatar: string } | null>(null);
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
   const [expired, setExpired] = useState(false);
+  const [loadingChat, setLoadingChat] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!chatId || !user) return;
 
-    loadChatInfo();
-    loadMessages();
-    loadOtherUser();
+    const init = async () => {
+      setLoadingChat(true);
+      await Promise.all([loadChatInfo(), loadMessages(), loadOtherUser()]);
+      setLoadingChat(false);
+    };
+    init();
 
     // Realtime messages
     const msgChannel = supabase
-      .channel(`chat-${chatId}`)
+      .channel(`chat-msg-${chatId}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
-        setMessages(prev => [...prev, payload.new as Message]);
+        const newMsg = payload.new as Message;
+        setMessages(prev => {
+          // Avoid duplicates
+          if (prev.some(m => m.id === newMsg.id)) return prev;
+          return [...prev, newMsg];
+        });
       })
       .subscribe();
 
@@ -71,7 +80,11 @@ const ChatPage = () => {
         filter: `id=eq.${chatId}`,
       }, (payload) => {
         const updated = payload.new as any;
-        setChatInfo(prev => prev ? { ...prev, timer_stopped: updated.timer_stopped, expires_at: updated.expires_at } : prev);
+        setChatInfo(prev => prev ? {
+          ...prev,
+          timer_stopped: updated.timer_stopped ?? prev.timer_stopped,
+          expires_at: updated.expires_at ?? prev.expires_at,
+        } : prev);
       })
       .subscribe();
 
@@ -87,7 +100,10 @@ const ChatPage = () => {
 
   // Check expiry
   useEffect(() => {
-    if (!chatInfo || chatInfo.timer_stopped || !chatInfo.expires_at) return;
+    if (!chatInfo || chatInfo.timer_stopped || !chatInfo.expires_at) {
+      setExpired(false);
+      return;
+    }
     const check = () => {
       if (new Date(chatInfo.expires_at!).getTime() <= Date.now()) {
         setExpired(true);
@@ -99,29 +115,32 @@ const ChatPage = () => {
   }, [chatInfo]);
 
   const loadChatInfo = async () => {
+    if (!chatId) return;
     const { data } = await supabase
       .from('chats')
       .select('id, expires_at, timer_stopped')
-      .eq('id', chatId!)
+      .eq('id', chatId)
       .single();
     if (data) setChatInfo(data as any);
   };
 
   const loadMessages = async () => {
+    if (!chatId) return;
     const { data } = await supabase
       .from('messages')
       .select('*')
-      .eq('chat_id', chatId!)
+      .eq('chat_id', chatId)
       .order('created_at', { ascending: true });
     if (data) setMessages(data as Message[]);
   };
 
   const loadOtherUser = async () => {
+    if (!chatId || !user) return;
     const { data: parts } = await supabase
       .from('chat_participants')
       .select('user_id')
-      .eq('chat_id', chatId!);
-    const otherId = parts?.find(p => p.user_id !== user!.id)?.user_id;
+      .eq('chat_id', chatId);
+    const otherId = parts?.find(p => p.user_id !== user.id)?.user_id;
     if (otherId) {
       const { data: prof } = await supabase
         .from('profiles')
@@ -155,9 +174,13 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
-  const addEmoji = (emoji: string) => {
-    setNewMessage(prev => prev + emoji);
-  };
+  if (loadingChat) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+        Loading chat...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -194,22 +217,22 @@ const ChatPage = () => {
             <div className="text-6xl mb-4">⏰</div>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Chat Expired</h3>
             <p className="text-muted-foreground text-sm mb-6">
-              This 24-hour chat has ended. The conversation will be deleted.
+              This 24-hour chat has ended.
             </p>
             <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
           </div>
         </div>
       )}
 
-      {/* Messages */}
+      {/* Messages area */}
       {(!expired || chatInfo?.timer_stopped) && (
         <>
           <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
-            {/* System message about timer */}
+            {/* System message */}
             <div className="flex justify-center mb-4">
               <div className="bg-muted/50 text-muted-foreground text-xs px-4 py-2 rounded-full text-center max-w-xs">
                 {chatInfo?.timer_stopped
-                  ? '✅ Timer stopped — this chat is now permanent'
+                  ? '✅ Timer stopped — this chat is permanent'
                   : '⏳ This chat expires in 24 hours. Click the timer to request making it permanent.'}
               </div>
             </div>
@@ -245,7 +268,7 @@ const ChatPage = () => {
                 {EMOJI_LIST.map(emoji => (
                   <button
                     key={emoji}
-                    onClick={() => addEmoji(emoji)}
+                    onClick={() => setNewMessage(prev => prev + emoji)}
                     className="text-2xl hover:scale-125 transition-transform"
                   >
                     {emoji}
