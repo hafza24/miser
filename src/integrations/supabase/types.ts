@@ -217,6 +217,10 @@ export type Database = {
     Functions: {
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      is_chat_participant: {
+        Args: { _chat_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       mode_preference: "light" | "dark"
