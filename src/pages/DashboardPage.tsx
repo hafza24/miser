@@ -135,9 +135,10 @@ const DashboardPage = () => {
 
     if (accept && req) {
       // Create chat and add both participants
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       const { data: chat, error: chatErr } = await supabase
         .from('chats')
-        .insert({ mode: mode as 'light' | 'dark' })
+        .insert({ mode: mode as 'light' | 'dark', expires_at: expiresAt } as any)
         .select()
         .single();
 
