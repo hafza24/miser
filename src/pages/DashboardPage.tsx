@@ -5,7 +5,7 @@ import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, MessageCircle, Check, X, Inbox } from 'lucide-react';
+import { Plus, Users, MessageCircle, Check, X, Inbox, SendHorizontal, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ChatItem {
@@ -26,12 +26,22 @@ interface ChatRequest {
   sender_emoji?: string;
 }
 
+interface SentRequest {
+  id: string;
+  receiver_id: string;
+  status: string;
+  created_at: string;
+  receiver_alias?: string;
+  receiver_emoji?: string;
+}
+
 const DashboardPage = () => {
   const { user, profile } = useAuth();
   const { mode } = useMode();
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [requests, setRequests] = useState<ChatRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<SentRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
@@ -39,6 +49,7 @@ const DashboardPage = () => {
     if (!user) return;
     loadChats();
     loadRequests();
+    loadSentRequests();
   }, [user]);
 
   const loadChats = async () => {
@@ -125,6 +136,36 @@ const DashboardPage = () => {
         };
       });
       setRequests(enriched);
+    }
+  };
+
+  const loadSentRequests = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('chat_requests')
+      .select('id, receiver_id, status, created_at')
+      .eq('sender_id', user.id)
+      .in('status', ['pending', 'declined'])
+      .order('created_at', { ascending: false });
+
+    if (data && data.length > 0) {
+      const receiverIds = data.map(r => r.receiver_id);
+      const { data: receiverProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, alias, emoji_avatar')
+        .in('user_id', receiverIds);
+
+      const enriched = data.map(r => {
+        const rp = receiverProfiles?.find(p => p.user_id === r.receiver_id);
+        return {
+          ...r,
+          receiver_alias: rp?.alias || 'Anonymous',
+          receiver_emoji: rp?.emoji_avatar || '💫',
+        };
+      });
+      setSentRequests(enriched);
+    } else {
+      setSentRequests([]);
     }
   };
 
@@ -223,7 +264,40 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Mood chips for light mode */}
+        {/* Sent Requests */}
+        {sentRequests.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <SendHorizontal className="h-4 w-4" />
+              Sent Requests ({sentRequests.length})
+            </h3>
+            <div className="space-y-2">
+              {sentRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border"
+                >
+                  <div className="text-2xl">{req.receiver_emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground">{req.receiver_alias}</span>
+                    <p className="text-xs text-muted-foreground">
+                      {req.status === 'pending' ? 'Waiting for response...' : 'Request declined'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {req.status === 'pending' ? (
+                      <Clock className="h-3.5 w-3.5 animate-pulse text-primary" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    )}
+                    <span>{req.status === 'pending' ? 'Pending' : 'Declined'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {mode === 'light' && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {['💛 Emotional Support', '🤝 Friendship', '💕 Cute Love'].map(mood => (
