@@ -131,7 +131,7 @@ const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId }: ChatTimer
   if (timerStopped) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-        <Check className="h-3 w-3 text-green-500" />
+        <Check className="h-3 w-3 text-primary" />
         <span>Permanent chat</span>
       </div>
     );
