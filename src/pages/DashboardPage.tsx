@@ -5,7 +5,7 @@ import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, MessageCircle, Check, X, Inbox } from 'lucide-react';
+import { Plus, Users, MessageCircle, Check, X, Inbox, SendHorizontal, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ChatItem {
