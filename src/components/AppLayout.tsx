@@ -13,6 +13,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
   const navItems = [
     { path: '/dashboard', icon: MessageCircle, label: 'Chats' },
+    { path: '/browse', icon: Search, label: 'Browse' },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
