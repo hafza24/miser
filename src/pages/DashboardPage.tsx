@@ -264,7 +264,40 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Mood chips for light mode */}
+        {/* Sent Requests */}
+        {sentRequests.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <SendHorizontal className="h-4 w-4" />
+              Sent Requests ({sentRequests.length})
+            </h3>
+            <div className="space-y-2">
+              {sentRequests.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-muted/40 border border-border"
+                >
+                  <div className="text-2xl">{req.receiver_emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground">{req.receiver_alias}</span>
+                    <p className="text-xs text-muted-foreground">
+                      {req.status === 'pending' ? 'Waiting for response...' : 'Request declined'}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    {req.status === 'pending' ? (
+                      <Clock className="h-3.5 w-3.5 animate-pulse text-primary" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-destructive" />
+                    )}
+                    <span>{req.status === 'pending' ? 'Pending' : 'Declined'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {mode === 'light' && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {['💛 Emotional Support', '🤝 Friendship', '💕 Cute Love'].map(mood => (
