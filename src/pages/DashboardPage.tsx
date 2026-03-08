@@ -192,11 +192,14 @@ const DashboardPage = () => {
   // ─── Load sent requests ───
   const loadSent = async () => {
     if (!user) return;
+    const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const { data } = await supabase
       .from('chat_requests')
       .select('id, receiver_id, status, created_at')
       .eq('sender_id', user.id)
       .in('status', ['pending', 'declined'])
+      .gte('created_at', cutoff)
       .order('created_at', { ascending: false });
 
     if (!data?.length) { setSent([]); return; }
