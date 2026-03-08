@@ -142,10 +142,9 @@ const DashboardPage = () => {
         .single();
 
       if (chat && !chatErr) {
-        await supabase.from('chat_participants').insert([
-          { chat_id: chat.id, user_id: user.id },
-          { chat_id: chat.id, user_id: req.sender_id },
-        ]);
+        // Insert current user first, then the other user (sequential for RLS)
+        await supabase.from('chat_participants').insert({ chat_id: chat.id, user_id: user.id });
+        await supabase.from('chat_participants').insert({ chat_id: chat.id, user_id: req.sender_id });
       }
     }
 
