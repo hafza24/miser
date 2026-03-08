@@ -200,7 +200,7 @@ const ChatPage = () => {
     } catch (err: any) {
       toast.error('Failed to end chat: ' + (err.message || 'Unknown error'));
     }
-  
+  };
 
   if (loadingChat) {
     return (
