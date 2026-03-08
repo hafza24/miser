@@ -5,7 +5,7 @@ import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, MessageCircle } from 'lucide-react';
+import { Plus, Users, MessageCircle, Check, X, Inbox } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ChatItem {
@@ -17,16 +17,28 @@ interface ChatItem {
   participants: { alias: string; emoji_avatar: string }[];
 }
 
+interface ChatRequest {
+  id: string;
+  sender_id: string;
+  status: string;
+  created_at: string;
+  sender_alias?: string;
+  sender_emoji?: string;
+}
+
 const DashboardPage = () => {
   const { user, profile } = useAuth();
   const { mode } = useMode();
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatItem[]>([]);
+  const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [respondingTo, setRespondingTo] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     loadChats();
+    loadRequests();
   }, [user]);
 
   const loadChats = async () => {
@@ -88,10 +100,64 @@ const DashboardPage = () => {
     setLoading(false);
   };
 
-  const startNewChat = async () => {
-    // For the prototype, create a solo chat placeholder
-    toast.info('Looking for someone to connect with...');
-    // In production, this would match with another user
+  const loadRequests = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('chat_requests')
+      .select('id, sender_id, status, created_at')
+      .eq('receiver_id', user.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (data && data.length > 0) {
+      const senderIds = data.map(r => r.sender_id);
+      const { data: senderProfiles } = await supabase
+        .from('profiles')
+        .select('user_id, alias, emoji_avatar')
+        .in('user_id', senderIds);
+
+      const enriched = data.map(r => {
+        const sp = senderProfiles?.find(p => p.user_id === r.sender_id);
+        return {
+          ...r,
+          sender_alias: sp?.alias || 'Anonymous',
+          sender_emoji: sp?.emoji_avatar || '💫',
+        };
+      });
+      setRequests(enriched);
+    }
+  };
+
+  const respondToRequest = async (requestId: string, accept: boolean) => {
+    if (!user) return;
+    setRespondingTo(requestId);
+    const req = requests.find(r => r.id === requestId);
+
+    if (accept && req) {
+      // Create chat and add both participants
+      const { data: chat, error: chatErr } = await supabase
+        .from('chats')
+        .insert({ mode: mode as 'light' | 'dark' })
+        .select()
+        .single();
+
+      if (chat && !chatErr) {
+        await supabase.from('chat_participants').insert([
+          { chat_id: chat.id, user_id: user.id },
+          { chat_id: chat.id, user_id: req.sender_id },
+        ]);
+      }
+    }
+
+    await supabase
+      .from('chat_requests')
+      .update({ status: accept ? 'accepted' : 'declined' })
+      .eq('id', requestId);
+
+    setRespondingTo(null);
+    setRequests(prev => prev.filter(r => r.id !== requestId));
+    toast.success(accept ? 'Request accepted! Chat created.' : 'Request declined.');
+    if (accept) loadChats();
   };
 
   return (
@@ -107,11 +173,55 @@ const DashboardPage = () => {
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <Button onClick={startNewChat} size="sm" className="gap-2">
+          <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
-            New Chat
+            Find People
           </Button>
         </div>
+
+        {/* Incoming Requests */}
+        {requests.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Inbox className="h-4 w-4" />
+              Chat Requests ({requests.length})
+            </h3>
+            <div className="space-y-2">
+              {requests.map((req) => (
+                <div
+                  key={req.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border"
+                >
+                  <div className="text-2xl">{req.sender_emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground">{req.sender_alias}</span>
+                    <p className="text-xs text-muted-foreground">wants to chat with you</p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="icon"
+                      variant="default"
+                      className="h-8 w-8"
+                      disabled={respondingTo === req.id}
+                      onClick={() => respondToRequest(req.id, true)}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      disabled={respondingTo === req.id}
+                      onClick={() => respondToRequest(req.id, false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Mood chips for light mode */}
         {mode === 'light' && (
@@ -153,11 +263,11 @@ const DashboardPage = () => {
               No conversations yet
             </h3>
             <p className="text-muted-foreground text-sm mb-6">
-              Start a new chat to connect anonymously
+              Browse profiles and send chat requests to connect
             </p>
-            <Button onClick={startNewChat} className="gap-2">
+            <Button onClick={() => navigate('/browse')} className="gap-2">
               <Plus className="h-4 w-4" />
-              Start Chatting
+              Find People
             </Button>
           </div>
         ) : (
