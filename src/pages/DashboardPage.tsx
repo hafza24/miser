@@ -62,6 +62,45 @@ const DashboardPage = () => {
     reload();
   }, [user, reload]);
 
+  useEffect(() => {
+    if (!user) return;
+
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    const scheduleReload = () => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        void reload();
+      }, 200);
+    };
+
+    const channel = supabase
+      .channel(`dashboard-live-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_requests',
+        filter: `receiver_id=eq.${user.id}`,
+      }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_requests',
+        filter: `sender_id=eq.${user.id}`,
+      }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `user_id=eq.${user.id}`,
+      }, scheduleReload)
+      .subscribe();
+
+    return () => {
+      if (timeout) clearTimeout(timeout);
+      supabase.removeChannel(channel);
+    };
+  }, [user, reload]);
+
   // ─── Load chats ───
   const loadChats = async () => {
     if (!user) return;
