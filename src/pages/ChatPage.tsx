@@ -6,9 +6,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface Message {
   id: string;
@@ -174,6 +185,23 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
+  const handleEndChat = async () => {
+    if (!chatId || !user) return;
+    try {
+      // Remove current user from participants (leave the chat)
+      const { error } = await supabase
+        .from('chat_participants')
+        .delete()
+        .eq('chat_id', chatId)
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast.success('You left the chat.');
+      navigate('/dashboard');
+    } catch (err: any) {
+      toast.error('Failed to end chat: ' + (err.message || 'Unknown error'));
+    }
+  };
+
   if (loadingChat) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
@@ -207,6 +235,27 @@ const ChatPage = () => {
               currentUserId={user.id}
             />
           )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10">
+                <LogOut className="h-5 w-5" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>End this chat?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  You will leave this conversation and it will be removed from your chat list. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleEndChat} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  End Chat
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </header>
 
