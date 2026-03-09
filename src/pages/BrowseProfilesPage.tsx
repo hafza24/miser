@@ -64,7 +64,7 @@ const BrowseProfilesPage = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story')
+      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at')
       .neq('user_id', user.id)
       .eq('is_suspended', false)
       .limit(50);
