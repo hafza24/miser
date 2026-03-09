@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Sun, Moon, Trash2, Shield, Volume2, BellRing } from 'lucide-react';
+import BlockedUsersList from '@/components/settings/BlockedUsersList';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
 import {
@@ -151,6 +152,9 @@ const SettingsPage = () => {
             <li>✅ Self-destruct chat support</li>
           </ul>
         </div>
+
+        {/* Blocked users */}
+        <BlockedUsersList />
 
         {/* Delete account */}
         <div className="bg-card rounded-2xl p-6 shadow-card">
