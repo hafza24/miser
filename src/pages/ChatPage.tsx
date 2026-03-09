@@ -196,13 +196,13 @@ const ChatPage = () => {
   };
 
   const loadOtherUser = async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     const { data: parts } = await supabase
       .from('chat_participants')
       .select('user_id, last_read_at')
       .eq('chat_id', chatId);
     
-    const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
+    const otherParticipants = parts?.filter(p => p.user_id !== userId) || [];
     if (otherParticipants.length === 0) {
       setOtherUserId(null);
       setChatEnded(true);
