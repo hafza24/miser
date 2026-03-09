@@ -137,6 +137,43 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Emoji Picker */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label className="mb-2 block">Choose Your Emoji Avatar</Label>
+          <div className="flex flex-wrap gap-2">
+            {EMOJI_OPTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => setEmojiAvatar(emoji)}
+                className={`text-2xl p-2 rounded-xl transition-all ${
+                  emojiAvatar === emoji
+                    ? 'bg-primary/20 ring-2 ring-primary scale-110'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Gender */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label>Gender</Label>
+          <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— None —</SelectItem>
+              {GENDER_OPTIONS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {/* Character Section */}
         <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
           <div className="flex items-center gap-2 mb-2">
