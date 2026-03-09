@@ -122,7 +122,8 @@ const ProfilePage = () => {
             <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
             <OnlineIndicator isOnline={profile.is_online ?? true} size="md" showLabel lastSeenAt={profile.last_seen_at} />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Anonymous identity</p>
+          {gender && <p className="text-sm text-muted-foreground mt-1">{gender}</p>}
+          <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
           </span>
