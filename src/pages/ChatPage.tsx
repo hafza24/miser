@@ -75,7 +75,7 @@ const ChatPage = () => {
   }, [chatId, userId]);
 
   useEffect(() => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
 
     const init = async () => {
       setLoadingChat(true);
@@ -92,13 +92,8 @@ const ChatPage = () => {
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        const newMsg = payload.new as Message;
-        setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
-          return [...prev, newMsg];
-        });
-        // Mark as read when we receive a new message while viewing
+      }, () => {
+        loadMessages();
         markAsRead();
       })
       .subscribe();
@@ -131,7 +126,7 @@ const ChatPage = () => {
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
         const deleted = payload.old as any;
-        if (deleted.user_id !== user.id) {
+        if (deleted.user_id !== userId) {
           setChatEnded(true);
         }
       })
@@ -142,7 +137,7 @@ const ChatPage = () => {
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
         const updated = payload.new as any;
-        if (updated.user_id !== user.id && updated.last_read_at) {
+        if (updated.user_id !== userId && updated.last_read_at) {
           setOtherLastReadAt(updated.last_read_at);
         }
       })
@@ -153,7 +148,7 @@ const ChatPage = () => {
       supabase.removeChannel(chatChannel);
       supabase.removeChannel(participantChannel);
     };
-  }, [chatId, user, markAsRead]);
+  }, [chatId, userId, markAsRead]);
 
   // Mark as read on mount and when messages change
   useEffect(() => {
