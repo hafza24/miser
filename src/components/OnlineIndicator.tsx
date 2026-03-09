@@ -1,10 +1,12 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { formatLastSeen } from '@/lib/timeUtils';
 
 interface OnlineIndicatorProps {
   isOnline: boolean;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
+  lastSeenAt?: string | null;
   className?: string;
 }
 
@@ -14,7 +16,9 @@ const sizeClasses = {
   lg: 'w-3 h-3',
 };
 
-const OnlineIndicator = ({ isOnline, size = 'md', showLabel = false, className }: OnlineIndicatorProps) => {
+const OnlineIndicator = ({ isOnline, size = 'md', showLabel = false, lastSeenAt, className }: OnlineIndicatorProps) => {
+  const displayText = isOnline ? 'Online' : (lastSeenAt ? `Last seen ${formatLastSeen(lastSeenAt)}` : 'Offline');
+  
   return (
     <div className={cn('flex items-center gap-1.5', className)}>
       <span
@@ -31,7 +35,7 @@ const OnlineIndicator = ({ isOnline, size = 'md', showLabel = false, className }
           'text-xs font-medium',
           isOnline ? 'text-green-600' : 'text-muted-foreground'
         )}>
-          {isOnline ? 'Online' : 'Offline'}
+          {displayText}
         </span>
       )}
     </div>
