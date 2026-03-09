@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
@@ -9,6 +9,9 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, Send, Smile, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
+import TypingIndicator from '@/components/chat/TypingIndicator';
+import SeenIndicator from '@/components/chat/SeenIndicator';
+import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,7 +55,20 @@ const ChatPage = () => {
   const [expired, setExpired] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [loadingChat, setLoadingChat] = useState(true);
+  const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, user?.id);
+
+  // Mark messages as read
+  const markAsRead = useCallback(async () => {
+    if (!chatId || !user) return;
+    await supabase
+      .from('chat_participants')
+      .update({ last_read_at: new Date().toISOString() })
+      .eq('chat_id', chatId)
+      .eq('user_id', user.id);
+  }, [chatId, user]);
 
   useEffect(() => {
     if (!chatId || !user) return;
@@ -75,10 +91,11 @@ const ChatPage = () => {
       }, (payload) => {
         const newMsg = payload.new as Message;
         setMessages(prev => {
-          // Avoid duplicates
           if (prev.some(m => m.id === newMsg.id)) return prev;
           return [...prev, newMsg];
         });
+        // Mark as read when we receive a new message while viewing
+        markAsRead();
       })
       .subscribe();
 
@@ -100,7 +117,7 @@ const ChatPage = () => {
       })
       .subscribe();
 
-    // Realtime participant changes (detect when other user leaves)
+    // Realtime participant changes
     const participantChannel = supabase
       .channel(`chat-participants-${chatId}`)
       .on('postgres_changes', {
@@ -114,6 +131,17 @@ const ChatPage = () => {
           setChatEnded(true);
         }
       })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `chat_id=eq.${chatId}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        if (updated.user_id !== user.id && updated.last_read_at) {
+          setOtherLastReadAt(updated.last_read_at);
+        }
+      })
       .subscribe();
 
     return () => {
@@ -121,11 +149,16 @@ const ChatPage = () => {
       supabase.removeChannel(chatChannel);
       supabase.removeChannel(participantChannel);
     };
-  }, [chatId, user]);
+  }, [chatId, user, markAsRead]);
+
+  // Mark as read on mount and when messages change
+  useEffect(() => {
+    if (messages.length > 0) markAsRead();
+  }, [messages.length, markAsRead]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, isOtherTyping]);
 
   // Check expiry
   useEffect(() => {
@@ -167,22 +200,23 @@ const ChatPage = () => {
     if (!chatId || !user) return;
     const { data: parts } = await supabase
       .from('chat_participants')
-      .select('user_id')
+      .select('user_id, last_read_at')
       .eq('chat_id', chatId);
     
-    // Check if chat has ended (only current user or no participants)
     const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
     if (otherParticipants.length === 0) {
       setChatEnded(true);
       return;
     }
 
-    const otherId = otherParticipants[0]?.user_id;
-    if (otherId) {
+    const other = otherParticipants[0];
+    if (other.last_read_at) setOtherLastReadAt(other.last_read_at);
+
+    if (other.user_id) {
       const { data: prof } = await supabase
         .from('profiles')
         .select('alias, emoji_avatar')
-        .eq('user_id', otherId)
+        .eq('user_id', other.user_id)
         .single();
       if (prof) setOtherUser(prof);
     }
@@ -214,7 +248,6 @@ const ChatPage = () => {
   const handleEndChat = async () => {
     if (!chatId || !user) return;
     try {
-      // Remove current user from participants (leave the chat)
       const { error } = await supabase
         .from('chat_participants')
         .delete()
@@ -226,6 +259,11 @@ const ChatPage = () => {
     } catch (err: any) {
       toast.error('Failed to end chat: ' + (err.message || 'Unknown error'));
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    sendTyping();
   };
 
   if (loadingChat) {
@@ -250,7 +288,7 @@ const ChatPage = () => {
               {otherUser?.alias || 'Anonymous'}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+              {isOtherTyping ? 'typing...' : mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
             </span>
           </div>
           {chatInfo && user && (
@@ -327,8 +365,10 @@ const ChatPage = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg) => {
+              {messages.map((msg, idx) => {
                 const isMe = msg.sender_id === user?.id;
+                const isLastOwnMsg = isMe && !messages.slice(idx + 1).some(m => m.sender_id === user?.id);
+                const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 return (
                   <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                     <div
@@ -339,13 +379,17 @@ const ChatPage = () => {
                       }`}
                     >
                       {msg.content}
-                      <div className={`text-[10px] mt-1 ${isMe ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
-                        {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
+                        <span className="text-[10px]">
+                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        {isMe && <SeenIndicator isSeen={isSeen} />}
                       </div>
                     </div>
                   </div>
                 );
               })}
+              {isOtherTyping && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
           </div>
@@ -381,7 +425,7 @@ const ChatPage = () => {
               </Button>
               <Input
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={handleInputChange}
                 placeholder="Type a message..."
                 className="flex-1 rounded-full"
                 maxLength={2000}
