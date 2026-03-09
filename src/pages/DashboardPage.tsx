@@ -9,6 +9,7 @@ import {
   Plus, Users, MessageCircle, Check, X,
   Inbox, SendHorizontal, Clock, Trash2, Sparkles,
 } from 'lucide-react';
+import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { toast } from 'sonner';
 
 interface ChatItem {
