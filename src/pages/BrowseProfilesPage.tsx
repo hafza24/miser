@@ -72,7 +72,6 @@ const BrowseProfilesPage = () => {
       .eq('is_suspended', false)
       .order('is_online', { ascending: false })
       .limit(50);
-      .limit(50);
     setProfiles(data || []);
     setLoading(false);
   };
