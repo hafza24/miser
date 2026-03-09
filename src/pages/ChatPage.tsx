@@ -312,8 +312,20 @@ const ChatPage = () => {
               {otherUser?.alias || 'Anonymous'}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {isOtherTyping ? 'typing...' : mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+              {isOtherTyping ? 'typing...' : chatMode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
             </span>
+          </div>
+          {chatInfo && userId && (
+            <ChatModeSwitch
+              chatId={chatId!}
+              chatMode={chatMode}
+              currentUserId={userId}
+              onModeChanged={(newMode) => {
+                setChatMode(newMode);
+                setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev);
+              }}
+            />
+          )}
           </div>
           {chatInfo && userId && (
             <ChatTimer
