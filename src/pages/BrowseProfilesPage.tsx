@@ -56,7 +56,7 @@ const BrowseProfilesPage = () => {
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [filterCountry, setFilterCountry] = useState('');
   const [filterAvailability, setFilterAvailability] = useState('');
-
+  const [filterGender, setFilterGender] = useState('');
   useEffect(() => {
     if (!user) return;
     loadProfiles();
