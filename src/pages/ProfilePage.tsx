@@ -13,6 +13,10 @@ import { MessageCircle, Sparkles } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
+const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+
+const EMOJI_OPTIONS = ['🙂', '😈', '🐼', '🌙', '🐯', '🦊', '💫', '🦋', '🌸', '🔥', '🌊', '⭐', '🎭', '🦄', '🐺', '😎', '🤖', '👻', '🐱', '🐶', '🦁', '🐸', '🍀', '🌈', '💎', '🎵', '🏆', '🌺', '🍄', '🦉'];
+
 const DAILY_CHAT_LIMIT = 3;
 
 const PERSONALITY_OPTIONS = [
@@ -34,6 +38,8 @@ const ProfilePage = () => {
   const [charDescription, setCharDescription] = useState(profile?.character_description || '');
   const [charPersonality, setCharPersonality] = useState<string[]>(profile?.character_personality || []);
   const [charLifeStory, setCharLifeStory] = useState(profile?.character_life_story || '');
+  const [gender, setGender] = useState(profile?.gender || '');
+  const [emojiAvatar, setEmojiAvatar] = useState(profile?.emoji_avatar || '🙂');
 
   useEffect(() => {
     if (profile) {
@@ -44,6 +50,8 @@ const ProfilePage = () => {
       setCharDescription(profile.character_description || '');
       setCharPersonality(profile.character_personality || []);
       setCharLifeStory(profile.character_life_story || '');
+      setGender(profile.gender || '');
+      setEmojiAvatar(profile.emoji_avatar || '🙂');
     }
   }, [profile]);
 
@@ -81,6 +89,8 @@ const ProfilePage = () => {
         character_description: charDescription.trim() || null,
         character_personality: charPersonality.length > 0 ? charPersonality : [],
         character_life_story: charLifeStory.trim() || null,
+        gender: gender || null,
+        emoji_avatar: emojiAvatar,
       })
       .eq('user_id', profile.user_id);
 
@@ -101,8 +111,8 @@ const ProfilePage = () => {
         {/* Avatar + Alias */}
         <div className="text-center py-8">
           <div className="text-7xl mb-3 relative inline-block">
-            {profile.emoji_avatar}
-            <OnlineIndicator 
+            {emojiAvatar}
+            <OnlineIndicator
               isOnline={profile.is_online ?? true} 
               size="lg" 
               className="absolute -bottom-1 -right-1" 
@@ -112,7 +122,8 @@ const ProfilePage = () => {
             <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
             <OnlineIndicator isOnline={profile.is_online ?? true} size="md" showLabel lastSeenAt={profile.last_seen_at} />
           </div>
-          <p className="text-sm text-muted-foreground mt-1">Anonymous identity</p>
+          {gender && <p className="text-sm text-muted-foreground mt-1">{gender}</p>}
+          <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
           </span>
@@ -124,6 +135,43 @@ const ProfilePage = () => {
                 : 'No chats remaining today'}
             </span>
           </div>
+        </div>
+
+        {/* Emoji Picker */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label className="mb-2 block">Choose Your Emoji Avatar</Label>
+          <div className="flex flex-wrap gap-2">
+            {EMOJI_OPTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                type="button"
+                onClick={() => setEmojiAvatar(emoji)}
+                className={`text-2xl p-2 rounded-xl transition-all ${
+                  emojiAvatar === emoji
+                    ? 'bg-primary/20 ring-2 ring-primary scale-110'
+                    : 'hover:bg-accent'
+                }`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Gender */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label>Gender</Label>
+          <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— None —</SelectItem>
+              {GENDER_OPTIONS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Character Section */}

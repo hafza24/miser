@@ -176,6 +176,7 @@ export type Database = {
           desktop_notifications_enabled: boolean
           email: string | null
           emoji_avatar: string
+          gender: string | null
           id: string
           interests: string[] | null
           is_online: boolean
@@ -202,6 +203,7 @@ export type Database = {
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
+          gender?: string | null
           id?: string
           interests?: string[] | null
           is_online?: boolean
@@ -228,6 +230,7 @@ export type Database = {
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
+          gender?: string | null
           id?: string
           interests?: string[] | null
           is_online?: boolean

@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer } from 'lucide-react';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
+
+const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
 const PERSONALITY_OPTIONS = [
   'Kind', 'Rude', 'Romantic', 'Emotional', 'Friendly',
@@ -33,6 +35,7 @@ interface BrowseProfile {
   character_life_story: string | null;
   is_online: boolean;
   last_seen_at: string | null;
+  gender: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -53,7 +56,7 @@ const BrowseProfilesPage = () => {
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
   const [filterCountry, setFilterCountry] = useState('');
   const [filterAvailability, setFilterAvailability] = useState('');
-
+  const [filterGender, setFilterGender] = useState('');
   useEffect(() => {
     if (!user) return;
     loadProfiles();
@@ -64,9 +67,10 @@ const BrowseProfilesPage = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at')
+      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at, gender')
       .neq('user_id', user.id)
       .eq('is_suspended', false)
+      .order('is_online', { ascending: false })
       .limit(50);
     setProfiles(data || []);
     setLoading(false);
@@ -173,6 +177,11 @@ const BrowseProfilesPage = () => {
       if (p.availability !== filterAvailability) return false;
     }
 
+    // Gender filter
+    if (filterGender) {
+      if (p.gender !== filterGender) return false;
+    }
+
     return true;
   });
 
@@ -260,8 +269,8 @@ const BrowseProfilesPage = () => {
           />
         </div>
 
-        {/* Country & Availability Filters */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Country, Availability & Gender Filters */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div>
             <div className="flex items-center gap-1.5 mb-1">
               <Globe className="h-3.5 w-3.5 text-primary" />
@@ -292,6 +301,23 @@ const BrowseProfilesPage = () => {
                 <SelectItem value="all">Any time</SelectItem>
                 {AVAILABILITY_OPTIONS.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gender</span>
+            </div>
+            <Select value={filterGender || 'all'} onValueChange={(v) => setFilterGender(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {GENDER_OPTIONS.map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
