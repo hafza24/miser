@@ -89,6 +89,8 @@ const ProfilePage = () => {
         character_description: charDescription.trim() || null,
         character_personality: charPersonality.length > 0 ? charPersonality : [],
         character_life_story: charLifeStory.trim() || null,
+        gender: gender || null,
+        emoji_avatar: emojiAvatar,
       })
       .eq('user_id', profile.user_id);
 
