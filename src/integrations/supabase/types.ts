@@ -138,6 +138,41 @@ export type Database = {
           },
         ]
       }
+      mode_switch_requests: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          sender_id: string
+          status: string
+          target_mode: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          sender_id: string
+          status?: string
+          target_mode?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          sender_id?: string
+          status?: string
+          target_mode?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mode_switch_requests_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       moderation_logs: {
         Row: {
           created_at: string
