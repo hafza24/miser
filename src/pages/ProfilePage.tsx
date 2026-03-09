@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { MessageCircle, Sparkles } from 'lucide-react';
+import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
 const DAILY_CHAT_LIMIT = 3;
