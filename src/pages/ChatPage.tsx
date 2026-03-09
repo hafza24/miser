@@ -288,7 +288,38 @@ const ChatPage = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleReport = async () => {
+    if (!userId || !chatId || !reportReason.trim()) return;
+    if (reportReason.trim().length < 5 || reportReason.trim().length > 500) {
+      toast.error('Please provide a reason (5-500 characters)');
+      return;
+    }
+    setReportSending(true);
+    const { data: recentMsgs } = await supabase
+      .from('messages')
+      .select('sender_id, content, created_at')
+      .eq('chat_id', chatId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    const msgContext = (recentMsgs ?? [])
+      .reverse()
+      .map(m => `[${m.sender_id === userId ? 'Me' : otherUser?.alias || 'Other'}] ${m.content}`)
+      .join('\n');
+    const ticketMessage = `**Report against:** ${otherUser?.alias || 'Unknown'} (${otherUser?.emoji_avatar || ''})\n**Chat ID:** ${chatId}\n**Chat Mode:** ${chatMode}\n\n**Reason:**\n${reportReason.trim()}\n\n**Recent messages:**\n${msgContext || '(no messages)'}`;
+    const { error } = await supabase.from('support_tickets').insert({
+      user_id: userId,
+      subject: `Report: ${otherUser?.alias || 'User'} in chat`,
+      message: ticketMessage,
+    } as any);
+    setReportSending(false);
+    if (error) {
+      toast.error('Failed to submit report');
+    } else {
+      toast.success('Report submitted. Our team will review it.');
+      setReportReason('');
+    }
+  };
+
     setNewMessage(e.target.value);
     sendTyping();
   };
