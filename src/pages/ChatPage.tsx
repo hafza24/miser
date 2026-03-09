@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
