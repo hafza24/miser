@@ -88,6 +88,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <AppRoutes />
+            <HelpWidget />
           </TooltipProvider>
         </NotificationProvider>
       </AuthProvider>

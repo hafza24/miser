@@ -12,6 +12,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { path: '/admin/users', icon: Users, label: 'Users' },
     { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
     { path: '/admin/chats', icon: MessagesSquare, label: 'Chats' },
+    { path: '/admin/tickets', icon: Ticket, label: 'Tickets' },
   ];
 
   return (
