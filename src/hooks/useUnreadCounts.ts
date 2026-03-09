@@ -25,7 +25,7 @@ export const playNotificationSound = () => {
   }
 };
 
-const showDesktopNotification = (title: string, body: string) => {
+export const showDesktopNotification = (title: string, body: string) => {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
   if (document.hasFocus()) return; // Don't show if app is focused
   try {
