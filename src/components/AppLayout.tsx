@@ -2,12 +2,14 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { mode, toggleMode } = useMode();
   const { profile, signOut } = useAuth();
+  const { totalUnread } = useUnreadCounts();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +42,19 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <Button
               variant="ghost"
               size="icon"
+              onClick={() => navigate('/dashboard')}
+              className="rounded-full relative"
+            >
+              <Bell className="h-5 w-5" />
+              {totalUnread > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                  {totalUnread > 99 ? '99+' : totalUnread}
+                </span>
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleMode}
               className="rounded-full"
             >
@@ -66,11 +81,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`flex flex-col items-center gap-1 px-4 py-1 rounded-lg transition-colors ${
+                className={`flex flex-col items-center gap-1 px-4 py-1 rounded-lg transition-colors relative ${
                   active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <item.icon className="h-5 w-5" />
+                <div className="relative">
+                  <item.icon className="h-5 w-5" />
+                  {item.path === '/dashboard' && totalUnread > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center">
+                      {totalUnread > 99 ? '99+' : totalUnread}
+                    </span>
+                  )}
+                </div>
                 <span className="text-xs font-medium">{item.label}</span>
               </button>
             );
