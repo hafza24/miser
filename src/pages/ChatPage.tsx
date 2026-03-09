@@ -389,23 +389,39 @@ const ChatPage = () => {
                 const isMe = msg.sender_id === user?.id;
                 const isLastOwnMsg = isMe && !messages.slice(idx + 1).some(m => m.sender_id === user?.id);
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
+                const isScene = msg.content.startsWith('📖 Scene');
+                const isOtherScene = isScene && !isMe;
                 return (
-                  <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
-                        isMe
-                          ? 'bg-primary text-primary-foreground rounded-br-md'
-                          : 'bg-muted text-foreground rounded-bl-md'
-                      }`}
-                    >
-                      {msg.content}
-                      <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
-                        <span className="text-[10px]">
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                        {isMe && <SeenIndicator isSeen={isSeen} />}
+                  <div key={msg.id}>
+                    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
+                          isMe
+                            ? 'bg-primary text-primary-foreground rounded-br-md'
+                            : 'bg-muted text-foreground rounded-bl-md'
+                        } ${isScene ? 'border border-border/40 italic' : ''}`}
+                      >
+                        {msg.content}
+                        <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
+                          <span className="text-[10px]">
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          {isMe && <SeenIndicator isSeen={isSeen} />}
+                        </div>
                       </div>
                     </div>
+                    {isOtherScene && !expired && !chatEnded && (
+                      <div className="flex justify-start mt-1 ml-1">
+                        <button
+                          type="button"
+                          onClick={() => setContinuationTrigger(Date.now())}
+                          className="text-xs text-primary hover:underline flex items-center gap-1 opacity-80 hover:opacity-100 transition-opacity"
+                        >
+                          <WandSparkles className="h-3 w-3" />
+                          Continue this scene
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
