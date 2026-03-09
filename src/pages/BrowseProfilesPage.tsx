@@ -264,12 +264,12 @@ const BrowseProfilesPage = () => {
               <Globe className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Country</span>
             </div>
-            <Select value={filterCountry} onValueChange={setFilterCountry}>
+            <Select value={filterCountry || 'all'} onValueChange={(v) => setFilterCountry(v === 'all' ? '' : v)}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="All countries" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All countries</SelectItem>
+                <SelectItem value="all">All countries</SelectItem>
                 {COUNTRIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
@@ -281,12 +281,12 @@ const BrowseProfilesPage = () => {
               <Timer className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Availability</span>
             </div>
-            <Select value={filterAvailability} onValueChange={setFilterAvailability}>
+            <Select value={filterAvailability || 'all'} onValueChange={(v) => setFilterAvailability(v === 'all' ? '' : v)}>
               <SelectTrigger className="h-9 text-sm">
                 <SelectValue placeholder="Any time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any time</SelectItem>
+                <SelectItem value="all">Any time</SelectItem>
                 {AVAILABILITY_OPTIONS.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
                 ))}
