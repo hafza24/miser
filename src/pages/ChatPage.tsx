@@ -369,6 +369,42 @@ const ChatPage = () => {
               currentUserId={userId}
             />
           )}
+          {/* Report user */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full text-amber-500 hover:text-amber-600 hover:bg-amber-500/10">
+                <Flag className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Report {otherUser?.alias || 'this user'}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Describe the issue. Recent messages will be included automatically for context.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Textarea
+                placeholder="What happened? (min 5 characters)"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                maxLength={500}
+                className="min-h-[80px]"
+              />
+              <p className="text-xs text-muted-foreground text-right">{reportReason.length}/500</p>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setReportReason('')}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleReport}
+                  disabled={reportSending || reportReason.trim().length < 5}
+                  className="bg-amber-500 text-white hover:bg-amber-600"
+                >
+                  {reportSending ? 'Sending...' : 'Submit Report'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* End chat */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10">
