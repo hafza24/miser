@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { MessageCircle, Sparkles } from 'lucide-react';
+import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
 const DAILY_CHAT_LIMIT = 3;
 
@@ -72,8 +74,8 @@ const ProfilePage = () => {
       .from('profiles')
       .update({
         bio: bio.trim(),
-        region: region.trim(),
-        availability: availability.trim(),
+        region: region || null,
+        availability: availability || null,
         character_title: charTitle.trim() || null,
         character_description: charDescription.trim() || null,
         character_personality: charPersonality.length > 0 ? charPersonality : [],
@@ -182,22 +184,32 @@ const ProfilePage = () => {
             />
           </div>
           <div>
-            <Label>Region</Label>
-            <Input
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-              placeholder="e.g. Europe, Asia"
-              maxLength={100}
-            />
+            <Label>Country</Label>
+            <Select value={region} onValueChange={setRegion}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select your country" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {COUNTRIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label>Availability</Label>
-            <Input
-              value={availability}
-              onChange={(e) => setAvailability(e.target.value)}
-              placeholder="e.g. Evenings, Weekends"
-              maxLength={100}
-            />
+            <Select value={availability} onValueChange={setAvailability}>
+              <SelectTrigger>
+                <SelectValue placeholder="When are you available?" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">— None —</SelectItem>
+                {AVAILABILITY_OPTIONS.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleSave} className="w-full" disabled={saving}>
             {saving ? 'Saving...' : 'Save Profile'}

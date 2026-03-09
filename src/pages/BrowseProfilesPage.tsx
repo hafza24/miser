@@ -6,8 +6,10 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Send, Check, Clock, X, Sparkles } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer } from 'lucide-react';
 import { toast } from 'sonner';
+import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
 const PERSONALITY_OPTIONS = [
   'Kind', 'Rude', 'Romantic', 'Emotional', 'Friendly',
@@ -46,6 +48,8 @@ const BrowseProfilesPage = () => {
   const [requestMap, setRequestMap] = useState<Record<string, RequestInfo>>({});
   const [actionId, setActionId] = useState<string | null>(null);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [filterCountry, setFilterCountry] = useState('');
+  const [filterAvailability, setFilterAvailability] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -156,6 +160,16 @@ const BrowseProfilesPage = () => {
       if (!hasMatch) return false;
     }
 
+    // Country filter
+    if (filterCountry) {
+      if (p.region !== filterCountry) return false;
+    }
+
+    // Availability filter
+    if (filterAvailability) {
+      if (p.availability !== filterAvailability) return false;
+    }
+
     return true;
   });
 
@@ -237,10 +251,48 @@ const BrowseProfilesPage = () => {
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by alias, interests, region, character..."
+            placeholder="Search by alias, interests, character..."
             className="pl-10"
             maxLength={100}
           />
+        </div>
+
+        {/* Country & Availability Filters */}
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Globe className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Country</span>
+            </div>
+            <Select value={filterCountry} onValueChange={setFilterCountry}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All countries" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All countries</SelectItem>
+                {COUNTRIES.map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Timer className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Availability</span>
+            </div>
+            <Select value={filterAvailability} onValueChange={setFilterAvailability}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="Any time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Any time</SelectItem>
+                {AVAILABILITY_OPTIONS.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         {/* Personality Filter */}
@@ -302,7 +354,7 @@ const BrowseProfilesPage = () => {
                     )}
                     {p.region && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
-                        📍 {p.region}
+                        🌍 {p.region}
                       </span>
                     )}
                     {p.availability && (
