@@ -62,17 +62,17 @@ const ChatPage = () => {
   const [continuationTrigger, setContinuationTrigger] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, user?.id);
+  const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
   // Mark messages as read
   const markAsRead = useCallback(async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     await supabase
       .from('chat_participants')
       .update({ last_read_at: new Date().toISOString() })
       .eq('chat_id', chatId)
-      .eq('user_id', user.id);
-  }, [chatId, user]);
+      .eq('user_id', userId);
+  }, [chatId, userId]);
 
   useEffect(() => {
     if (!chatId || !user) return;
