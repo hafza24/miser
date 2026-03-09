@@ -207,6 +207,7 @@ const ChatPage = () => {
     
     const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
     if (otherParticipants.length === 0) {
+      setOtherUserId(null);
       setChatEnded(true);
       return;
     }
@@ -215,6 +216,7 @@ const ChatPage = () => {
     if (other.last_read_at) setOtherLastReadAt(other.last_read_at);
 
     if (other.user_id) {
+      setOtherUserId(other.user_id);
       const { data: prof } = await supabase
         .from('profiles')
         .select('alias, emoji_avatar')
