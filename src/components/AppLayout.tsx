@@ -42,6 +42,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </button>
 
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="rounded-full"
+                title="Admin Panel"
+              >
+                <Shield className="h-5 w-5 text-primary" />
+              </Button>
+            )}
             <NotificationDropdown />
             <Button
               variant="ghost"
