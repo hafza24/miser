@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sun, Moon, Trash2, Shield } from 'lucide-react';
+import { Sun, Moon, Trash2, Shield, Volume2, BellRing } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '@/contexts/NotificationContext';
 import {
   AlertDialog,
   AlertDialogAction,
