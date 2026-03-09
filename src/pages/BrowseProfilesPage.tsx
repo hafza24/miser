@@ -31,6 +31,8 @@ interface BrowseProfile {
   character_description: string | null;
   character_personality: string[] | null;
   character_life_story: string | null;
+  is_online: boolean;
+  last_seen_at: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
