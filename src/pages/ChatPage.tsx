@@ -259,6 +259,10 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
+  const sendGeneratedScene = async (content: string) => {
+    await sendGameMessage(content);
+  };
+
   const handleEndChat = async () => {
     if (!chatId || !user) return;
     try {
