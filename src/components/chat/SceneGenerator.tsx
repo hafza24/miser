@@ -36,19 +36,27 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
   const [loading, setLoading] = useState(false);
   const [isContinuation, setIsContinuation] = useState(false);
   const [dailyUsed, setDailyUsed] = useState(0);
-  const DAILY_LIMIT = 10;
+  const [dailyLimit, setDailyLimit] = useState(10);
 
   const loadDailyUsage = useCallback(async () => {
     if (!user?.id) return;
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('sender_id', user.id)
-      .like('content', '📖 Scene%')
-      .gte('created_at', todayStart.toISOString());
+    const [{ count }, { data: profile }] = await Promise.all([
+      supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('sender_id', user.id)
+        .like('content', '📖 Scene%')
+        .gte('created_at', todayStart.toISOString()),
+      supabase
+        .from('profiles')
+        .select('daily_scene_limit')
+        .eq('user_id', user.id)
+        .single(),
+    ]);
     setDailyUsed(count ?? 0);
+    setDailyLimit((profile as any)?.daily_scene_limit ?? 10);
   }, [user?.id]);
 
   useEffect(() => {
