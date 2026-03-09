@@ -67,6 +67,7 @@ const ChatPage = () => {
   const [chatMode, setChatMode] = useState<'light' | 'dark'>('light');
   const [reportReason, setReportReason] = useState('');
   const [reportSending, setReportSending] = useState(false);
+  const [blockSending, setBlockSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
