@@ -18,6 +18,7 @@ import ChatPage from "./pages/ChatPage";
 import ProfilePage from "./pages/ProfilePage";
 import BrowseProfilesPage from "./pages/BrowseProfilesPage";
 import SettingsPage from "./pages/SettingsPage";
+import SuspendedPage from "./pages/SuspendedPage";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -29,9 +30,10 @@ import HelpWidget from "./components/HelpWidget";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, profile, loading } = useAuth();
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading...</div>;
   if (!user) return <Navigate to="/login" replace />;
+  if (profile?.is_suspended) return <Navigate to="/suspended" replace />;
   return <>{children}</>;
 };
 
@@ -62,6 +64,7 @@ const AppRoutes = () => (
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/suspended" element={<SuspendedPage />} />
       <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/chat/:chatId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />

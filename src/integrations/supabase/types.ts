@@ -422,6 +422,10 @@ export type Database = {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
       }
+      record_user_report: {
+        Args: { _reported_user_id: string }
+        Returns: undefined
+      }
       start_random_chat: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string

@@ -312,6 +312,10 @@ const ChatPage = () => {
       subject: `Report: ${otherUser?.alias || 'User'} in chat`,
       message: ticketMessage,
     } as any);
+    // Increment violation count on reported user (auto-suspends at 5)
+    if (otherUserId) {
+      await supabase.rpc('record_user_report', { _reported_user_id: otherUserId });
+    }
     setReportSending(false);
     if (error) {
       toast.error('Failed to submit report');
