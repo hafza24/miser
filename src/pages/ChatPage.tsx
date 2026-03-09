@@ -50,6 +50,7 @@ const ChatPage = () => {
   const [otherUser, setOtherUser] = useState<{ alias: string; emoji_avatar: string } | null>(null);
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
   const [expired, setExpired] = useState(false);
+  const [chatEnded, setChatEnded] = useState(false);
   const [loadingChat, setLoadingChat] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
