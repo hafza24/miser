@@ -236,7 +236,7 @@ const ChatPage = () => {
     e.preventDefault();
     if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
 
-    const result = moderateMessage(newMessage, mode as 'light' | 'dark');
+    const result = moderateMessage(newMessage, chatMode);
     if (result.blocked) {
       toast.error(result.reason);
       return;
