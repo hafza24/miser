@@ -6,7 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
 import TypingIndicator from '@/components/chat/TypingIndicator';
@@ -64,6 +65,8 @@ const ChatPage = () => {
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const [continuationTrigger, setContinuationTrigger] = useState(0);
   const [chatMode, setChatMode] = useState<'light' | 'dark'>('light');
+  const [reportReason, setReportReason] = useState('');
+  const [reportSending, setReportSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
@@ -285,6 +288,38 @@ const ChatPage = () => {
     }
   };
 
+  const handleReport = async () => {
+    if (!userId || !chatId || !reportReason.trim()) return;
+    if (reportReason.trim().length < 5 || reportReason.trim().length > 500) {
+      toast.error('Please provide a reason (5-500 characters)');
+      return;
+    }
+    setReportSending(true);
+    const { data: recentMsgs } = await supabase
+      .from('messages')
+      .select('sender_id, content, created_at')
+      .eq('chat_id', chatId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    const msgContext = (recentMsgs ?? [])
+      .reverse()
+      .map(m => `[${m.sender_id === userId ? 'Me' : otherUser?.alias || 'Other'}] ${m.content}`)
+      .join('\n');
+    const ticketMessage = `**Report against:** ${otherUser?.alias || 'Unknown'} (${otherUser?.emoji_avatar || ''})\n**Chat ID:** ${chatId}\n**Chat Mode:** ${chatMode}\n\n**Reason:**\n${reportReason.trim()}\n\n**Recent messages:**\n${msgContext || '(no messages)'}`;
+    const { error } = await supabase.from('support_tickets').insert({
+      user_id: userId,
+      subject: `Report: ${otherUser?.alias || 'User'} in chat`,
+      message: ticketMessage,
+    } as any);
+    setReportSending(false);
+    if (error) {
+      toast.error('Failed to submit report');
+    } else {
+      toast.success('Report submitted. Our team will review it.');
+      setReportReason('');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     sendTyping();
@@ -334,6 +369,42 @@ const ChatPage = () => {
               currentUserId={userId}
             />
           )}
+          {/* Report user */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full text-amber-500 hover:text-amber-600 hover:bg-amber-500/10">
+                <Flag className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Report {otherUser?.alias || 'this user'}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Describe the issue. Recent messages will be included automatically for context.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <Textarea
+                placeholder="What happened? (min 5 characters)"
+                value={reportReason}
+                onChange={(e) => setReportReason(e.target.value)}
+                maxLength={500}
+                className="min-h-[80px]"
+              />
+              <p className="text-xs text-muted-foreground text-right">{reportReason.length}/500</p>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setReportReason('')}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleReport}
+                  disabled={reportSending || reportReason.trim().length < 5}
+                  className="bg-amber-500 text-white hover:bg-amber-600"
+                >
+                  {reportSending ? 'Sending...' : 'Submit Report'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* End chat */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full text-destructive hover:text-destructive hover:bg-destructive/10">
