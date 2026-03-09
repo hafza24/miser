@@ -269,6 +269,7 @@ export type Database = {
         }
         Returns: string
       }
+      check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
       find_random_user: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
