@@ -93,9 +93,18 @@ export const useUnreadCounts = () => {
     fetchCounts();
   }, [fetchCounts]);
 
-  // Listen for new messages in real-time
+  // Listen for new messages in real-time — only refetch on new messages, not participant updates
   useEffect(() => {
     if (!user) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const debouncedFetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchCounts();
+      }, 1000);
+    };
 
     const channel = supabase
       .channel(`unread-counts-${user.id}`)
@@ -106,25 +115,17 @@ export const useUnreadCounts = () => {
       }, (payload) => {
         const msg = payload.new as any;
         if (msg.sender_id !== user.id) {
-          // Sound/desktop controlled by NotificationContext consumers
           const soundPref = localStorage.getItem('notif_sound');
           const desktopPref = localStorage.getItem('notif_desktop');
           if (soundPref !== 'false') playNotificationSound();
           if (desktopPref === 'true') showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
+          debouncedFetch();
         }
-        fetchCounts();
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'chat_participants',
-        filter: `user_id=eq.${user.id}`,
-      }, () => {
-        fetchCounts();
       })
       .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
   }, [user, fetchCounts]);
