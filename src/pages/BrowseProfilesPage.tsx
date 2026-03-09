@@ -152,6 +152,23 @@ const BrowseProfilesPage = () => {
     }
   };
 
+  const blockUser = async (blockedId: string) => {
+    if (!user) return;
+    setActionId(blockedId);
+    const { error } = await supabase.from('blocked_users').insert({
+      blocker_id: user.id,
+      blocked_id: blockedId,
+    } as any);
+    setActionId(null);
+    if (error) {
+      if (error.code === '23505') toast.info('Already blocked');
+      else toast.error('Failed to block user');
+    } else {
+      setBlockedIds(prev => new Set([...prev, blockedId]));
+      toast.success('User blocked. You won\'t be matched again.');
+    }
+  };
+
   const toggleTrait = (trait: string) => {
     setSelectedTraits(prev =>
       prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]
@@ -159,6 +176,8 @@ const BrowseProfilesPage = () => {
   };
 
   const filtered = profiles.filter(p => {
+    // Exclude blocked users
+    if (blockedIds.has(p.user_id)) return false;
     // Text search
     if (search.trim()) {
       const q = search.toLowerCase();
