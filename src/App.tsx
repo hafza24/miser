@@ -23,6 +23,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminChats from "./pages/admin/AdminChats";
+import AdminTickets from "./pages/admin/AdminTickets";
+import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
 
