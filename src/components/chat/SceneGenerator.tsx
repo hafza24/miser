@@ -73,7 +73,7 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
     }
   }, [continuationTrigger]);
 
-  const canGenerate = prompt.trim().length >= 3 && !loading && dailyUsed < DAILY_LIMIT;
+  const canGenerate = prompt.trim().length >= 3 && !loading && dailyUsed < dailyLimit;
   const canSend = generatedScene.trim().length > 0 && !loading;
 
   const handleGenerate = async () => {
