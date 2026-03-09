@@ -246,6 +246,16 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
+  const sendGameMessage = async (content: string) => {
+    if (!user || !chatId || expired || chatEnded) return;
+    await supabase.from('messages').insert({
+      chat_id: chatId,
+      sender_id: user.id,
+      content,
+    });
+    setShowEmoji(false);
+  };
+
   const handleEndChat = async () => {
     if (!chatId || !user) return;
     try {
