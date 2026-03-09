@@ -178,6 +178,11 @@ const BrowseProfilesPage = () => {
       if (p.availability !== filterAvailability) return false;
     }
 
+    // Gender filter
+    if (filterGender) {
+      if (p.gender !== filterGender) return false;
+    }
+
     return true;
   });
 
