@@ -185,12 +185,12 @@ const ProfilePage = () => {
           </div>
           <div>
             <Label>Country</Label>
-            <Select value={region} onValueChange={setRegion}>
+          <Select value={region || 'none'} onValueChange={(v) => setRegion(v === 'none' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select your country" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">— None —</SelectItem>
+                <SelectItem value="none">— None —</SelectItem>
                 {COUNTRIES.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
@@ -199,12 +199,12 @@ const ProfilePage = () => {
           </div>
           <div>
             <Label>Availability</Label>
-            <Select value={availability} onValueChange={setAvailability}>
+            <Select value={availability || 'none'} onValueChange={(v) => setAvailability(v === 'none' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="When are you available?" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">— None —</SelectItem>
+                <SelectItem value="none">— None —</SelectItem>
                 {AVAILABILITY_OPTIONS.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
                 ))}
