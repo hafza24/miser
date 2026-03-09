@@ -1,7 +1,8 @@
-import { useMemo, useState, useEffect } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 import { WandSparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ const LIGHT_TYPES: LightSceneType[] = ['friendly', 'romantic', 'cute'];
 const DARK_TYPES: DarkSceneType[] = ['intimate', 'hot', 'intense'];
 
 const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, continuationTrigger }: SceneGeneratorProps) => {
+  const { user } = useAuth();
   const availableTypes = useMemo(() => (mode === 'light' ? LIGHT_TYPES : DARK_TYPES), [mode]);
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -33,6 +35,25 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
   const [generatedScene, setGeneratedScene] = useState('');
   const [loading, setLoading] = useState(false);
   const [isContinuation, setIsContinuation] = useState(false);
+  const [dailyUsed, setDailyUsed] = useState(0);
+  const DAILY_LIMIT = 10;
+
+  const loadDailyUsage = useCallback(async () => {
+    if (!user?.id) return;
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('sender_id', user.id)
+      .like('content', '📖 Scene%')
+      .gte('created_at', todayStart.toISOString());
+    setDailyUsed(count ?? 0);
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadDailyUsage();
+  }, [loadDailyUsage]);
 
   // When continuationTrigger changes (from a "Continue Scene" click), open as continuation
   useEffect(() => {
@@ -44,7 +65,7 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
     }
   }, [continuationTrigger]);
 
-  const canGenerate = prompt.trim().length >= 3 && !loading;
+  const canGenerate = prompt.trim().length >= 3 && !loading && dailyUsed < DAILY_LIMIT;
   const canSend = generatedScene.trim().length > 0 && !loading;
 
   const handleGenerate = async () => {
@@ -65,6 +86,11 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
 
       if (error) {
         const msg = error.message || 'Failed to generate scene';
+        if (msg.includes('Daily scene limit')) {
+          toast.error('You\'ve used all 10 daily scenes. Try again tomorrow!');
+          loadDailyUsage();
+          return;
+        }
         if (msg.includes('402')) {
           toast.error('Scene generation is temporarily unavailable due to billing limits.');
           return;
@@ -96,6 +122,8 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
     await onSend(`${prefix}\n\n${generatedScene.trim()}`);
     setGeneratedScene('');
     setPrompt('');
+    setDailyUsed(prev => prev + 1);
+    loadDailyUsage();
     setIsContinuation(false);
     setOpen(false);
   };
@@ -124,9 +152,14 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
       </PopoverTrigger>
       <PopoverContent className="w-[22rem] space-y-3 p-3" align="start">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">
+              {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
+            </p>
+            <span className={`text-xs font-medium ${dailyUsed >= DAILY_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {DAILY_LIMIT - dailyUsed}/{DAILY_LIMIT} left today
+            </span>
+          </div>
           {isContinuation && (
             <p className="text-xs text-muted-foreground">
               The AI will continue from where the last scene left off, with your character taking the lead.
