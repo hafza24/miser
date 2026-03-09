@@ -94,6 +94,28 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Check daily scene limit (10 per day)
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+
+    const { count: dailySceneCount, error: countError } = await adminClient
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('sender_id', user.id)
+      .like('content', '📖 Scene%')
+      .gte('created_at', todayStart.toISOString());
+
+    if (countError) {
+      console.error('Error checking daily limit:', countError);
+    }
+
+    if ((dailySceneCount ?? 0) >= 10) {
+      return new Response(JSON.stringify({ error: 'Daily scene limit reached (10 per day). Try again tomorrow!' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     // Get profiles
     const { data: profiles, error: profileError } = await adminClient
       .from('profiles')
