@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -6,14 +6,55 @@ interface UnreadCounts {
   [chatId: string]: number;
 }
 
+// Simple notification sound using Web Audio API
+const playNotificationSound = () => {
+  try {
+    const ctx = new AudioContext();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.frequency.setValueAtTime(880, ctx.currentTime);
+    oscillator.frequency.setValueAtTime(1100, ctx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch {
+    // Audio not available
+  }
+};
+
+const showDesktopNotification = (title: string, body: string) => {
+  if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+  if (document.hasFocus()) return; // Don't show if app is focused
+  try {
+    new Notification(title, {
+      body,
+      icon: '/favicon.ico',
+      tag: 'new-message', // Replaces previous notification
+    });
+  } catch {
+    // Notification not supported
+  }
+};
+
+export const requestNotificationPermission = async () => {
+  if (typeof Notification === 'undefined') return false;
+  if (Notification.permission === 'granted') return true;
+  if (Notification.permission === 'denied') return false;
+  const result = await Notification.requestPermission();
+  return result === 'granted';
+};
+
 export const useUnreadCounts = () => {
   const { user } = useAuth();
   const [counts, setCounts] = useState<UnreadCounts>({});
+  const prevTotalRef = useRef(0);
 
   const fetchCounts = useCallback(async () => {
     if (!user) return;
 
-    // Get all chat participations with last_read_at
     const { data: participations } = await supabase
       .from('chat_participants')
       .select('chat_id, last_read_at')
@@ -62,7 +103,13 @@ export const useUnreadCounts = () => {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
-      }, () => {
+      }, (payload) => {
+        const msg = payload.new as any;
+        // Only notify for messages from others
+        if (msg.sender_id !== user.id) {
+          playNotificationSound();
+          showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
+        }
         fetchCounts();
       })
       .on('postgres_changes', {
@@ -80,7 +127,32 @@ export const useUnreadCounts = () => {
     };
   }, [user, fetchCounts]);
 
+  // Request notification permission on mount
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
   const totalUnread = Object.values(counts).reduce((sum, c) => sum + c, 0);
 
-  return { counts, totalUnread, refresh: fetchCounts };
+  // Track previous total for comparison
+  useEffect(() => {
+    prevTotalRef.current = totalUnread;
+  }, [totalUnread]);
+
+  const markChatAsRead = useCallback(async (chatId: string) => {
+    if (!user) return;
+    await supabase
+      .from('chat_participants')
+      .update({ last_read_at: new Date().toISOString() })
+      .eq('chat_id', chatId)
+      .eq('user_id', user.id);
+    // Optimistically clear count
+    setCounts(prev => {
+      const next = { ...prev };
+      delete next[chatId];
+      return next;
+    });
+  }, [user]);
+
+  return { counts, totalUnread, refresh: fetchCounts, markChatAsRead };
 };
