@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import SeenIndicator from '@/components/chat/SeenIndicator';
+import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import {
   AlertDialog,
