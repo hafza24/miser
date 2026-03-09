@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer } from 'lucide-react';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
+
+const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
 const PERSONALITY_OPTIONS = [
   'Kind', 'Rude', 'Romantic', 'Emotional', 'Friendly',
