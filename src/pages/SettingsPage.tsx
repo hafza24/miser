@@ -8,8 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sun, Moon, Trash2, Shield } from 'lucide-react';
+import { Sun, Moon, Trash2, Shield, Volume2, BellRing } from 'lucide-react';
 import { toast } from 'sonner';
+import { useNotifications } from '@/contexts/NotificationContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ import {
 const SettingsPage = () => {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { mode, setMode } = useMode();
+  const { soundEnabled, desktopEnabled, setSoundEnabled, setDesktopEnabled } = useNotifications();
   const navigate = useNavigate();
   const [showAgeVerify, setShowAgeVerify] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
@@ -101,6 +103,38 @@ const SettingsPage = () => {
             >
               Switch to {mode === 'light' ? '🌑 Dark' : '🌞 Light'}
             </Button>
+          </div>
+        </div>
+
+        {/* Notification preferences */}
+        <div className="bg-card rounded-2xl p-6 shadow-card space-y-4">
+          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+            <BellRing className="h-5 w-5" />
+            Notifications
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground flex items-center gap-2">
+                <Volume2 className="h-4 w-4" /> Notification Sound
+              </p>
+              <p className="text-sm text-muted-foreground">Play a sound for new messages</p>
+            </div>
+            <Switch
+              checked={soundEnabled}
+              onCheckedChange={setSoundEnabled}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground flex items-center gap-2">
+                <BellRing className="h-4 w-4" /> Desktop Notifications
+              </p>
+              <p className="text-sm text-muted-foreground">Show alerts when app is in background</p>
+            </div>
+            <Switch
+              checked={desktopEnabled}
+              onCheckedChange={setDesktopEnabled}
+            />
           </div>
         </div>
 

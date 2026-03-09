@@ -2,9 +2,10 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Bell } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import NotificationDropdown from '@/components/NotificationDropdown';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { mode, toggleMode } = useMode();
@@ -39,19 +40,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </button>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/dashboard')}
-              className="rounded-full relative"
-            >
-              <Bell className="h-5 w-5" />
-              {totalUnread > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                  {totalUnread > 99 ? '99+' : totalUnread}
-                </span>
-              )}
-            </Button>
+            <NotificationDropdown />
             <Button
               variant="ghost"
               size="icon"
