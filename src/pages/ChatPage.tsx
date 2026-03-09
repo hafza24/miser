@@ -46,6 +46,7 @@ const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '�
 const ChatPage = () => {
   const { chatId } = useParams();
   const { user } = useAuth();
+  const userId = user?.id;
   const { mode } = useMode();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -62,20 +63,20 @@ const ChatPage = () => {
   const [continuationTrigger, setContinuationTrigger] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, user?.id);
+  const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
   // Mark messages as read
   const markAsRead = useCallback(async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     await supabase
       .from('chat_participants')
       .update({ last_read_at: new Date().toISOString() })
       .eq('chat_id', chatId)
-      .eq('user_id', user.id);
-  }, [chatId, user]);
+      .eq('user_id', userId);
+  }, [chatId, userId]);
 
   useEffect(() => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
 
     const init = async () => {
       setLoadingChat(true);
@@ -92,13 +93,8 @@ const ChatPage = () => {
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`,
-      }, (payload) => {
-        const newMsg = payload.new as Message;
-        setMessages(prev => {
-          if (prev.some(m => m.id === newMsg.id)) return prev;
-          return [...prev, newMsg];
-        });
-        // Mark as read when we receive a new message while viewing
+      }, () => {
+        loadMessages();
         markAsRead();
       })
       .subscribe();
@@ -131,7 +127,7 @@ const ChatPage = () => {
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
         const deleted = payload.old as any;
-        if (deleted.user_id !== user.id) {
+        if (deleted.user_id !== userId) {
           setChatEnded(true);
         }
       })
@@ -142,7 +138,7 @@ const ChatPage = () => {
         filter: `chat_id=eq.${chatId}`,
       }, (payload) => {
         const updated = payload.new as any;
-        if (updated.user_id !== user.id && updated.last_read_at) {
+        if (updated.user_id !== userId && updated.last_read_at) {
           setOtherLastReadAt(updated.last_read_at);
         }
       })
@@ -153,7 +149,7 @@ const ChatPage = () => {
       supabase.removeChannel(chatChannel);
       supabase.removeChannel(participantChannel);
     };
-  }, [chatId, user, markAsRead]);
+  }, [chatId, userId, markAsRead]);
 
   // Mark as read on mount and when messages change
   useEffect(() => {
@@ -201,13 +197,13 @@ const ChatPage = () => {
   };
 
   const loadOtherUser = async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     const { data: parts } = await supabase
       .from('chat_participants')
       .select('user_id, last_read_at')
       .eq('chat_id', chatId);
     
-    const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
+    const otherParticipants = parts?.filter(p => p.user_id !== userId) || [];
     if (otherParticipants.length === 0) {
       setOtherUserId(null);
       setChatEnded(true);
@@ -230,7 +226,7 @@ const ChatPage = () => {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !chatId || expired || chatEnded) return;
+    if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
 
     const result = moderateMessage(newMessage, mode as 'light' | 'dark');
     if (result.blocked) {
@@ -241,7 +237,7 @@ const ChatPage = () => {
     setSending(true);
     const { error } = await supabase.from('messages').insert({
       chat_id: chatId,
-      sender_id: user.id,
+      sender_id: userId,
       content: newMessage.trim(),
     });
 
@@ -252,10 +248,10 @@ const ChatPage = () => {
   };
 
   const sendGameMessage = async (content: string) => {
-    if (!user || !chatId || expired || chatEnded) return;
+    if (!userId || !chatId || expired || chatEnded) return;
     await supabase.from('messages').insert({
       chat_id: chatId,
-      sender_id: user.id,
+      sender_id: userId,
       content,
     });
     setShowEmoji(false);
@@ -266,13 +262,13 @@ const ChatPage = () => {
   };
 
   const handleEndChat = async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     try {
       const { error } = await supabase
         .from('chat_participants')
         .delete()
         .eq('chat_id', chatId)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
       if (error) throw error;
       toast.success('You left the chat.');
       navigate('/dashboard');
@@ -311,12 +307,12 @@ const ChatPage = () => {
               {isOtherTyping ? 'typing...' : mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
             </span>
           </div>
-          {chatInfo && user && (
+          {chatInfo && userId && (
             <ChatTimer
               chatId={chatId!}
               expiresAt={chatInfo.expires_at}
               timerStopped={chatInfo.timer_stopped}
-              currentUserId={user.id}
+              currentUserId={userId}
             />
           )}
           <AlertDialog>
