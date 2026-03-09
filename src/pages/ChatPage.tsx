@@ -225,7 +225,7 @@ const ChatPage = () => {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !chatId || expired || chatEnded) return;
+    if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
 
     const result = moderateMessage(newMessage, mode as 'light' | 'dark');
     if (result.blocked) {
@@ -236,7 +236,7 @@ const ChatPage = () => {
     setSending(true);
     const { error } = await supabase.from('messages').insert({
       chat_id: chatId,
-      sender_id: user.id,
+      sender_id: userId,
       content: newMessage.trim(),
     });
 
@@ -247,10 +247,10 @@ const ChatPage = () => {
   };
 
   const sendGameMessage = async (content: string) => {
-    if (!user || !chatId || expired || chatEnded) return;
+    if (!userId || !chatId || expired || chatEnded) return;
     await supabase.from('messages').insert({
       chat_id: chatId,
-      sender_id: user.id,
+      sender_id: userId,
       content,
     });
     setShowEmoji(false);
@@ -261,13 +261,13 @@ const ChatPage = () => {
   };
 
   const handleEndChat = async () => {
-    if (!chatId || !user) return;
+    if (!chatId || !userId) return;
     try {
       const { error } = await supabase
         .from('chat_participants')
         .delete()
         .eq('chat_id', chatId)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
       if (error) throw error;
       toast.success('You left the chat.');
       navigate('/dashboard');
