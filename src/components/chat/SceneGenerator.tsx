@@ -157,8 +157,26 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
               {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
             </p>
             <span className={`text-xs font-medium ${dailyUsed >= DAILY_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {DAILY_LIMIT - dailyUsed}/{DAILY_LIMIT} left today
+              {DAILY_LIMIT - dailyUsed}/{DAILY_LIMIT} left
             </span>
+          </div>
+          {/* Progress bar */}
+          <div className="space-y-1">
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-500 ${
+                  dailyUsed >= DAILY_LIMIT
+                    ? 'bg-destructive'
+                    : dailyUsed >= DAILY_LIMIT * 0.7
+                      ? 'bg-amber-500'
+                      : 'bg-primary'
+                }`}
+                style={{ width: `${Math.min((dailyUsed / DAILY_LIMIT) * 100, 100)}%` }}
+              />
+            </div>
+            {dailyUsed >= DAILY_LIMIT && (
+              <p className="text-xs text-destructive font-medium">Daily limit reached — resets at midnight UTC</p>
+            )}
           </div>
           {isContinuation && (
             <p className="text-xs text-muted-foreground">
