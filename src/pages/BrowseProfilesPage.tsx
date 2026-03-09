@@ -5,8 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Send, Check, Clock, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Search, Send, Check, Clock, X, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+
+const PERSONALITY_OPTIONS = [
+  'Kind', 'Rude', 'Romantic', 'Emotional', 'Friendly',
+  'Mysterious', 'Funny', 'Shy', 'Bold', 'Caring',
+  'Sarcastic', 'Adventurous', 'Calm', 'Energetic', 'Wise',
+];
 
 interface BrowseProfile {
   user_id: string;
@@ -17,6 +24,10 @@ interface BrowseProfile {
   mood_preference: string | null;
   region: string | null;
   availability: string | null;
+  character_title: string | null;
+  character_description: string | null;
+  character_personality: string[] | null;
+  character_life_story: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -34,6 +45,7 @@ const BrowseProfilesPage = () => {
   const [loading, setLoading] = useState(true);
   const [requestMap, setRequestMap] = useState<Record<string, RequestInfo>>({});
   const [actionId, setActionId] = useState<string | null>(null);
+  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -45,7 +57,7 @@ const BrowseProfilesPage = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability')
+      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story')
       .neq('user_id', user.id)
       .eq('is_suspended', false)
       .limit(50);
@@ -117,15 +129,34 @@ const BrowseProfilesPage = () => {
     }
   };
 
-  const filtered = profiles.filter(p => {
-    if (!search.trim()) return true;
-    const q = search.toLowerCase();
-    return (
-      p.alias.toLowerCase().includes(q) ||
-      p.bio?.toLowerCase().includes(q) ||
-      p.interests?.some(i => i.toLowerCase().includes(q)) ||
-      p.region?.toLowerCase().includes(q)
+  const toggleTrait = (trait: string) => {
+    setSelectedTraits(prev =>
+      prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]
     );
+  };
+
+  const filtered = profiles.filter(p => {
+    // Text search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      const matchesText =
+        p.alias.toLowerCase().includes(q) ||
+        p.bio?.toLowerCase().includes(q) ||
+        p.interests?.some(i => i.toLowerCase().includes(q)) ||
+        p.region?.toLowerCase().includes(q) ||
+        p.character_title?.toLowerCase().includes(q) ||
+        p.character_description?.toLowerCase().includes(q);
+      if (!matchesText) return false;
+    }
+
+    // Personality filter
+    if (selectedTraits.length > 0) {
+      const traits = p.character_personality || [];
+      const hasMatch = selectedTraits.some(t => traits.includes(t));
+      if (!hasMatch) return false;
+    }
+
+    return true;
   });
 
   const renderRequestButton = (profile: BrowseProfile) => {
@@ -201,15 +232,35 @@ const BrowseProfilesPage = () => {
           <p className="text-sm text-muted-foreground">Browse anonymous profiles and send chat requests</p>
         </div>
 
-        <div className="relative mb-6">
+        <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by alias, interests, region..."
+            placeholder="Search by alias, interests, region, character..."
             className="pl-10"
             maxLength={100}
           />
+        </div>
+
+        {/* Personality Filter */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filter by Personality</span>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {PERSONALITY_OPTIONS.map((trait) => (
+              <Badge
+                key={trait}
+                variant={selectedTraits.includes(trait) ? 'default' : 'outline'}
+                className="cursor-pointer select-none transition-colors text-xs"
+                onClick={() => toggleTrait(trait)}
+              >
+                {trait}
+              </Badge>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -229,10 +280,21 @@ const BrowseProfilesPage = () => {
                 <div className="text-3xl flex-shrink-0">{p.emoji_avatar}</div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
+                  {p.character_title && (
+                    <p className="text-xs font-medium text-primary mt-0.5">✨ {p.character_title}</p>
+                  )}
                   {p.bio && (
                     <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{p.bio}</p>
                   )}
                   <div className="flex flex-wrap gap-1.5 mt-2">
+                    {p.character_personality?.map((trait) => (
+                      <span
+                        key={trait}
+                        className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                      >
+                        {trait}
+                      </span>
+                    ))}
                     {p.mood_preference && (
                       <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
                         {p.mood_preference}
