@@ -122,6 +122,8 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
     await onSend(`${prefix}\n\n${generatedScene.trim()}`);
     setGeneratedScene('');
     setPrompt('');
+    setDailyUsed(prev => prev + 1);
+    loadDailyUsage();
     setIsContinuation(false);
     setOpen(false);
   };
