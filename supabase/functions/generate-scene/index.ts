@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { prompt, sceneType, mode, otherUserId, chatId } = await req.json();
+    const { prompt, sceneType, mode, otherUserId, chatId, isContinuation } = await req.json();
 
     if (!prompt || typeof prompt !== 'string' || prompt.trim().length < 3 || prompt.trim().length > 200) {
       return new Response(JSON.stringify({ error: 'Prompt must be between 3 and 200 characters.' }), {
@@ -80,6 +80,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Verify participants
     const { data: participants, error: participantsError } = await adminClient
       .from('chat_participants')
       .select('user_id')
@@ -93,6 +94,7 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Get profiles
     const { data: profiles, error: profileError } = await adminClient
       .from('profiles')
       .select('user_id, alias, character_title, character_description, character_personality, character_life_story, interests, mood_preference')
@@ -115,7 +117,36 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Fetch previous scenes from chat for continuation context
+    let previousScenes: string[] = [];
+    if (isContinuation) {
+      const { data: sceneMessages } = await adminClient
+        .from('messages')
+        .select('content, sender_id, created_at')
+        .eq('chat_id', chatId)
+        .like('content', '📖 Scene%')
+        .order('created_at', { ascending: true })
+        .limit(10);
+
+      if (sceneMessages && sceneMessages.length > 0) {
+        previousScenes = sceneMessages.map((m) => {
+          const who = m.sender_id === user.id ? me.alias : other.alias;
+          // Strip the "📖 Scene\n\n" prefix
+          const text = m.content.replace(/^📖 Scene\n\n/, '');
+          return `[By ${who}]:\n${text}`;
+        });
+      }
+    }
+
     const tone = TONES[normalizedMode][normalizedType];
+
+    const continuationContext = previousScenes.length > 0
+      ? `\n\nPREVIOUS SCENES IN THIS STORYLINE (continue from where the last scene left off — advance the plot, don't repeat):\n---\n${previousScenes.join('\n---\n')}\n---`
+      : '';
+
+    const continuationInstruction = isContinuation
+      ? `\nThis is a CONTINUATION. The requesting user is "${me.alias}". Focus the next scene part on their character taking the lead / responding, while naturally continuing from the previous scene's events. Advance the narrative forward.`
+      : '';
 
     const systemPrompt = `You are a creative scene writer for two anonymous chat users.
 Write only one immersive third-person scene, 140-260 words.
@@ -123,13 +154,12 @@ Tone: ${tone}.
 Scene type: ${normalizedType}.
 ${normalizedMode === 'light' ? 'Keep it wholesome, safe, and non-explicit.' : 'Keep it mature and emotionally intense, but no illegal/non-consensual content.'}
 Avoid cliches. Use concrete sensory details and emotional subtext.
-Return only the final scene text, no title, no bullet points.`;
+Return only the final scene text, no title, no bullet points.${continuationInstruction}`;
 
     const userPrompt = `
 User prompt: ${prompt.trim()}
 
-Profile A:
-- alias: ${me.alias}
+Profile A (${me.alias}):
 - title: ${me.character_title ?? 'none'}
 - description: ${me.character_description ?? 'none'}
 - personality: ${(me.character_personality ?? []).join(', ') || 'none'}
@@ -137,15 +167,14 @@ Profile A:
 - interests: ${(me.interests ?? []).join(', ') || 'none'}
 - mood: ${me.mood_preference ?? 'none'}
 
-Profile B:
-- alias: ${other.alias}
+Profile B (${other.alias}):
 - title: ${other.character_title ?? 'none'}
 - description: ${other.character_description ?? 'none'}
 - personality: ${(other.character_personality ?? []).join(', ') || 'none'}
 - life story: ${other.character_life_story ?? 'none'}
 - interests: ${(other.interests ?? []).join(', ') || 'none'}
 - mood: ${other.mood_preference ?? 'none'}
-`;
+${continuationContext}`;
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
     if (!lovableApiKey) {
