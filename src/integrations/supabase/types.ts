@@ -169,6 +169,7 @@ export type Database = {
           availability: string | null
           bio: string | null
           created_at: string
+          desktop_notifications_enabled: boolean
           email: string | null
           emoji_avatar: string
           id: string
@@ -176,6 +177,7 @@ export type Database = {
           is_suspended: boolean
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
+          notification_sound_enabled: boolean
           region: string | null
           updated_at: string
           user_id: string
@@ -187,6 +189,7 @@ export type Database = {
           availability?: string | null
           bio?: string | null
           created_at?: string
+          desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
           id?: string
@@ -194,6 +197,7 @@ export type Database = {
           is_suspended?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
+          notification_sound_enabled?: boolean
           region?: string | null
           updated_at?: string
           user_id: string
@@ -205,6 +209,7 @@ export type Database = {
           availability?: string | null
           bio?: string | null
           created_at?: string
+          desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
           id?: string
@@ -212,6 +217,7 @@ export type Database = {
           is_suspended?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
+          notification_sound_enabled?: boolean
           region?: string | null
           updated_at?: string
           user_id?: string
