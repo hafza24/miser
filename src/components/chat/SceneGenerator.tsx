@@ -27,6 +27,7 @@ const LIGHT_TYPES: LightSceneType[] = ['friendly', 'romantic', 'cute'];
 const DARK_TYPES: DarkSceneType[] = ['intimate', 'hot', 'intense'];
 
 const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, continuationTrigger }: SceneGeneratorProps) => {
+  const { user } = useAuth();
   const availableTypes = useMemo(() => (mode === 'light' ? LIGHT_TYPES : DARK_TYPES), [mode]);
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -34,6 +35,25 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
   const [generatedScene, setGeneratedScene] = useState('');
   const [loading, setLoading] = useState(false);
   const [isContinuation, setIsContinuation] = useState(false);
+  const [dailyUsed, setDailyUsed] = useState(0);
+  const DAILY_LIMIT = 10;
+
+  const loadDailyUsage = useCallback(async () => {
+    if (!user?.id) return;
+    const todayStart = new Date();
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const { count } = await supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('sender_id', user.id)
+      .like('content', '📖 Scene%')
+      .gte('created_at', todayStart.toISOString());
+    setDailyUsed(count ?? 0);
+  }, [user?.id]);
+
+  useEffect(() => {
+    loadDailyUsage();
+  }, [loadDailyUsage]);
 
   // When continuationTrigger changes (from a "Continue Scene" click), open as continuation
   useEffect(() => {
