@@ -442,7 +442,19 @@ const BrowseProfilesPage = () => {
                     ))}
                   </div>
                 </div>
-                {renderRequestButton(p)}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {renderRequestButton(p)}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => blockUser(p.user_id)}
+                    disabled={actionId === p.user_id}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2"
+                    title="Block user"
+                  >
+                    <Ban className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
