@@ -178,7 +178,9 @@ export type Database = {
           emoji_avatar: string
           id: string
           interests: string[] | null
+          is_online: boolean
           is_suspended: boolean
+          last_seen_at: string | null
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
           notification_sound_enabled: boolean
@@ -202,7 +204,9 @@ export type Database = {
           emoji_avatar?: string
           id?: string
           interests?: string[] | null
+          is_online?: boolean
           is_suspended?: boolean
+          last_seen_at?: string | null
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
@@ -226,7 +230,9 @@ export type Database = {
           emoji_avatar?: string
           id?: string
           interests?: string[] | null
+          is_online?: boolean
           is_suspended?: boolean
+          last_seen_at?: string | null
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
