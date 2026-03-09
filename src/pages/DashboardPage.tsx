@@ -474,7 +474,7 @@ const DashboardPage = () => {
               return (
                 <button
                   key={chat.id}
-                  onClick={() => navigate(`/chat/${chat.id}`)}
+                  onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
                   className="w-full flex items-center gap-3 p-4 rounded-xl bg-card hover:bg-muted transition-colors text-left shadow-card"
                 >
                   <div className="text-2xl">
