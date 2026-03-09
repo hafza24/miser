@@ -285,8 +285,22 @@ const ChatPage = () => {
         </div>
       </header>
 
+      {/* Chat ended overlay */}
+      {chatEnded && (
+        <div className="flex-1 flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="text-6xl mb-4">🚫</div>
+            <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Chat Ended</h3>
+            <p className="text-muted-foreground text-sm mb-6">
+              This chat has been ended. You can no longer send messages.
+            </p>
+            <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+          </div>
+        </div>
+      )}
+
       {/* Expired overlay */}
-      {expired && !chatInfo?.timer_stopped && (
+      {!chatEnded && expired && !chatInfo?.timer_stopped && (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
             <div className="text-6xl mb-4">⏰</div>
@@ -300,7 +314,7 @@ const ChatPage = () => {
       )}
 
       {/* Messages area */}
-      {(!expired || chatInfo?.timer_stopped) && (
+      {!chatEnded && (!expired || chatInfo?.timer_stopped) && (
         <>
           <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
             {/* System message */}
