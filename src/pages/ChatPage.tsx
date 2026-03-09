@@ -116,7 +116,9 @@ const ChatPage = () => {
           ...prev,
           timer_stopped: updated.timer_stopped ?? prev.timer_stopped,
           expires_at: updated.expires_at ?? prev.expires_at,
+          mode: updated.mode ?? prev.mode,
         } : prev);
+        if (updated.mode) setChatMode(updated.mode);
       })
       .subscribe();
 
