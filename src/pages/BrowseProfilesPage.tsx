@@ -57,11 +57,23 @@ const BrowseProfilesPage = () => {
   const [filterCountry, setFilterCountry] = useState('');
   const [filterAvailability, setFilterAvailability] = useState('');
   const [filterGender, setFilterGender] = useState('');
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (!user) return;
     loadProfiles();
     loadMyRequests();
+    loadBlockedUsers();
   }, [user]);
+
+  const loadBlockedUsers = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('blocked_users')
+      .select('blocked_id')
+      .eq('blocker_id', user.id);
+    setBlockedIds(new Set((data ?? []).map((d: any) => d.blocked_id)));
+  };
 
   const loadProfiles = async () => {
     if (!user) return;
