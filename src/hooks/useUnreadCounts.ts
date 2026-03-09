@@ -7,7 +7,7 @@ interface UnreadCounts {
 }
 
 // Simple notification sound using Web Audio API
-const playNotificationSound = () => {
+export const playNotificationSound = () => {
   try {
     const ctx = new AudioContext();
     const oscillator = ctx.createOscillator();
