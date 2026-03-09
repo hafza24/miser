@@ -326,7 +326,6 @@ const ChatPage = () => {
               }}
             />
           )}
-          </div>
           {chatInfo && userId && (
             <ChatTimer
               chatId={chatId!}
