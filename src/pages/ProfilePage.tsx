@@ -111,8 +111,8 @@ const ProfilePage = () => {
         {/* Avatar + Alias */}
         <div className="text-center py-8">
           <div className="text-7xl mb-3 relative inline-block">
-            {profile.emoji_avatar}
-            <OnlineIndicator 
+            {emojiAvatar}
+            <OnlineIndicator
               isOnline={profile.is_online ?? true} 
               size="lg" 
               className="absolute -bottom-1 -right-1" 
