@@ -17,6 +17,10 @@ interface Profile {
   bio: string | null;
   violation_count: number;
   is_suspended: boolean;
+  character_title: string | null;
+  character_description: string | null;
+  character_personality: string[] | null;
+  character_life_story: string | null;
 }
 
 interface AuthContextType {
