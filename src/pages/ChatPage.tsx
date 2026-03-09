@@ -39,6 +39,7 @@ interface ChatInfo {
   id: string;
   expires_at: string | null;
   timer_stopped: boolean;
+  mode: 'light' | 'dark';
 }
 
 const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '😈', '💫', '🌙', '🐼', '🦊', '✨', '💖', '🙈'];
