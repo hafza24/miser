@@ -38,6 +38,8 @@ const ProfilePage = () => {
   const [charDescription, setCharDescription] = useState(profile?.character_description || '');
   const [charPersonality, setCharPersonality] = useState<string[]>(profile?.character_personality || []);
   const [charLifeStory, setCharLifeStory] = useState(profile?.character_life_story || '');
+  const [gender, setGender] = useState(profile?.gender || '');
+  const [emojiAvatar, setEmojiAvatar] = useState(profile?.emoji_avatar || '🙂');
 
   useEffect(() => {
     if (profile) {
@@ -48,6 +50,8 @@ const ProfilePage = () => {
       setCharDescription(profile.character_description || '');
       setCharPersonality(profile.character_personality || []);
       setCharLifeStory(profile.character_life_story || '');
+      setGender(profile.gender || '');
+      setEmojiAvatar(profile.emoji_avatar || '🙂');
     }
   }, [profile]);
 
