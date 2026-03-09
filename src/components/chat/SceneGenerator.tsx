@@ -86,6 +86,11 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
 
       if (error) {
         const msg = error.message || 'Failed to generate scene';
+        if (msg.includes('Daily scene limit')) {
+          toast.error('You\'ve used all 10 daily scenes. Try again tomorrow!');
+          loadDailyUsage();
+          return;
+        }
         if (msg.includes('402')) {
           toast.error('Scene generation is temporarily unavailable due to billing limits.');
           return;
