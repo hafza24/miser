@@ -46,8 +46,8 @@ const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '�
 const ChatPage = () => {
   const { chatId } = useParams();
   const { user } = useAuth();
+  const userId = user?.id;
   const { mode } = useMode();
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
