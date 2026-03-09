@@ -44,6 +44,7 @@ interface SentRequest {
 const DashboardPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
+  const { counts: unreadCounts } = useUnreadCounts();
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
