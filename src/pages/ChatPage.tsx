@@ -347,6 +347,7 @@ const ChatPage = () => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     sendTyping();
   };
