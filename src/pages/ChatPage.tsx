@@ -14,6 +14,7 @@ import SeenIndicator from '@/components/chat/SeenIndicator';
 import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import SceneGenerator from '@/components/chat/SceneGenerator';
+import ChatModeSwitch from '@/components/ChatModeSwitch';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ interface ChatInfo {
   id: string;
   expires_at: string | null;
   timer_stopped: boolean;
+  mode: 'light' | 'dark';
 }
 
 const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '😈', '💫', '🌙', '🐼', '🦊', '✨', '💖', '🙈'];
@@ -61,6 +63,7 @@ const ChatPage = () => {
   const [loadingChat, setLoadingChat] = useState(true);
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const [continuationTrigger, setContinuationTrigger] = useState(0);
+  const [chatMode, setChatMode] = useState<'light' | 'dark'>('light');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
@@ -113,7 +116,9 @@ const ChatPage = () => {
           ...prev,
           timer_stopped: updated.timer_stopped ?? prev.timer_stopped,
           expires_at: updated.expires_at ?? prev.expires_at,
+          mode: updated.mode ?? prev.mode,
         } : prev);
+        if (updated.mode) setChatMode(updated.mode);
       })
       .subscribe();
 
@@ -180,10 +185,13 @@ const ChatPage = () => {
     if (!chatId) return;
     const { data } = await supabase
       .from('chats')
-      .select('id, expires_at, timer_stopped')
+      .select('id, expires_at, timer_stopped, mode')
       .eq('id', chatId)
       .single();
-    if (data) setChatInfo(data as any);
+    if (data) {
+      setChatInfo(data as any);
+      setChatMode((data as any).mode || 'light');
+    }
   };
 
   const loadMessages = async () => {
@@ -228,7 +236,7 @@ const ChatPage = () => {
     e.preventDefault();
     if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
 
-    const result = moderateMessage(newMessage, mode as 'light' | 'dark');
+    const result = moderateMessage(newMessage, chatMode);
     if (result.blocked) {
       toast.error(result.reason);
       return;
@@ -304,9 +312,20 @@ const ChatPage = () => {
               {otherUser?.alias || 'Anonymous'}
             </h2>
             <span className="text-xs text-muted-foreground">
-              {isOtherTyping ? 'typing...' : mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+              {isOtherTyping ? 'typing...' : chatMode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
             </span>
           </div>
+          {chatInfo && userId && (
+            <ChatModeSwitch
+              chatId={chatId!}
+              chatMode={chatMode}
+              currentUserId={userId}
+              onModeChanged={(newMode) => {
+                setChatMode(newMode);
+                setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev);
+              }}
+            />
+          )}
           {chatInfo && userId && (
             <ChatTimer
               chatId={chatId!}
