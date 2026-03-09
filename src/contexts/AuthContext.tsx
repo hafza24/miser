@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User } from '@supabase/supabase-js';
 
@@ -21,6 +21,8 @@ interface Profile {
   character_description: string | null;
   character_personality: string[] | null;
   character_life_story: string | null;
+  is_online: boolean;
+  last_seen_at: string | null;
 }
 
 interface AuthContextType {
@@ -40,6 +42,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const updateOnlineStatus = useCallback(async (userId: string, isOnline: boolean) => {
+    await supabase
+      .from('profiles')
+      .update({ 
+        is_online: isOnline, 
+        last_seen_at: new Date().toISOString() 
+      })
+      .eq('user_id', userId);
+  }, []);
+
   const fetchProfile = async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
@@ -53,11 +65,45 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) await fetchProfile(user.id);
   };
 
+  // Handle visibility change and beforeunload
+  useEffect(() => {
+    if (!user) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        updateOnlineStatus(user.id, false);
+      } else if (document.visibilityState === 'visible') {
+        updateOnlineStatus(user.id, true);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      // Use sendBeacon for reliable offline status on page close
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?user_id=eq.${user.id}`;
+      const body = JSON.stringify({ is_online: false, last_seen_at: new Date().toISOString() });
+      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+    };
+
+    // Set online when component mounts with user
+    updateOnlineStatus(user.id, true);
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [user, updateOnlineStatus]);
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => fetchProfile(session.user.id), 0);
+        setTimeout(() => {
+          fetchProfile(session.user.id);
+          updateOnlineStatus(session.user.id, true);
+        }, 0);
       } else {
         setProfile(null);
       }
@@ -66,12 +112,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+        updateOnlineStatus(session.user.id, true);
+      }
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [updateOnlineStatus]);
 
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
@@ -88,6 +137,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signOut = async () => {
+    if (user) {
+      await updateOnlineStatus(user.id, false);
+    }
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
