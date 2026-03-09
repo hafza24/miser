@@ -34,6 +34,7 @@ import {
 const SettingsPage = () => {
   const { user, profile, signOut, refreshProfile } = useAuth();
   const { mode, setMode } = useMode();
+  const { soundEnabled, desktopEnabled, setSoundEnabled, setDesktopEnabled } = useNotifications();
   const navigate = useNavigate();
   const [showAgeVerify, setShowAgeVerify] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
