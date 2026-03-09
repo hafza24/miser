@@ -152,7 +152,15 @@ const ChatPage = () => {
       .from('chat_participants')
       .select('user_id')
       .eq('chat_id', chatId);
-    const otherId = parts?.find(p => p.user_id !== user.id)?.user_id;
+    
+    // Check if chat has ended (only current user or no participants)
+    const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
+    if (otherParticipants.length === 0) {
+      setChatEnded(true);
+      return;
+    }
+
+    const otherId = otherParticipants[0]?.user_id;
     if (otherId) {
       const { data: prof } = await supabase
         .from('profiles')
