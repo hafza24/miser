@@ -65,6 +65,8 @@ const ChatPage = () => {
   const [otherLastReadAt, setOtherLastReadAt] = useState<string | null>(null);
   const [continuationTrigger, setContinuationTrigger] = useState(0);
   const [chatMode, setChatMode] = useState<'light' | 'dark'>('light');
+  const [reportReason, setReportReason] = useState('');
+  const [reportSending, setReportSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
