@@ -434,6 +434,7 @@ const ChatPage = () => {
               >
                 <Smile className="h-5 w-5" />
               </Button>
+              <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
               <Input
                 value={newMessage}
                 onChange={handleInputChange}
