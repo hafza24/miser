@@ -152,9 +152,14 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
       </PopoverTrigger>
       <PopoverContent className="w-[22rem] space-y-3 p-3" align="start">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">
-            {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
-          </p>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">
+              {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
+            </p>
+            <span className={`text-xs font-medium ${dailyUsed >= DAILY_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {DAILY_LIMIT - dailyUsed}/{DAILY_LIMIT} left today
+            </span>
+          </div>
           {isContinuation && (
             <p className="text-xs text-muted-foreground">
               The AI will continue from where the last scene left off, with your character taking the lead.
