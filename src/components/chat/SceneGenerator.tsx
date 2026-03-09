@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { WandSparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -18,18 +18,31 @@ interface SceneGeneratorProps {
   otherUserId: string;
   disabled?: boolean;
   onSend: (content: string) => Promise<void>;
+  /** When set, opens as continuation mode with this pre-filled prompt suggestion */
+  continuationTrigger?: number;
 }
 
 const LIGHT_TYPES: LightSceneType[] = ['friendly', 'romantic', 'cute'];
 const DARK_TYPES: DarkSceneType[] = ['intimate', 'hot', 'intense'];
 
-const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend }: SceneGeneratorProps) => {
+const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, continuationTrigger }: SceneGeneratorProps) => {
   const availableTypes = useMemo(() => (mode === 'light' ? LIGHT_TYPES : DARK_TYPES), [mode]);
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [sceneType, setSceneType] = useState<SceneType>(mode === 'light' ? 'friendly' : 'intimate');
   const [generatedScene, setGeneratedScene] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isContinuation, setIsContinuation] = useState(false);
+
+  // When continuationTrigger changes (from a "Continue Scene" click), open as continuation
+  useEffect(() => {
+    if (continuationTrigger && continuationTrigger > 0) {
+      setIsContinuation(true);
+      setPrompt('');
+      setGeneratedScene('');
+      setOpen(true);
+    }
+  }, [continuationTrigger]);
 
   const canGenerate = prompt.trim().length >= 3 && !loading;
   const canSend = generatedScene.trim().length > 0 && !loading;
@@ -46,6 +59,7 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend }:
           prompt: prompt.trim(),
           mode,
           sceneType,
+          isContinuation,
         },
       });
 
@@ -78,14 +92,24 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend }:
 
   const handleSendScene = async () => {
     if (!canSend) return;
-    await onSend(`📖 Scene\n\n${generatedScene.trim()}`);
+    const prefix = isContinuation ? '📖 Scene (continued)' : '📖 Scene';
+    await onSend(`${prefix}\n\n${generatedScene.trim()}`);
     setGeneratedScene('');
     setPrompt('');
+    setIsContinuation(false);
     setOpen(false);
   };
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      // Reset continuation state when closing
+      setIsContinuation(false);
+    }
+  };
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -100,9 +124,16 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend }:
       </PopoverTrigger>
       <PopoverContent className="w-[22rem] space-y-3 p-3" align="start">
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground">Generate scene</p>
+          <p className="text-sm font-medium text-foreground">
+            {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
+          </p>
+          {isContinuation && (
+            <p className="text-xs text-muted-foreground">
+              The AI will continue from where the last scene left off, with your character taking the lead.
+            </p>
+          )}
           <Textarea
-            placeholder="Give a short prompt..."
+            placeholder={isContinuation ? "What happens next? (your direction)..." : "Give a short prompt..."}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             maxLength={200}
@@ -128,11 +159,22 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend }:
         )}
 
         <div className="flex items-center justify-end gap-2">
+          {isContinuation && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => { setIsContinuation(false); setGeneratedScene(''); }}
+              className="mr-auto text-xs"
+            >
+              New scene instead
+            </Button>
+          )}
           <Button type="button" variant="secondary" onClick={handleGenerate} disabled={!canGenerate}>
-            {loading ? 'Generating...' : generatedScene ? 'Regenerate' : 'Generate'}
+            {loading ? 'Generating...' : generatedScene ? 'Regenerate' : isContinuation ? 'Continue' : 'Generate'}
           </Button>
           <Button type="button" onClick={handleSendScene} disabled={!canSend}>
-            Send Scene
+            Send
           </Button>
         </div>
       </PopoverContent>
