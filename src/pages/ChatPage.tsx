@@ -306,12 +306,12 @@ const ChatPage = () => {
               {isOtherTyping ? 'typing...' : mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
             </span>
           </div>
-          {chatInfo && user && (
+          {chatInfo && userId && (
             <ChatTimer
               chatId={chatId!}
               expiresAt={chatInfo.expires_at}
               timerStopped={chatInfo.timer_stopped}
-              currentUserId={user.id}
+              currentUserId={userId}
             />
           )}
           <AlertDialog>
