@@ -431,6 +431,33 @@ const ChatPage = () => {
             </AlertDialogContent>
           </AlertDialog>
 
+          {/* Block user */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                <Ban className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Block {otherUser?.alias || 'this user'}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  They won't be able to contact you and you'll never be matched again. This will also end the current chat.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleBlockUser}
+                  disabled={blockSending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {blockSending ? 'Blocking...' : 'Block User'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
           {/* End chat */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
