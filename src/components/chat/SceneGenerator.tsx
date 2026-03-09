@@ -36,19 +36,27 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
   const [loading, setLoading] = useState(false);
   const [isContinuation, setIsContinuation] = useState(false);
   const [dailyUsed, setDailyUsed] = useState(0);
-  const DAILY_LIMIT = 10;
+  const [dailyLimit, setDailyLimit] = useState(10);
 
   const loadDailyUsage = useCallback(async () => {
     if (!user?.id) return;
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const { count } = await supabase
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('sender_id', user.id)
-      .like('content', '📖 Scene%')
-      .gte('created_at', todayStart.toISOString());
+    const [{ count }, { data: profile }] = await Promise.all([
+      supabase
+        .from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('sender_id', user.id)
+        .like('content', '📖 Scene%')
+        .gte('created_at', todayStart.toISOString()),
+      supabase
+        .from('profiles')
+        .select('daily_scene_limit')
+        .eq('user_id', user.id)
+        .single(),
+    ]);
     setDailyUsed(count ?? 0);
+    setDailyLimit((profile as any)?.daily_scene_limit ?? 10);
   }, [user?.id]);
 
   useEffect(() => {
@@ -65,7 +73,7 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
     }
   }, [continuationTrigger]);
 
-  const canGenerate = prompt.trim().length >= 3 && !loading && dailyUsed < DAILY_LIMIT;
+  const canGenerate = prompt.trim().length >= 3 && !loading && dailyUsed < dailyLimit;
   const canSend = generatedScene.trim().length > 0 && !loading;
 
   const handleGenerate = async () => {
@@ -156,8 +164,8 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
             <p className="text-sm font-medium text-foreground">
               {isContinuation ? '✨ Continue the scene' : 'Generate scene'}
             </p>
-            <span className={`text-xs font-medium ${dailyUsed >= DAILY_LIMIT ? 'text-destructive' : 'text-muted-foreground'}`}>
-              {DAILY_LIMIT - dailyUsed}/{DAILY_LIMIT} left
+            <span className={`text-xs font-medium ${dailyUsed >= dailyLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {dailyLimit - dailyUsed}/{dailyLimit} left
             </span>
           </div>
           {/* Progress bar */}
@@ -165,16 +173,16 @@ const SceneGenerator = ({ mode, chatId, otherUserId, disabled = false, onSend, c
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-500 ${
-                  dailyUsed >= DAILY_LIMIT
+                  dailyUsed >= dailyLimit
                     ? 'bg-destructive'
-                    : dailyUsed >= DAILY_LIMIT * 0.7
+                    : dailyUsed >= dailyLimit * 0.7
                       ? 'bg-amber-500'
                       : 'bg-primary'
                 }`}
-                style={{ width: `${Math.min((dailyUsed / DAILY_LIMIT) * 100, 100)}%` }}
+                style={{ width: `${Math.min((dailyUsed / dailyLimit) * 100, 100)}%` }}
               />
             </div>
-            {dailyUsed >= DAILY_LIMIT && (
+            {dailyUsed >= dailyLimit && (
               <p className="text-xs text-destructive font-medium">Daily limit reached — resets at midnight UTC</p>
             )}
           </div>

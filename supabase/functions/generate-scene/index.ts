@@ -94,9 +94,18 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check daily scene limit (10 per day)
+    // Check daily scene limit (per-user)
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
+
+    // Get user's custom limit
+    const { data: userProfile } = await adminClient
+      .from('profiles')
+      .select('daily_scene_limit')
+      .eq('user_id', user.id)
+      .single();
+
+    const userSceneLimit = userProfile?.daily_scene_limit ?? 10;
 
     const { count: dailySceneCount, error: countError } = await adminClient
       .from('messages')
@@ -109,8 +118,8 @@ Deno.serve(async (req) => {
       console.error('Error checking daily limit:', countError);
     }
 
-    if ((dailySceneCount ?? 0) >= 10) {
-      return new Response(JSON.stringify({ error: 'Daily scene limit reached (10 per day). Try again tomorrow!' }), {
+    if ((dailySceneCount ?? 0) >= userSceneLimit) {
+      return new Response(JSON.stringify({ error: 'Daily scene limit reached. Try again tomorrow!', limit: userSceneLimit }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

@@ -2,15 +2,17 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import NotificationDropdown from '@/components/NotificationDropdown';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { mode, toggleMode } = useMode();
   const { profile, signOut } = useAuth();
   const { totalUnread } = useUnreadCounts();
+  const { isAdmin } = useAdminRole();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,6 +42,17 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           </button>
 
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/admin')}
+                className="rounded-full"
+                title="Admin Panel"
+              >
+                <Shield className="h-5 w-5 text-primary" />
+              </Button>
+            )}
             <NotificationDropdown />
             <Button
               variant="ghost"

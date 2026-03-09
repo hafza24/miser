@@ -208,6 +208,8 @@ export type Database = {
           character_personality: string[] | null
           character_title: string | null
           created_at: string
+          daily_chat_limit: number
+          daily_scene_limit: number
           desktop_notifications_enabled: boolean
           email: string | null
           emoji_avatar: string
@@ -235,6 +237,8 @@ export type Database = {
           character_personality?: string[] | null
           character_title?: string | null
           created_at?: string
+          daily_chat_limit?: number
+          daily_scene_limit?: number
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
@@ -262,6 +266,8 @@ export type Database = {
           character_personality?: string[] | null
           character_title?: string | null
           created_at?: string
+          daily_chat_limit?: number
+          daily_scene_limit?: number
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
@@ -313,6 +319,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -332,6 +356,13 @@ export type Database = {
       }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
@@ -342,6 +373,7 @@ export type Database = {
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       mode_preference: "light" | "dark"
       violation_type: "warning" | "mute" | "suspension"
     }
@@ -471,6 +503,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       mode_preference: ["light", "dark"],
       violation_type: ["warning", "mute", "suspension"],
     },
