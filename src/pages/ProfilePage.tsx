@@ -64,6 +64,14 @@ const ProfilePage = () => {
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
           </span>
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/50 text-accent-foreground">
+            <MessageCircle className="w-4 h-4" />
+            <span className="text-sm font-medium">
+              {DAILY_CHAT_LIMIT - chatsUsedToday > 0
+                ? `${DAILY_CHAT_LIMIT - chatsUsedToday} chat${DAILY_CHAT_LIMIT - chatsUsedToday !== 1 ? 's' : ''} remaining today`
+                : 'No chats remaining today'}
+            </span>
+          </div>
         </div>
 
         {/* Edit form */}
