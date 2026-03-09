@@ -153,6 +153,9 @@ const SettingsPage = () => {
           </ul>
         </div>
 
+        {/* Blocked users */}
+        <BlockedUsersList />
+
         {/* Delete account */}
         <div className="bg-card rounded-2xl p-6 shadow-card">
           <h3 className="font-heading font-semibold text-destructive flex items-center gap-2 mb-3">
