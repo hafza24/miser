@@ -105,10 +105,12 @@ export const useUnreadCounts = () => {
         table: 'messages',
       }, (payload) => {
         const msg = payload.new as any;
-        // Only notify for messages from others
         if (msg.sender_id !== user.id) {
-          playNotificationSound();
-          showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
+          // Sound/desktop controlled by NotificationContext consumers
+          const soundPref = localStorage.getItem('notif_sound');
+          const desktopPref = localStorage.getItem('notif_desktop');
+          if (soundPref !== 'false') playNotificationSound();
+          if (desktopPref === 'true') showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
         }
         fetchCounts();
       })

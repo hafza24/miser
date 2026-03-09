@@ -106,6 +106,38 @@ const SettingsPage = () => {
           </div>
         </div>
 
+        {/* Notification preferences */}
+        <div className="bg-card rounded-2xl p-6 shadow-card space-y-4">
+          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+            <BellRing className="h-5 w-5" />
+            Notifications
+          </h3>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground flex items-center gap-2">
+                <Volume2 className="h-4 w-4" /> Notification Sound
+              </p>
+              <p className="text-sm text-muted-foreground">Play a sound for new messages</p>
+            </div>
+            <Switch
+              checked={soundEnabled}
+              onCheckedChange={setSoundEnabled}
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium text-foreground flex items-center gap-2">
+                <BellRing className="h-4 w-4" /> Desktop Notifications
+              </p>
+              <p className="text-sm text-muted-foreground">Show alerts when app is in background</p>
+            </div>
+            <Switch
+              checked={desktopEnabled}
+              onCheckedChange={setDesktopEnabled}
+            />
+          </div>
+        </div>
+
         {/* Privacy */}
         <div className="bg-card rounded-2xl p-6 shadow-card space-y-3">
           <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
