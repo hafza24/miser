@@ -2,9 +2,10 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import { useAdminRole } from '@/hooks/useAdminRole';
 import NotificationDropdown from '@/components/NotificationDropdown';
 
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
