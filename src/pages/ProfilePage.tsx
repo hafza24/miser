@@ -100,8 +100,18 @@ const ProfilePage = () => {
       <div className="p-4 space-y-6 animate-fade-in">
         {/* Avatar + Alias */}
         <div className="text-center py-8">
-          <div className="text-7xl mb-3">{profile.emoji_avatar}</div>
-          <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
+          <div className="text-7xl mb-3 relative inline-block">
+            {profile.emoji_avatar}
+            <OnlineIndicator 
+              isOnline={profile.is_online ?? true} 
+              size="lg" 
+              className="absolute -bottom-1 -right-1" 
+            />
+          </div>
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
+            <OnlineIndicator isOnline={profile.is_online ?? true} size="md" showLabel />
+          </div>
           <p className="text-sm text-muted-foreground mt-1">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
