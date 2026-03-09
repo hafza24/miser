@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
@@ -7,6 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { MessageCircle } from 'lucide-react';
+
+const DAILY_CHAT_LIMIT = 3;
 
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
@@ -14,6 +17,22 @@ const ProfilePage = () => {
   const [region, setRegion] = useState(profile?.region || '');
   const [availability, setAvailability] = useState(profile?.availability || '');
   const [saving, setSaving] = useState(false);
+  const [chatsUsedToday, setChatsUsedToday] = useState(0);
+
+  useEffect(() => {
+    const fetchDailyCount = async () => {
+      if (!profile) return;
+      const todayStart = new Date();
+      todayStart.setUTCHours(0, 0, 0, 0);
+      const { count } = await supabase
+        .from('chat_participants')
+        .select('id, chats!inner(created_at)', { count: 'exact', head: true })
+        .eq('user_id', profile.user_id)
+        .gte('chats.created_at', todayStart.toISOString());
+      setChatsUsedToday(count ?? 0);
+    };
+    fetchDailyCount();
+  }, [profile]);
 
   const handleSave = async () => {
     if (!profile) return;
