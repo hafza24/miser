@@ -470,6 +470,7 @@ const DashboardPage = () => {
           <div className="space-y-2">
             {activeChats.map((chat) => {
               const hasTimer = !chat.timer_stopped && chat.expires_at;
+              const unread = unreadCounts[chat.id] || 0;
               return (
                 <button
                   key={chat.id}
@@ -481,7 +482,7 @@ const DashboardPage = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground truncate">
+                      <span className={`font-medium truncate ${unread > 0 ? 'text-foreground font-semibold' : 'text-foreground'}`}>
                         {chat.participants.map(p => p.alias).join(', ') || 'Anonymous'}
                       </span>
                       {chat.is_group && <Users className="h-3 w-3 text-muted-foreground" />}
@@ -490,11 +491,17 @@ const DashboardPage = () => {
                         <span className="text-[10px] text-primary font-medium">∞</span>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className={`text-sm truncate ${unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
                       {chat.last_message || 'No messages yet'}
                     </p>
                   </div>
-                  <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  {unread > 0 ? (
+                    <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                      {unread > 99 ? '99+' : unread}
+                    </span>
+                  ) : (
+                    <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  )}
                 </button>
               );
             })}
