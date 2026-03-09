@@ -467,6 +467,7 @@ const ChatPage = () => {
                   otherUserId={otherUserId}
                   disabled={expired || chatEnded || sending}
                   onSend={sendGeneratedScene}
+                  continuationTrigger={continuationTrigger}
                 />
               )}
               <Input
