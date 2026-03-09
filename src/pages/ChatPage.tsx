@@ -13,6 +13,7 @@ import TypingIndicator from '@/components/chat/TypingIndicator';
 import SeenIndicator from '@/components/chat/SeenIndicator';
 import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
+import SceneGenerator from '@/components/chat/SceneGenerator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,6 +53,7 @@ const ChatPage = () => {
   const [showEmoji, setShowEmoji] = useState(false);
   const [sending, setSending] = useState(false);
   const [otherUser, setOtherUser] = useState<{ alias: string; emoji_avatar: string } | null>(null);
+  const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
   const [expired, setExpired] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
@@ -206,6 +208,7 @@ const ChatPage = () => {
     
     const otherParticipants = parts?.filter(p => p.user_id !== user.id) || [];
     if (otherParticipants.length === 0) {
+      setOtherUserId(null);
       setChatEnded(true);
       return;
     }
@@ -214,6 +217,7 @@ const ChatPage = () => {
     if (other.last_read_at) setOtherLastReadAt(other.last_read_at);
 
     if (other.user_id) {
+      setOtherUserId(other.user_id);
       const { data: prof } = await supabase
         .from('profiles')
         .select('alias, emoji_avatar')
@@ -254,6 +258,10 @@ const ChatPage = () => {
       content,
     });
     setShowEmoji(false);
+  };
+
+  const sendGeneratedScene = async (content: string) => {
+    await sendGameMessage(content);
   };
 
   const handleEndChat = async () => {
@@ -435,6 +443,15 @@ const ChatPage = () => {
                 <Smile className="h-5 w-5" />
               </Button>
               <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
+              {chatId && otherUserId && (
+                <SceneGenerator
+                  mode={mode as 'light' | 'dark'}
+                  chatId={chatId}
+                  otherUserId={otherUserId}
+                  disabled={expired || chatEnded || sending}
+                  onSend={sendGeneratedScene}
+                />
+              )}
               <Input
                 value={newMessage}
                 onChange={handleInputChange}
