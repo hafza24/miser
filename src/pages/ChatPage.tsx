@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
 import TypingIndicator from '@/components/chat/TypingIndicator';
 import SeenIndicator from '@/components/chat/SeenIndicator';
+import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import {
   AlertDialog,
@@ -245,6 +246,16 @@ const ChatPage = () => {
     setShowEmoji(false);
   };
 
+  const sendGameMessage = async (content: string) => {
+    if (!user || !chatId || expired || chatEnded) return;
+    await supabase.from('messages').insert({
+      chat_id: chatId,
+      sender_id: user.id,
+      content,
+    });
+    setShowEmoji(false);
+  };
+
   const handleEndChat = async () => {
     if (!chatId || !user) return;
     try {
@@ -423,6 +434,7 @@ const ChatPage = () => {
               >
                 <Smile className="h-5 w-5" />
               </Button>
+              <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
               <Input
                 value={newMessage}
                 onChange={handleInputChange}
