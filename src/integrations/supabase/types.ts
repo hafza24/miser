@@ -168,6 +168,10 @@ export type Database = {
           alias: string
           availability: string | null
           bio: string | null
+          character_description: string | null
+          character_life_story: string | null
+          character_personality: string[] | null
+          character_title: string | null
           created_at: string
           desktop_notifications_enabled: boolean
           email: string | null
@@ -188,6 +192,10 @@ export type Database = {
           alias: string
           availability?: string | null
           bio?: string | null
+          character_description?: string | null
+          character_life_story?: string | null
+          character_personality?: string[] | null
+          character_title?: string | null
           created_at?: string
           desktop_notifications_enabled?: boolean
           email?: string | null
@@ -208,6 +216,10 @@ export type Database = {
           alias?: string
           availability?: string | null
           bio?: string | null
+          character_description?: string | null
+          character_life_story?: string | null
+          character_personality?: string[] | null
+          character_title?: string | null
           created_at?: string
           desktop_notifications_enabled?: boolean
           email?: string | null

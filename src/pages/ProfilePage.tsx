@@ -6,10 +6,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Sparkles } from 'lucide-react';
 
 const DAILY_CHAT_LIMIT = 3;
+
+const PERSONALITY_OPTIONS = [
+  'Kind', 'Rude', 'Romantic', 'Emotional', 'Friendly',
+  'Mysterious', 'Funny', 'Shy', 'Bold', 'Caring',
+  'Sarcastic', 'Adventurous', 'Calm', 'Energetic', 'Wise',
+];
 
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
@@ -18,6 +25,24 @@ const ProfilePage = () => {
   const [availability, setAvailability] = useState(profile?.availability || '');
   const [saving, setSaving] = useState(false);
   const [chatsUsedToday, setChatsUsedToday] = useState(0);
+
+  // Character fields
+  const [charTitle, setCharTitle] = useState(profile?.character_title || '');
+  const [charDescription, setCharDescription] = useState(profile?.character_description || '');
+  const [charPersonality, setCharPersonality] = useState<string[]>(profile?.character_personality || []);
+  const [charLifeStory, setCharLifeStory] = useState(profile?.character_life_story || '');
+
+  useEffect(() => {
+    if (profile) {
+      setBio(profile.bio || '');
+      setRegion(profile.region || '');
+      setAvailability(profile.availability || '');
+      setCharTitle(profile.character_title || '');
+      setCharDescription(profile.character_description || '');
+      setCharPersonality(profile.character_personality || []);
+      setCharLifeStory(profile.character_life_story || '');
+    }
+  }, [profile]);
 
   useEffect(() => {
     const fetchDailyCount = async () => {
@@ -34,12 +59,26 @@ const ProfilePage = () => {
     fetchDailyCount();
   }, [profile]);
 
+  const togglePersonality = (trait: string) => {
+    setCharPersonality((prev) =>
+      prev.includes(trait) ? prev.filter((t) => t !== trait) : [...prev, trait]
+    );
+  };
+
   const handleSave = async () => {
     if (!profile) return;
     setSaving(true);
     const { error } = await supabase
       .from('profiles')
-      .update({ bio: bio.trim(), region: region.trim(), availability: availability.trim() })
+      .update({
+        bio: bio.trim(),
+        region: region.trim(),
+        availability: availability.trim(),
+        character_title: charTitle.trim() || null,
+        character_description: charDescription.trim() || null,
+        character_personality: charPersonality.length > 0 ? charPersonality : [],
+        character_life_story: charLifeStory.trim() || null,
+      })
       .eq('user_id', profile.user_id);
 
     if (error) {
@@ -71,6 +110,62 @@ const ProfilePage = () => {
                 ? `${DAILY_CHAT_LIMIT - chatsUsedToday} chat${DAILY_CHAT_LIMIT - chatsUsedToday !== 1 ? 's' : ''} remaining today`
                 : 'No chats remaining today'}
             </span>
+          </div>
+        </div>
+
+        {/* Character Section */}
+        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            <h3 className="font-heading text-lg font-bold text-foreground">My Character</h3>
+          </div>
+
+          <div>
+            <Label>Title</Label>
+            <Input
+              value={charTitle}
+              onChange={(e) => setCharTitle(e.target.value)}
+              placeholder="e.g. The Wandering Poet"
+              maxLength={100}
+            />
+          </div>
+
+          <div>
+            <Label>Description</Label>
+            <Textarea
+              value={charDescription}
+              onChange={(e) => setCharDescription(e.target.value)}
+              placeholder="Describe your character..."
+              maxLength={500}
+              rows={3}
+            />
+          </div>
+
+          <div>
+            <Label className="mb-2 block">Personality</Label>
+            <div className="flex flex-wrap gap-2">
+              {PERSONALITY_OPTIONS.map((trait) => (
+                <Badge
+                  key={trait}
+                  variant={charPersonality.includes(trait) ? 'default' : 'outline'}
+                  className="cursor-pointer select-none transition-colors"
+                  onClick={() => togglePersonality(trait)}
+                >
+                  {trait}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <Label>Life Story</Label>
+            <Textarea
+              value={charLifeStory}
+              onChange={(e) => setCharLifeStory(e.target.value)}
+              placeholder="Share your character's backstory..."
+              maxLength={1000}
+              rows={4}
+            />
           </div>
         </div>
 
