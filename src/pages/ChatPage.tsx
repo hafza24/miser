@@ -100,9 +100,26 @@ const ChatPage = () => {
       })
       .subscribe();
 
+    // Realtime participant changes (detect when other user leaves)
+    const participantChannel = supabase
+      .channel(`chat-participants-${chatId}`)
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'chat_participants',
+        filter: `chat_id=eq.${chatId}`,
+      }, (payload) => {
+        const deleted = payload.old as any;
+        if (deleted.user_id !== user.id) {
+          setChatEnded(true);
+        }
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(msgChannel);
       supabase.removeChannel(chatChannel);
+      supabase.removeChannel(participantChannel);
     };
   }, [chatId, user]);
 
