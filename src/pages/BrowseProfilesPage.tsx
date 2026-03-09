@@ -270,8 +270,8 @@ const BrowseProfilesPage = () => {
           />
         </div>
 
-        {/* Country & Availability Filters */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        {/* Country, Availability & Gender Filters */}
+        <div className="grid grid-cols-3 gap-3 mb-4">
           <div>
             <div className="flex items-center gap-1.5 mb-1">
               <Globe className="h-3.5 w-3.5 text-primary" />
@@ -302,6 +302,23 @@ const BrowseProfilesPage = () => {
                 <SelectItem value="all">Any time</SelectItem>
                 {AVAILABILITY_OPTIONS.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gender</span>
+            </div>
+            <Select value={filterGender || 'all'} onValueChange={(v) => setFilterGender(v === 'all' ? '' : v)}>
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder="All" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                {GENDER_OPTIONS.map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
