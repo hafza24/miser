@@ -343,7 +343,7 @@ const BrowseProfilesPage = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
-                    <OnlineIndicator isOnline={p.is_online} size="sm" showLabel />
+                    <OnlineIndicator isOnline={p.is_online} size="sm" showLabel lastSeenAt={p.last_seen_at} />
                   </div>
                   {p.character_title && (
                     <p className="text-xs font-medium text-primary mt-0.5">✨ {p.character_title}</p>
