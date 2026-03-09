@@ -442,6 +442,15 @@ const ChatPage = () => {
                 <Smile className="h-5 w-5" />
               </Button>
               <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
+              {chatId && otherUserId && (
+                <SceneGenerator
+                  mode={mode as 'light' | 'dark'}
+                  chatId={chatId}
+                  otherUserId={otherUserId}
+                  disabled={expired || chatEnded || sending}
+                  onSend={sendGeneratedScene}
+                />
+              )}
               <Input
                 value={newMessage}
                 onChange={handleInputChange}
