@@ -9,6 +9,7 @@ import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const { mode, toggleMode } = useMode();
   const { profile, signOut } = useAuth();
+  const { totalUnread } = useUnreadCounts();
   const navigate = useNavigate();
   const location = useLocation();
 
