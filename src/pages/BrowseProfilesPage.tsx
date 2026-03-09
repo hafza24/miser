@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer } from 'lucide-react';
+import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
@@ -30,6 +31,8 @@ interface BrowseProfile {
   character_description: string | null;
   character_personality: string[] | null;
   character_life_story: string | null;
+  is_online: boolean;
+  last_seen_at: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -61,7 +64,7 @@ const BrowseProfilesPage = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story')
+      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at')
       .neq('user_id', user.id)
       .eq('is_suspended', false)
       .limit(50);
@@ -329,9 +332,19 @@ const BrowseProfilesPage = () => {
                 key={p.user_id}
                 className="flex items-start gap-3 p-4 rounded-xl bg-card shadow-card border border-border"
               >
-                <div className="text-3xl flex-shrink-0">{p.emoji_avatar}</div>
+                <div className="text-3xl flex-shrink-0 relative">
+                  {p.emoji_avatar}
+                  <OnlineIndicator 
+                    isOnline={p.is_online} 
+                    size="sm" 
+                    className="absolute -bottom-0.5 -right-0.5" 
+                  />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground truncate">{p.alias}</h3>
+                    <OnlineIndicator isOnline={p.is_online} size="sm" showLabel />
+                  </div>
                   {p.character_title && (
                     <p className="text-xs font-medium text-primary mt-0.5">✨ {p.character_title}</p>
                   )}
