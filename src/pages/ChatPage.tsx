@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -67,6 +67,7 @@ const ChatPage = () => {
   const [chatMode, setChatMode] = useState<'light' | 'dark'>('light');
   const [reportReason, setReportReason] = useState('');
   const [reportSending, setReportSending] = useState(false);
+  const [blockSending, setBlockSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
@@ -320,6 +321,32 @@ const ChatPage = () => {
     }
   };
 
+  const handleBlockUser = async () => {
+    if (!userId || !otherUserId) return;
+    setBlockSending(true);
+    const { error } = await supabase.from('blocked_users').insert({
+      blocker_id: userId,
+      blocked_id: otherUserId,
+    } as any);
+    setBlockSending(false);
+    if (error) {
+      if (error.code === '23505') {
+        toast.info('User already blocked');
+      } else {
+        toast.error('Failed to block user');
+      }
+    } else {
+      toast.success(`${otherUser?.alias || 'User'} has been blocked. You won't be matched again.`);
+      // End the chat after blocking
+      await supabase
+        .from('chat_participants')
+        .delete()
+        .eq('chat_id', chatId!)
+        .eq('user_id', userId);
+      navigate('/dashboard');
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);
     sendTyping();
@@ -399,6 +426,33 @@ const ChatPage = () => {
                   className="bg-amber-500 text-white hover:bg-amber-600"
                 >
                   {reportSending ? 'Sending...' : 'Submit Report'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Block user */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                <Ban className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Block {otherUser?.alias || 'this user'}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  They won't be able to contact you and you'll never be matched again. This will also end the current chat.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleBlockUser}
+                  disabled={blockSending}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {blockSending ? 'Blocking...' : 'Block User'}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

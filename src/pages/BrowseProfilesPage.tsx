@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users } from 'lucide-react';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
@@ -57,11 +57,23 @@ const BrowseProfilesPage = () => {
   const [filterCountry, setFilterCountry] = useState('');
   const [filterAvailability, setFilterAvailability] = useState('');
   const [filterGender, setFilterGender] = useState('');
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (!user) return;
     loadProfiles();
     loadMyRequests();
+    loadBlockedUsers();
   }, [user]);
+
+  const loadBlockedUsers = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('blocked_users')
+      .select('blocked_id')
+      .eq('blocker_id', user.id);
+    setBlockedIds(new Set((data ?? []).map((d: any) => d.blocked_id)));
+  };
 
   const loadProfiles = async () => {
     if (!user) return;
@@ -140,6 +152,23 @@ const BrowseProfilesPage = () => {
     }
   };
 
+  const blockUser = async (blockedId: string) => {
+    if (!user) return;
+    setActionId(blockedId);
+    const { error } = await supabase.from('blocked_users').insert({
+      blocker_id: user.id,
+      blocked_id: blockedId,
+    } as any);
+    setActionId(null);
+    if (error) {
+      if (error.code === '23505') toast.info('Already blocked');
+      else toast.error('Failed to block user');
+    } else {
+      setBlockedIds(prev => new Set([...prev, blockedId]));
+      toast.success('User blocked. You won\'t be matched again.');
+    }
+  };
+
   const toggleTrait = (trait: string) => {
     setSelectedTraits(prev =>
       prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]
@@ -147,6 +176,8 @@ const BrowseProfilesPage = () => {
   };
 
   const filtered = profiles.filter(p => {
+    // Exclude blocked users
+    if (blockedIds.has(p.user_id)) return false;
     // Text search
     if (search.trim()) {
       const q = search.toLowerCase();
@@ -411,7 +442,19 @@ const BrowseProfilesPage = () => {
                     ))}
                   </div>
                 </div>
-                {renderRequestButton(p)}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {renderRequestButton(p)}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => blockUser(p.user_id)}
+                    disabled={actionId === p.user_id}
+                    className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 px-2"
+                    title="Block user"
+                  >
+                    <Ban className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
