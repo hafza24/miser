@@ -321,7 +321,32 @@ const ChatPage = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleBlockUser = async () => {
+    if (!userId || !otherUserId) return;
+    setBlockSending(true);
+    const { error } = await supabase.from('blocked_users').insert({
+      blocker_id: userId,
+      blocked_id: otherUserId,
+    } as any);
+    setBlockSending(false);
+    if (error) {
+      if (error.code === '23505') {
+        toast.info('User already blocked');
+      } else {
+        toast.error('Failed to block user');
+      }
+    } else {
+      toast.success(`${otherUser?.alias || 'User'} has been blocked. You won't be matched again.`);
+      // End the chat after blocking
+      await supabase
+        .from('chat_participants')
+        .delete()
+        .eq('chat_id', chatId!)
+        .eq('user_id', userId);
+      navigate('/dashboard');
+    }
+  };
+
     setNewMessage(e.target.value);
     sendTyping();
   };
