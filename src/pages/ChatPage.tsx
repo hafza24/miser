@@ -190,7 +190,7 @@ const ChatPage = () => {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !chatId || expired) return;
+    if (!newMessage.trim() || !user || !chatId || expired || chatEnded) return;
 
     const result = moderateMessage(newMessage, mode as 'light' | 'dark');
     if (result.blocked) {
