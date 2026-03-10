@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle, X, Send, ChevronDown, ChevronRight, MessageSquare, BookOpen, Loader2 } from 'lucide-react';
+import { HelpCircle, X, Send, ChevronDown, ChevronRight, MessageSquare, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -91,7 +91,6 @@ const HelpWidget = () => {
     }
   }, [open, tab]);
 
-  // Realtime for ticket updates
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -156,21 +155,32 @@ const HelpWidget = () => {
 
   return (
     <>
-      {/* Floating button */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="fixed bottom-20 right-4 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-105"
-        aria-label="Help & Support"
-      >
-        {open ? <X className="h-5 w-5" /> : <HelpCircle className="h-5 w-5" />}
-      </button>
+      {/* Floating button — always visible, below panel */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-20 right-4 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-105"
+          aria-label="Help & Support"
+        >
+          <HelpCircle className="h-5 w-5" />
+        </button>
+      )}
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-[5.5rem] right-4 z-[60] w-[340px] max-h-[70vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+        <div className="fixed bottom-16 right-2 left-2 sm:left-auto sm:right-4 sm:w-[340px] z-[70] max-h-[75vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
           {/* Header */}
-          <div className="px-4 py-3 border-b border-border bg-muted/30">
-            <h3 className="font-heading font-bold text-foreground text-sm">Help & Support</h3>
+          <div className="px-4 py-3 border-b border-border bg-muted/30 relative">
+            <div className="flex items-center justify-between">
+              <h3 className="font-heading font-bold text-foreground text-sm">Help & Support</h3>
+              <button
+                onClick={() => setOpen(false)}
+                className="h-7 w-7 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+                aria-label="Close help"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
             <div className="flex gap-1 mt-2">
               {(['faq', 'contact', 'tickets'] as const).map((t) => (
                 <button
@@ -188,7 +198,6 @@ const HelpWidget = () => {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-3">
-            {/* FAQ Tab */}
             {tab === 'faq' && (
               <div className="space-y-2">
                 {FAQ_DATA.map((cat, ci) => (
@@ -210,7 +219,7 @@ const HelpWidget = () => {
                                 onClick={() => setExpandedItem(expandedItem === key ? null : key)}
                                 className="w-full text-left px-3 py-1.5 rounded text-xs font-medium text-foreground hover:bg-accent/30 transition-colors flex items-center gap-2"
                               >
-                                <ChevronRight className={`h-3 w-3 text-muted-foreground transition-transform ${expandedItem === key ? 'rotate-90' : ''}`} />
+                                <ChevronRight className={`h-3 w-3 text-muted-foreground transition-transform flex-shrink-0 ${expandedItem === key ? 'rotate-90' : ''}`} />
                                 {item.q}
                               </button>
                               {expandedItem === key && (
@@ -228,7 +237,6 @@ const HelpWidget = () => {
               </div>
             )}
 
-            {/* Contact Tab */}
             {tab === 'contact' && (
               <form onSubmit={handleSubmit} className="space-y-3">
                 <p className="text-xs text-muted-foreground">
@@ -266,7 +274,6 @@ const HelpWidget = () => {
               </form>
             )}
 
-            {/* Tickets Tab */}
             {tab === 'tickets' && (
               <div className="space-y-2">
                 {loadingTickets ? (
