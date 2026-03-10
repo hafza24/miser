@@ -157,17 +157,26 @@ const HelpWidget = () => {
   return (
     <>
       {/* Floating button */}
+      {/* Panel */}
+      {open && (
+        <div className="fixed bottom-20 right-4 left-4 sm:left-auto sm:w-[340px] z-[70] max-h-[70vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
+          {/* Close button inside panel */}
+          <button
+            onClick={() => setOpen(false)}
+            className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center transition-colors"
+            aria-label="Close help"
+          >
+            <X className="h-4 w-4 text-muted-foreground" />
+          </button>
+      )}
+
+      {/* Floating button */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed bottom-20 right-4 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-105"
         aria-label="Help & Support"
       >
         {open ? <X className="h-5 w-5" /> : <HelpCircle className="h-5 w-5" />}
-      </button>
-
-      {/* Panel */}
-      {open && (
-        <div className="fixed bottom-[5.5rem] right-4 z-[60] w-[340px] max-h-[70vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fade-in">
           {/* Header */}
           <div className="px-4 py-3 border-b border-border bg-muted/30">
             <h3 className="font-heading font-bold text-foreground text-sm">Help & Support</h3>
