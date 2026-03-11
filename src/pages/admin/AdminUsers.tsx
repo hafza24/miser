@@ -102,6 +102,22 @@ const AdminUsers = () => {
     setUpdating(null);
   };
 
+  const handleAdminDelete = async (user: UserProfile) => {
+    setUpdating(user.id);
+    // Schedule immediate deletion
+    const { error } = await supabase
+      .from('profiles')
+      .update({ scheduled_deletion_at: new Date().toISOString() } as any)
+      .eq('id', user.id);
+    if (error) {
+      toast.error('Failed to schedule deletion');
+    } else {
+      toast.success(`${user.alias}'s account scheduled for deletion`);
+      setUsers(prev => prev.filter(u => u.id !== user.id));
+    }
+    setUpdating(null);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-4">
