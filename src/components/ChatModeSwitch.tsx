@@ -101,6 +101,10 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
   };
 
   const switchToLight = async () => {
+    if (lightBlocked) {
+      toast.error('Your access to Light mode has been restricted by an admin.');
+      return;
+    }
     // Dark → Light is instant, no consent needed
     setSending(true);
     const { error } = await supabase
