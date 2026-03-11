@@ -22,6 +22,23 @@ interface ChatModeSwitchProps {
 const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
+  const [lightBlocked, setLightBlocked] = useState(false);
+  const [darkBlocked, setDarkBlocked] = useState(false);
+
+  useEffect(() => {
+    const loadRestrictions = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('light_mode_blocked, dark_mode_blocked')
+        .eq('user_id', currentUserId)
+        .single();
+      if (data) {
+        setLightBlocked((data as any).light_mode_blocked ?? false);
+        setDarkBlocked((data as any).dark_mode_blocked ?? false);
+      }
+    };
+    loadRestrictions();
+  }, [currentUserId]);
 
   useEffect(() => {
     const loadRequest = async () => {
