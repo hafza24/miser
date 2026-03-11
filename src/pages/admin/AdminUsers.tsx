@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Search, Ban, CheckCircle, Minus, Plus } from 'lucide-react';
+import { Search, Ban, CheckCircle, Minus, Plus, Sun, Moon } from 'lucide-react';
 
 interface UserProfile {
   id: string;
@@ -22,6 +22,8 @@ interface UserProfile {
   daily_chat_limit: number;
   created_at: string;
   mode_preference: string;
+  light_mode_blocked: boolean;
+  dark_mode_blocked: boolean;
 }
 
 const AdminUsers = () => {
@@ -34,7 +36,7 @@ const AdminUsers = () => {
     setLoading(true);
     let query = supabase
       .from('profiles')
-      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, created_at, mode_preference')
+      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, created_at, mode_preference, light_mode_blocked, dark_mode_blocked')
       .order('created_at', { ascending: false })
       .limit(100);
 
@@ -157,6 +159,48 @@ const AdminUsers = () => {
                           <span className="text-sm font-medium w-6 text-center text-foreground">{user.daily_chat_limit}</span>
                           <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => updateLimit(user.id, 'daily_chat_limit', 1)} disabled={updating === user.id}>
                             <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Mode Access */}
+                      <div className="text-center">
+                        <p className="text-[10px] text-muted-foreground mb-1">Mode Access</p>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            size="icon"
+                            variant={user.light_mode_blocked ? 'destructive' : 'outline'}
+                            className="h-7 w-7"
+                            disabled={updating === user.id}
+                            title={user.light_mode_blocked ? 'Light mode blocked - click to unblock' : 'Click to block light mode'}
+                            onClick={async () => {
+                              setUpdating(user.id);
+                              const { error } = await supabase.from('profiles').update({ light_mode_blocked: !user.light_mode_blocked } as any).eq('id', user.id);
+                              if (error) { toast.error('Failed to update'); } else {
+                                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, light_mode_blocked: !u.light_mode_blocked } : u));
+                                toast.success(user.light_mode_blocked ? 'Light mode unblocked' : 'Light mode blocked');
+                              }
+                              setUpdating(null);
+                            }}
+                          >
+                            <Sun className={`h-3.5 w-3.5 ${user.light_mode_blocked ? '' : 'text-amber-500'}`} />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant={user.dark_mode_blocked ? 'destructive' : 'outline'}
+                            className="h-7 w-7"
+                            disabled={updating === user.id}
+                            title={user.dark_mode_blocked ? 'Dark mode blocked - click to unblock' : 'Click to block dark mode'}
+                            onClick={async () => {
+                              setUpdating(user.id);
+                              const { error } = await supabase.from('profiles').update({ dark_mode_blocked: !user.dark_mode_blocked } as any).eq('id', user.id);
+                              if (error) { toast.error('Failed to update'); } else {
+                                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, dark_mode_blocked: !u.dark_mode_blocked } : u));
+                                toast.success(user.dark_mode_blocked ? 'Dark mode unblocked' : 'Dark mode blocked');
+                              }
+                              setUpdating(null);
+                            }}
+                          >
+                            <Moon className={`h-3.5 w-3.5 ${user.dark_mode_blocked ? '' : 'text-indigo-400'}`} />
                           </Button>
                         </div>
                       </div>

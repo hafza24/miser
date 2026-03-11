@@ -22,6 +22,23 @@ interface ChatModeSwitchProps {
 const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
+  const [lightBlocked, setLightBlocked] = useState(false);
+  const [darkBlocked, setDarkBlocked] = useState(false);
+
+  useEffect(() => {
+    const loadRestrictions = async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('light_mode_blocked, dark_mode_blocked')
+        .eq('user_id', currentUserId)
+        .single();
+      if (data) {
+        setLightBlocked((data as any).light_mode_blocked ?? false);
+        setDarkBlocked((data as any).dark_mode_blocked ?? false);
+      }
+    };
+    loadRestrictions();
+  }, [currentUserId]);
 
   useEffect(() => {
     const loadRequest = async () => {
@@ -64,6 +81,10 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
   }, [chatId, currentUserId, onModeChanged]);
 
   const switchToDark = async () => {
+    if (darkBlocked) {
+      toast.error('Your access to Dark mode has been restricted by an admin.');
+      return;
+    }
     // Light → Dark requires consent
     setSending(true);
     const { error } = await supabase.from('mode_switch_requests').insert({
@@ -80,6 +101,10 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
   };
 
   const switchToLight = async () => {
+    if (lightBlocked) {
+      toast.error('Your access to Light mode has been restricted by an admin.');
+      return;
+    }
     // Dark → Light is instant, no consent needed
     setSending(true);
     const { error } = await supabase

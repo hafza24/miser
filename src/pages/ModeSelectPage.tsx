@@ -1,17 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Sun, Moon } from 'lucide-react';
+import { Sun, Moon, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ModeSelectPage = () => {
   const { setMode } = useMode();
   const { user, refreshProfile } = useAuth();
   const navigate = useNavigate();
+  const [lightBlocked, setLightBlocked] = useState(false);
+  const [darkBlocked, setDarkBlocked] = useState(false);
+
+  useEffect(() => {
+    const loadRestrictions = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('light_mode_blocked, dark_mode_blocked')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        setLightBlocked((data as any).light_mode_blocked ?? false);
+        setDarkBlocked((data as any).dark_mode_blocked ?? false);
+      }
+    };
+    loadRestrictions();
+  }, [user]);
 
   const selectMode = async (mode: 'light' | 'dark') => {
+    if (mode === 'light' && lightBlocked) {
+      toast.error('Your access to Light mode has been restricted by an admin.');
+      return;
+    }
+    if (mode === 'dark' && darkBlocked) {
+      toast.error('Your access to Dark mode has been restricted by an admin.');
+      return;
+    }
     setMode(mode);
     if (user) {
       await supabase
@@ -35,8 +61,13 @@ const ModeSelectPage = () => {
           {/* Light Mode */}
           <button
             onClick={() => selectMode('light')}
-            className="group relative overflow-hidden rounded-2xl border-2 border-border p-8 text-left transition-all hover:border-primary hover:shadow-soft bg-card"
+            className={`group relative overflow-hidden rounded-2xl border-2 border-border p-8 text-left transition-all bg-card ${lightBlocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:shadow-soft'}`}
           >
+            {lightBlocked && (
+              <div className="absolute top-3 right-3 flex items-center gap-1 text-destructive text-xs font-medium">
+                <ShieldAlert className="h-3.5 w-3.5" /> Restricted
+              </div>
+            )}
             <div className="flex items-center gap-4 mb-3">
               <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, hsl(340 65% 90%), hsl(270 40% 90%))' }}>
                 <Sun className="h-7 w-7 text-foreground" />
@@ -61,8 +92,13 @@ const ModeSelectPage = () => {
           {/* Dark Mode */}
           <button
             onClick={() => selectMode('dark')}
-            className="group relative overflow-hidden rounded-2xl border-2 border-border p-8 text-left transition-all hover:border-primary hover:shadow-soft bg-card"
+            className={`group relative overflow-hidden rounded-2xl border-2 border-border p-8 text-left transition-all bg-card ${darkBlocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:shadow-soft'}`}
           >
+            {darkBlocked && (
+              <div className="absolute top-3 right-3 flex items-center gap-1 text-destructive text-xs font-medium">
+                <ShieldAlert className="h-3.5 w-3.5" /> Restricted
+              </div>
+            )}
             <div className="flex items-center gap-4 mb-3">
               <div className="w-14 h-14 rounded-xl flex items-center justify-center bg-muted">
                 <Moon className="h-7 w-7 text-foreground" />
