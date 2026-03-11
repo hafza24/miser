@@ -231,6 +231,7 @@ export type Database = {
           created_at: string
           daily_chat_limit: number
           daily_scene_limit: number
+          dark_mode_blocked: boolean
           desktop_notifications_enabled: boolean
           email: string | null
           emoji_avatar: string
@@ -240,6 +241,7 @@ export type Database = {
           is_online: boolean
           is_suspended: boolean
           last_seen_at: string | null
+          light_mode_blocked: boolean
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
           notification_sound_enabled: boolean
@@ -260,6 +262,7 @@ export type Database = {
           created_at?: string
           daily_chat_limit?: number
           daily_scene_limit?: number
+          dark_mode_blocked?: boolean
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
@@ -269,6 +272,7 @@ export type Database = {
           is_online?: boolean
           is_suspended?: boolean
           last_seen_at?: string | null
+          light_mode_blocked?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
@@ -289,6 +293,7 @@ export type Database = {
           created_at?: string
           daily_chat_limit?: number
           daily_scene_limit?: number
+          dark_mode_blocked?: boolean
           desktop_notifications_enabled?: boolean
           email?: string | null
           emoji_avatar?: string
@@ -298,6 +303,7 @@ export type Database = {
           is_online?: boolean
           is_suspended?: boolean
           last_seen_at?: string | null
+          light_mode_blocked?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
