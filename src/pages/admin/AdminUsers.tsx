@@ -247,6 +247,27 @@ const AdminUsers = () => {
                         <><Ban className="h-4 w-4 mr-1" /> Suspend</>
                       )}
                     </Button>
+
+                    {/* Delete account */}
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-shrink-0 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" disabled={updating === user.id}>
+                          <Trash2 className="h-4 w-4 mr-1" /> Delete
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete {user.alias}'s account?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this user's account and all their data. This cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleAdminDelete(user)}>Delete Account</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </CardContent>
               </Card>
