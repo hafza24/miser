@@ -68,12 +68,16 @@ const SettingsPage = () => {
   };
 
   const handleDeleteAccount = async () => {
-    // Delete profile (cascade will handle related data)
     if (user) {
-      await supabase.from('profiles').delete().eq('user_id', user.id);
+      // Schedule deletion after 24 hours
+      const deletionTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      await supabase
+        .from('profiles')
+        .update({ scheduled_deletion_at: deletionTime } as any)
+        .eq('user_id', user.id);
     }
     await signOut();
-    toast.success('Account data deleted');
+    toast.success('Your account will be permanently deleted in 24 hours. Log back in to cancel.');
     navigate('/');
   };
 
@@ -170,7 +174,7 @@ const SettingsPage = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete your profile, chats, and all data. This action cannot be undone.
+                  Your account will be scheduled for deletion in 24 hours. You can cancel by logging back in before then.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

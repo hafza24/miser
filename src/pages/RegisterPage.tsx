@@ -30,7 +30,11 @@ const RegisterPage = () => {
     const { error } = await signUp(email.trim(), password);
     setLoading(false);
     if (error) {
-      toast.error(error.message || 'Registration failed');
+      if (error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already been registered')) {
+        toast.error('An account with this email already exists. Please sign in instead.');
+      } else {
+        toast.error(error.message || 'Registration failed');
+      }
     } else {
       if (rememberMe) {
         localStorage.setItem('mrsmrb_saved_email', email.trim());

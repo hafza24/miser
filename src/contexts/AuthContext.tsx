@@ -59,7 +59,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       .select('*')
       .eq('user_id', userId)
       .single();
-    if (data) setProfile(data as Profile);
+    if (data) {
+      // Cancel scheduled deletion on login
+      if ((data as any).scheduled_deletion_at) {
+        await supabase
+          .from('profiles')
+          .update({ scheduled_deletion_at: null } as any)
+          .eq('user_id', userId);
+        (data as any).scheduled_deletion_at = null;
+      }
+      setProfile(data as Profile);
+    }
   };
 
   const refreshProfile = async () => {
