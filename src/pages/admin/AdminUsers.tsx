@@ -22,6 +22,8 @@ interface UserProfile {
   daily_chat_limit: number;
   created_at: string;
   mode_preference: string;
+  light_mode_blocked: boolean;
+  dark_mode_blocked: boolean;
 }
 
 const AdminUsers = () => {
