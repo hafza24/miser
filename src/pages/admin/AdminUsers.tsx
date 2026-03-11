@@ -36,7 +36,7 @@ const AdminUsers = () => {
     setLoading(true);
     let query = supabase
       .from('profiles')
-      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, created_at, mode_preference')
+      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, created_at, mode_preference, light_mode_blocked, dark_mode_blocked')
       .order('created_at', { ascending: false })
       .limit(100);
 
