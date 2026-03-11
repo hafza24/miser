@@ -174,7 +174,7 @@ const SettingsPage = () => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete your account?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete your profile, chats, and all data. This action cannot be undone.
+                  Your account will be scheduled for deletion in 24 hours. You can cancel by logging back in before then.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
