@@ -246,6 +246,7 @@ export type Database = {
           mood_preference: string | null
           notification_sound_enabled: boolean
           region: string | null
+          scheduled_deletion_at: string | null
           updated_at: string
           user_id: string
           violation_count: number
@@ -277,6 +278,7 @@ export type Database = {
           mood_preference?: string | null
           notification_sound_enabled?: boolean
           region?: string | null
+          scheduled_deletion_at?: string | null
           updated_at?: string
           user_id: string
           violation_count?: number
@@ -308,6 +310,7 @@ export type Database = {
           mood_preference?: string | null
           notification_sound_enabled?: boolean
           region?: string | null
+          scheduled_deletion_at?: string | null
           updated_at?: string
           user_id?: string
           violation_count?: number
