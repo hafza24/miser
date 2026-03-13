@@ -24,6 +24,8 @@ interface Profile {
   is_online: boolean;
   last_seen_at: string | null;
   gender: string | null;
+  dark_mode_blocked: boolean;
+  light_mode_blocked: boolean;
 }
 
 interface AuthContextType {
