@@ -248,7 +248,7 @@ ${continuationContext}`;
     }
 
     const aiData = await aiResponse.json();
-    const scene = aiData?.choices?.[0]?.message?.content?.trim();
+    const scene = aiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
     if (!scene) {
       return new Response(JSON.stringify({ error: 'The AI returned an empty scene.' }), {
