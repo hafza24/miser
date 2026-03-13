@@ -36,6 +36,7 @@ interface BrowseProfile {
   is_online: boolean;
   last_seen_at: string | null;
   gender: string | null;
+  mode_preference: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
