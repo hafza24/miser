@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ALTER COLUMN dark_mode_blocked SET DEFAULT true;
