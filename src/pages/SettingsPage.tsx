@@ -66,6 +66,11 @@ const SettingsPage = () => {
       toast.error('Please confirm both checkboxes');
       return;
     }
+    if (profile?.dark_mode_blocked) {
+      toast.error('Your access to Dark mode has been restricted by an admin.');
+      setShowAgeVerify(false);
+      return;
+    }
     if (user) {
       await supabase.from('profiles').update({ age_verified: true, mode_preference: 'dark' }).eq('user_id', user.id);
       await refreshProfile();

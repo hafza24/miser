@@ -75,7 +75,7 @@ const BrowseProfilesPage = () => {
     loadProfiles();
     loadMyRequests();
     loadBlockedUsers();
-  }, [user]);
+  }, [user, mode]);
 
   const loadBlockedUsers = async () => {
     if (!user) return;
