@@ -36,6 +36,7 @@ interface BrowseProfile {
   is_online: boolean;
   last_seen_at: string | null;
   gender: string | null;
+  mode_preference: string | null;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -74,7 +75,7 @@ const BrowseProfilesPage = () => {
     loadProfiles();
     loadMyRequests();
     loadBlockedUsers();
-  }, [user]);
+  }, [user, mode]);
 
   const loadBlockedUsers = async () => {
     if (!user) return;
@@ -86,9 +87,10 @@ const BrowseProfilesPage = () => {
     if (!user) return;
     const { data } = await supabase
       .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at, gender')
+      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at, gender, mode_preference')
       .neq('user_id', user.id)
       .eq('is_suspended', false)
+      .eq('mode_preference', mode)
       .order('is_online', { ascending: false })
       .limit(50);
     setProfiles(data || []);
