@@ -42,6 +42,14 @@ const SettingsPage = () => {
   const [consentConfirmed, setConsentConfirmed] = useState(false);
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
+    if (newMode === 'dark' && profile?.dark_mode_blocked) {
+      toast.error('Your access to Dark mode has been restricted by an admin.');
+      return;
+    }
+    if (newMode === 'light' && profile?.light_mode_blocked) {
+      toast.error('Your access to Light mode has been restricted by an admin.');
+      return;
+    }
     if (newMode === 'dark' && !profile?.age_verified) {
       setShowAgeVerify(true);
       return;
