@@ -95,8 +95,8 @@ const ModeSelectPage = () => {
             className={`group relative overflow-hidden rounded-2xl border-2 border-border p-8 text-left transition-all bg-card ${darkBlocked ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary hover:shadow-soft'}`}
           >
             {darkBlocked && (
-              <div className="absolute top-3 right-3 flex items-center gap-1 text-destructive text-xs font-medium">
-                <ShieldAlert className="h-3.5 w-3.5" /> Restricted
+              <div className="absolute top-3 right-3 flex items-center gap-1 text-primary text-xs font-medium">
+                <Lock className="h-3.5 w-3.5" /> Premium
               </div>
             )}
             <div className="flex items-center gap-4 mb-3">
