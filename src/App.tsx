@@ -25,6 +25,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminChats from "./pages/admin/AdminChats";
 import AdminTickets from "./pages/admin/AdminTickets";
+import AdminPayments from "./pages/admin/AdminPayments";
+import UnlockDarkModePage from "./pages/UnlockDarkModePage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
