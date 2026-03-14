@@ -35,7 +35,7 @@ const ModeSelectPage = () => {
       return;
     }
     if (mode === 'dark' && darkBlocked) {
-      toast.error('Your access to Dark mode has been restricted by an admin.');
+      navigate('/unlock-dark-mode');
       return;
     }
     setMode(mode);

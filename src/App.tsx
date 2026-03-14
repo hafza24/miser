@@ -79,6 +79,8 @@ const AppRoutes = () => (
       <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
       <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
       <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
+      <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
+      <Route path="/unlock-dark-mode" element={<ProtectedRoute><UnlockDarkModePage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>

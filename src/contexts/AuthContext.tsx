@@ -26,6 +26,7 @@ interface Profile {
   gender: string | null;
   dark_mode_blocked: boolean;
   light_mode_blocked: boolean;
+  payment_status: string;
 }
 
 interface AuthContextType {

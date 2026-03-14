@@ -67,7 +67,7 @@ const SettingsPage = () => {
       return;
     }
     if (profile?.dark_mode_blocked) {
-      toast.error('Your access to Dark mode has been restricted by an admin.');
+      navigate('/unlock-dark-mode');
       setShowAgeVerify(false);
       return;
     }

@@ -84,7 +84,7 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   const switchToDark = async () => {
     if (darkBlocked) {
-      toast.error('Your access to Dark mode has been restricted by an admin.');
+      navigate('/unlock-dark-mode');
       return;
     }
     // Light → Dark requires consent
