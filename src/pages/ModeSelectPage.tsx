@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Sun, Moon, ShieldAlert } from 'lucide-react';
+import { Sun, Moon, ShieldAlert, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ModeSelectPage = () => {
