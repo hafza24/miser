@@ -218,6 +218,45 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_requests: {
+        Row: {
+          admin_note: string | null
+          created_at: string
+          id: string
+          method: string
+          name: string
+          reviewed_at: string | null
+          screenshot_url: string | null
+          status: string
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          method: string
+          name: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          created_at?: string
+          id?: string
+          method?: string
+          name?: string
+          reviewed_at?: string | null
+          screenshot_url?: string | null
+          status?: string
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           age_verified: boolean
@@ -245,6 +284,7 @@ export type Database = {
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
           notification_sound_enabled: boolean
+          payment_status: string
           region: string | null
           scheduled_deletion_at: string | null
           updated_at: string
@@ -277,6 +317,7 @@ export type Database = {
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
+          payment_status?: string
           region?: string | null
           scheduled_deletion_at?: string | null
           updated_at?: string
@@ -309,6 +350,7 @@ export type Database = {
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           notification_sound_enabled?: boolean
+          payment_status?: string
           region?: string | null
           scheduled_deletion_at?: string | null
           updated_at?: string

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sun, Moon, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,7 @@ interface ChatModeSwitchProps {
 }
 
 const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
+  const navigate = useNavigate();
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
   const [lightBlocked, setLightBlocked] = useState(false);
@@ -82,7 +84,7 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   const switchToDark = async () => {
     if (darkBlocked) {
-      toast.error('Your access to Dark mode has been restricted by an admin.');
+      navigate('/unlock-dark-mode');
       return;
     }
     // Light → Dark requires consent

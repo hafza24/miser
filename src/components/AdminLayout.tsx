@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Users, MessageSquareWarning, Gauge, MessagesSquare, ArrowLeft, Ticket } from 'lucide-react';
+import { Shield, Users, MessageSquareWarning, Gauge, MessagesSquare, ArrowLeft, Ticket, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
@@ -13,6 +13,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
     { path: '/admin/chats', icon: MessagesSquare, label: 'Chats' },
     { path: '/admin/tickets', icon: Ticket, label: 'Tickets' },
+    { path: '/admin/payments', icon: CreditCard, label: 'Payments' },
   ];
 
   return (

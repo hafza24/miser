@@ -25,6 +25,8 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminChats from "./pages/admin/AdminChats";
 import AdminTickets from "./pages/admin/AdminTickets";
+import AdminPayments from "./pages/admin/AdminPayments";
+import UnlockDarkModePage from "./pages/UnlockDarkModePage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
@@ -77,6 +79,8 @@ const AppRoutes = () => (
       <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
       <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
       <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
+      <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
+      <Route path="/unlock-dark-mode" element={<ProtectedRoute><UnlockDarkModePage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>
