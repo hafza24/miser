@@ -21,6 +21,7 @@ interface ChatModeSwitchProps {
 }
 
 const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
+  const navigate = useNavigate();
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
   const [lightBlocked, setLightBlocked] = useState(false);
