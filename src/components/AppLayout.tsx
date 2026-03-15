@@ -57,7 +57,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={toggleMode}
+              onClick={() => {
+                if (mode === 'light' && profile?.dark_mode_blocked) {
+                  navigate('/unlock-dark-mode');
+                  return;
+                }
+                toggleMode();
+              }}
               className="rounded-full"
             >
               {mode === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
