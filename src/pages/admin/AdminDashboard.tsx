@@ -20,7 +20,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const load = async () => {
-      const [users, online, suspended, chats, activeChats, messages, modLogs] = await Promise.all([
+      const [users, online, suspended, chats, activeChats, messages, modLogs, activeSubs, pendingPay] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_online', true),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_suspended', true),
@@ -28,6 +28,8 @@ const AdminDashboard = () => {
         supabase.from('chats').select('id', { count: 'exact', head: true }).eq('timer_stopped', false).gte('expires_at', new Date().toISOString()),
         supabase.from('messages').select('id', { count: 'exact', head: true }),
         supabase.from('moderation_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       setStats({
