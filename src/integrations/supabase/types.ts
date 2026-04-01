@@ -257,6 +257,56 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          created_at: string
+          id: string
+          method: string
+          proof_url: string | null
+          reviewed_at: string | null
+          status: string
+          subscription_id: string | null
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          method: string
+          proof_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          method?: string
+          proof_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           age_verified: boolean
@@ -358,6 +408,98 @@ export type Database = {
           violation_count?: number
         }
         Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          created_at: string
+          daily_chat_limit: number
+          daily_scene_limit: number
+          dark_mode_access: boolean
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price_monthly: number
+          price_yearly: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_chat_limit?: number
+          daily_scene_limit?: number
+          dark_mode_access?: boolean
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_chat_limit?: number
+          daily_scene_limit?: number
+          dark_mode_access?: boolean
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price_monthly?: number
+          price_yearly?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          auto_renew: boolean
+          billing_period: string
+          created_at: string
+          expiry_date: string
+          id: string
+          plan_id: string
+          start_date: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_renew?: boolean
+          billing_period?: string
+          created_at?: string
+          expiry_date: string
+          id?: string
+          plan_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_renew?: boolean
+          billing_period?: string
+          created_at?: string
+          expiry_date?: string
+          id?: string
+          plan_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       support_tickets: {
         Row: {
@@ -461,6 +603,16 @@ export type Database = {
       }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      get_user_plan_limits: {
+        Args: { _user_id: string }
+        Returns: {
+          daily_chat_limit: number
+          daily_scene_limit: number
+          dark_mode_access: boolean
+          plan_name: string
+        }[]
+      }
+      has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
