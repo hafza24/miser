@@ -52,7 +52,7 @@ const AdminReports = () => {
       // Group revenue by method
       const methodMap: Record<string, number> = {};
       for (const p of approvedPayments) {
-        methodMap[p.method] = (methodMap[p.method] || 0) + (parseFloat(p.amount) || 0);
+        methodMap[p.method] = (methodMap[p.method] || 0) + (parseFloat(String(p.amount)) || 0);
       }
       setRevenueByMethod(Object.entries(methodMap).map(([name, value]) => ({ name, value: +value.toFixed(2) })));
 
