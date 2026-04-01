@@ -43,7 +43,7 @@ const SettingsPage = () => {
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
     if (newMode === 'dark' && profile?.dark_mode_blocked) {
-      navigate('/unlock-dark-mode');
+      navigate('/subscription');
       return;
     }
     if (newMode === 'light' && profile?.light_mode_blocked) {
