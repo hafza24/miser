@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, MessageSquare, AlertTriangle, MessagesSquare } from 'lucide-react';
+import { Users, MessageSquare, AlertTriangle, MessagesSquare, CreditCard, Crown } from 'lucide-react';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
@@ -13,12 +13,14 @@ const AdminDashboard = () => {
     activeChats: 0,
     totalMessages: 0,
     moderationActions: 0,
+    activeSubscriptions: 0,
+    pendingPayments: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
-      const [users, online, suspended, chats, activeChats, messages, modLogs] = await Promise.all([
+      const [users, online, suspended, chats, activeChats, messages, modLogs, activeSubs, pendingPay] = await Promise.all([
         supabase.from('profiles').select('id', { count: 'exact', head: true }),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_online', true),
         supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_suspended', true),
@@ -26,6 +28,8 @@ const AdminDashboard = () => {
         supabase.from('chats').select('id', { count: 'exact', head: true }).eq('timer_stopped', false).gte('expires_at', new Date().toISOString()),
         supabase.from('messages').select('id', { count: 'exact', head: true }),
         supabase.from('moderation_logs').select('id', { count: 'exact', head: true }),
+        supabase.from('subscriptions').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       ]);
 
       setStats({
@@ -36,6 +40,8 @@ const AdminDashboard = () => {
         activeChats: activeChats.count ?? 0,
         totalMessages: messages.count ?? 0,
         moderationActions: modLogs.count ?? 0,
+        activeSubscriptions: activeSubs.count ?? 0,
+        pendingPayments: pendingPay.count ?? 0,
       });
       setLoading(false);
     };
@@ -50,6 +56,8 @@ const AdminDashboard = () => {
     { title: 'Active Chats', value: stats.activeChats, icon: MessagesSquare, color: 'text-green-500' },
     { title: 'Total Messages', value: stats.totalMessages, icon: MessageSquare, color: 'text-muted-foreground' },
     { title: 'Moderation Actions', value: stats.moderationActions, icon: AlertTriangle, color: 'text-amber-500' },
+    { title: 'Active Subs', value: stats.activeSubscriptions, icon: Crown, color: 'text-primary' },
+    { title: 'Pending Payments', value: stats.pendingPayments, icon: CreditCard, color: 'text-yellow-500' },
   ];
 
   return (

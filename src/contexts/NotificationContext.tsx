@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface NotificationItem {
   id: string;
-  type: 'chat_request' | 'expiry_alert';
+  type: 'chat_request' | 'expiry_alert' | 'subscription_expiring' | 'subscription_expired' | 'payment_pending';
   title: string;
   message: string;
   timestamp: string;
@@ -125,6 +125,49 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
             meta: { chatId: chat.id },
           });
         }
+      }
+    }
+
+    // Subscription notifications
+    const { data: subs } = await supabase
+      .from('subscriptions')
+      .select('id, status, expiry_date, plan_id')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (subs?.length) {
+      const sub = subs[0] as any;
+      if (sub.status === 'pending') {
+        items.push({
+          id: `sub-pending-${sub.id}`,
+          type: 'payment_pending',
+          title: 'Payment Pending',
+          message: 'Your payment is being reviewed. Features unlock once approved.',
+          timestamp: new Date().toISOString(),
+          read: false,
+        });
+      } else if (sub.status === 'active' && sub.expiry_date) {
+        const daysLeft = Math.ceil((new Date(sub.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+        if (daysLeft <= 3 && daysLeft > 0) {
+          items.push({
+            id: `sub-expiring-${sub.id}`,
+            type: 'subscription_expiring',
+            title: 'Subscription Expiring Soon',
+            message: `Your subscription expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}. Renew to keep access.`,
+            timestamp: sub.expiry_date,
+            read: false,
+          });
+        }
+      } else if (sub.status === 'expired') {
+        items.push({
+          id: `sub-expired-${sub.id}`,
+          type: 'subscription_expired',
+          title: 'Subscription Expired',
+          message: 'Your subscription has expired. Renew to regain premium access.',
+          timestamp: sub.expiry_date || new Date().toISOString(),
+          read: false,
+        });
       }
     }
 
