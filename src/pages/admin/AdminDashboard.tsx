@@ -40,6 +40,8 @@ const AdminDashboard = () => {
         activeChats: activeChats.count ?? 0,
         totalMessages: messages.count ?? 0,
         moderationActions: modLogs.count ?? 0,
+        activeSubscriptions: activeSubs.count ?? 0,
+        pendingPayments: pendingPay.count ?? 0,
       });
       setLoading(false);
     };
