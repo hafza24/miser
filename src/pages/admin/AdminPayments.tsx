@@ -193,12 +193,12 @@ const AdminPayments = () => {
                     </div>
 
                     {/* Screenshot */}
-                    {req.screenshot_url && (
+                    {(req.signed_screenshot_url || req.screenshot_url) && (
                       <div className="flex-shrink-0">
-                        <a href={req.screenshot_url} target="_blank" rel="noopener noreferrer" className="block">
+                        <a href={req.signed_screenshot_url || req.screenshot_url || '#'} target="_blank" rel="noopener noreferrer" className="block">
                           <div className="w-32 h-24 rounded-lg border border-border overflow-hidden bg-muted relative group">
                             <img
-                              src={req.screenshot_url}
+                              src={req.signed_screenshot_url || req.screenshot_url || ''}
                               alt="Payment screenshot"
                               className="w-full h-full object-cover"
                             />
