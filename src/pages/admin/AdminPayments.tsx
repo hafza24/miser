@@ -47,7 +47,7 @@ const AdminPayments = () => {
       return;
     }
 
-    // Enrich with profile info
+    // Enrich with profile info and signed URLs
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map((r: any) => r.user_id))];
       const { data: profiles } = await supabase
@@ -55,10 +55,26 @@ const AdminPayments = () => {
         .select('user_id, alias, emoji_avatar, email')
         .in('user_id', userIds);
 
-      const enriched = data.map((r: any) => {
+      // Generate signed URLs for screenshots
+      const enriched = await Promise.all(data.map(async (r: any) => {
         const p = profiles?.find((p: any) => p.user_id === r.user_id);
-        return { ...r, alias: p?.alias, emoji_avatar: p?.emoji_avatar, email: p?.email };
-      });
+        let signedUrl: string | null = null;
+        if (r.screenshot_url) {
+          // If it's a file path (not a full URL), create a signed URL
+          const path = r.screenshot_url.startsWith('http')
+            ? null
+            : r.screenshot_url;
+          if (path) {
+            const { data: signedData } = await supabase.storage
+              .from('payment-screenshots')
+              .createSignedUrl(path, 3600); // 1 hour expiry
+            signedUrl = signedData?.signedUrl || null;
+          } else {
+            signedUrl = r.screenshot_url; // legacy full URLs
+          }
+        }
+        return { ...r, alias: p?.alias, emoji_avatar: p?.emoji_avatar, email: p?.email, signed_screenshot_url: signedUrl };
+      }));
       setRequests(enriched);
     } else {
       setRequests([]);
