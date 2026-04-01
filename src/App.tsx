@@ -25,8 +25,9 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminChats from "./pages/admin/AdminChats";
 import AdminTickets from "./pages/admin/AdminTickets";
-import AdminPayments from "./pages/admin/AdminPayments";
-import UnlockDarkModePage from "./pages/UnlockDarkModePage";
+import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
+import AdminReports from "./pages/admin/AdminReports";
+import SubscriptionPage from "./pages/SubscriptionPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
@@ -73,14 +74,19 @@ const AppRoutes = () => (
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      {/* Legacy redirect */}
+      <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
       {/* Admin routes */}
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
       <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
       <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
       <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
-      <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
-      <Route path="/unlock-dark-mode" element={<ProtectedRoute><UnlockDarkModePage /></ProtectedRoute>} />
+      <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+      <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+      {/* Legacy redirect */}
+      <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </BrowserRouter>

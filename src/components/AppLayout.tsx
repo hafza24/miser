@@ -58,8 +58,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
               variant="ghost"
               size="icon"
               onClick={() => {
-                if (mode === 'light' && profile?.dark_mode_blocked) {
-                  navigate('/unlock-dark-mode');
+              if (mode === 'light' && profile?.dark_mode_blocked) {
+                  navigate('/subscription');
                   return;
                 }
                 toggleMode();

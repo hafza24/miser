@@ -67,7 +67,7 @@ const SettingsPage = () => {
       return;
     }
     if (profile?.dark_mode_blocked) {
-      navigate('/unlock-dark-mode');
+      navigate('/subscription');
       setShowAgeVerify(false);
       return;
     }

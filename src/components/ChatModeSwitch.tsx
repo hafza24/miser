@@ -84,7 +84,7 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   const switchToDark = async () => {
     if (darkBlocked) {
-      navigate('/unlock-dark-mode');
+      navigate('/subscription');
       return;
     }
     // Light → Dark requires consent

@@ -35,7 +35,7 @@ const ModeSelectPage = () => {
       return;
     }
     if (mode === 'dark' && darkBlocked) {
-      navigate('/unlock-dark-mode');
+      navigate('/subscription');
       return;
     }
     setMode(mode);
