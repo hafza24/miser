@@ -47,7 +47,7 @@ const AdminReports = () => {
       ]);
 
       const approvedPayments = allPayments.data || [];
-      const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (parseFloat(p.amount) || 0), 0);
+      const totalRevenue = approvedPayments.reduce((sum: number, p: any) => sum + (parseFloat(String(p.amount)) || 0), 0);
 
       // Group revenue by method
       const methodMap: Record<string, number> = {};
