@@ -14,6 +14,7 @@ interface PaymentRequest {
   method: string;
   transaction_id: string | null;
   screenshot_url: string | null;
+  signed_screenshot_url?: string | null;
   status: string;
   created_at: string;
   alias?: string;

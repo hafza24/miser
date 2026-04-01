@@ -71,17 +71,13 @@ const UnlockDarkModePage = () => {
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('payment-screenshots')
-        .getPublicUrl(filePath);
-
-      // Create payment request
+      // Create payment request - store file path (bucket is private)
       const { error } = await supabase.from('payment_requests').insert({
         user_id: user.id,
         name: name.trim(),
         method,
         transaction_id: transactionId.trim() || null,
-        screenshot_url: urlData.publicUrl,
+        screenshot_url: filePath,
         status: 'pending',
       });
 
