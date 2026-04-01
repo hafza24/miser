@@ -56,6 +56,8 @@ const AdminDashboard = () => {
     { title: 'Active Chats', value: stats.activeChats, icon: MessagesSquare, color: 'text-green-500' },
     { title: 'Total Messages', value: stats.totalMessages, icon: MessageSquare, color: 'text-muted-foreground' },
     { title: 'Moderation Actions', value: stats.moderationActions, icon: AlertTriangle, color: 'text-amber-500' },
+    { title: 'Active Subs', value: stats.activeSubscriptions, icon: Crown, color: 'text-primary' },
+    { title: 'Pending Payments', value: stats.pendingPayments, icon: CreditCard, color: 'text-yellow-500' },
   ];
 
   return (
