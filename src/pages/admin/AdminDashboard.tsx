@@ -13,6 +13,8 @@ const AdminDashboard = () => {
     activeChats: 0,
     totalMessages: 0,
     moderationActions: 0,
+    activeSubscriptions: 0,
+    pendingPayments: 0,
   });
   const [loading, setLoading] = useState(true);
 
