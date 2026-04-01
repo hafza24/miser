@@ -14,6 +14,7 @@ interface PaymentRequest {
   method: string;
   transaction_id: string | null;
   screenshot_url: string | null;
+  signed_screenshot_url?: string | null;
   status: string;
   created_at: string;
   alias?: string;
@@ -46,7 +47,7 @@ const AdminPayments = () => {
       return;
     }
 
-    // Enrich with profile info
+    // Enrich with profile info and signed URLs
     if (data && data.length > 0) {
       const userIds = [...new Set(data.map((r: any) => r.user_id))];
       const { data: profiles } = await supabase
@@ -54,10 +55,26 @@ const AdminPayments = () => {
         .select('user_id, alias, emoji_avatar, email')
         .in('user_id', userIds);
 
-      const enriched = data.map((r: any) => {
+      // Generate signed URLs for screenshots
+      const enriched = await Promise.all(data.map(async (r: any) => {
         const p = profiles?.find((p: any) => p.user_id === r.user_id);
-        return { ...r, alias: p?.alias, emoji_avatar: p?.emoji_avatar, email: p?.email };
-      });
+        let signedUrl: string | null = null;
+        if (r.screenshot_url) {
+          // If it's a file path (not a full URL), create a signed URL
+          const path = r.screenshot_url.startsWith('http')
+            ? null
+            : r.screenshot_url;
+          if (path) {
+            const { data: signedData } = await supabase.storage
+              .from('payment-screenshots')
+              .createSignedUrl(path, 3600); // 1 hour expiry
+            signedUrl = signedData?.signedUrl || null;
+          } else {
+            signedUrl = r.screenshot_url; // legacy full URLs
+          }
+        }
+        return { ...r, alias: p?.alias, emoji_avatar: p?.emoji_avatar, email: p?.email, signed_screenshot_url: signedUrl };
+      }));
       setRequests(enriched);
     } else {
       setRequests([]);
@@ -176,12 +193,12 @@ const AdminPayments = () => {
                     </div>
 
                     {/* Screenshot */}
-                    {req.screenshot_url && (
+                    {(req.signed_screenshot_url || req.screenshot_url) && (
                       <div className="flex-shrink-0">
-                        <a href={req.screenshot_url} target="_blank" rel="noopener noreferrer" className="block">
+                        <a href={req.signed_screenshot_url || req.screenshot_url || '#'} target="_blank" rel="noopener noreferrer" className="block">
                           <div className="w-32 h-24 rounded-lg border border-border overflow-hidden bg-muted relative group">
                             <img
-                              src={req.screenshot_url}
+                              src={req.signed_screenshot_url || req.screenshot_url || ''}
                               alt="Payment screenshot"
                               className="w-full h-full object-cover"
                             />
