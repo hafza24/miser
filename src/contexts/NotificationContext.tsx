@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export interface NotificationItem {
   id: string;
-  type: 'chat_request' | 'expiry_alert';
+  type: 'chat_request' | 'expiry_alert' | 'subscription_expiring' | 'subscription_expired' | 'payment_pending';
   title: string;
   message: string;
   timestamp: string;
