@@ -586,67 +586,7 @@ export type Database = {
       }
     }
     Views: {
-      public_profiles: {
-        Row: {
-          alias: string | null
-          availability: string | null
-          bio: string | null
-          character_description: string | null
-          character_life_story: string | null
-          character_personality: string[] | null
-          character_title: string | null
-          emoji_avatar: string | null
-          gender: string | null
-          interests: string[] | null
-          is_online: boolean | null
-          last_seen_at: string | null
-          mode_preference: Database["public"]["Enums"]["mode_preference"] | null
-          mood_preference: string | null
-          region: string | null
-          user_id: string | null
-        }
-        Insert: {
-          alias?: string | null
-          availability?: string | null
-          bio?: string | null
-          character_description?: string | null
-          character_life_story?: string | null
-          character_personality?: string[] | null
-          character_title?: string | null
-          emoji_avatar?: string | null
-          gender?: string | null
-          interests?: string[] | null
-          is_online?: boolean | null
-          last_seen_at?: string | null
-          mode_preference?:
-            | Database["public"]["Enums"]["mode_preference"]
-            | null
-          mood_preference?: string | null
-          region?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          alias?: string | null
-          availability?: string | null
-          bio?: string | null
-          character_description?: string | null
-          character_life_story?: string | null
-          character_personality?: string[] | null
-          character_title?: string | null
-          emoji_avatar?: string | null
-          gender?: string | null
-          interests?: string[] | null
-          is_online?: boolean | null
-          last_seen_at?: string | null
-          mode_preference?:
-            | Database["public"]["Enums"]["mode_preference"]
-            | null
-          mood_preference?: string | null
-          region?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       accept_chat_request: {
@@ -663,6 +603,35 @@ export type Database = {
       }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      get_public_profile_by_ids: {
+        Args: { user_ids: string[] }
+        Returns: {
+          alias: string
+          emoji_avatar: string
+          user_id: string
+        }[]
+      }
+      get_public_profiles: {
+        Args: never
+        Returns: {
+          alias: string
+          availability: string
+          bio: string
+          character_description: string
+          character_life_story: string
+          character_personality: string[]
+          character_title: string
+          emoji_avatar: string
+          gender: string
+          interests: string[]
+          is_online: boolean
+          last_seen_at: string
+          mode_preference: Database["public"]["Enums"]["mode_preference"]
+          mood_preference: string
+          region: string
+          user_id: string
+        }[]
+      }
       get_user_plan_limits: {
         Args: { _user_id: string }
         Returns: {
