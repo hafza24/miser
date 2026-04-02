@@ -13,7 +13,7 @@ const LandingPage = () => {
         <div className="animate-fade-in space-y-6 max-w-md">
           <div className="text-6xl mb-2">💫</div>
           <h1 className="font-heading text-4xl sm:text-5xl font-bold text-foreground leading-tight">
-            MrsMrB
+            Fur&amp;Fir
           </h1>
           <p className="text-lg text-muted-foreground font-medium">
             One Brand. Two Modes. Your Choice.
@@ -54,7 +54,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
-        MrsMrB — Privacy. Consent. Connection.
+        Fur&amp;Fir — Privacy. Consent. Connection.
       </footer>
     </div>
   );

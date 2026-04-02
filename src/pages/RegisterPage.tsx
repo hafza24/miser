@@ -48,7 +48,7 @@ const RegisterPage = () => {
     <div className="min-h-screen flex items-center justify-center gradient-light p-4">
       <div className="w-full max-w-sm bg-card rounded-2xl shadow-soft p-8 animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="font-heading text-3xl font-bold text-foreground">Join MrsMrB</h1>
+          <h1 className="font-heading text-3xl font-bold text-foreground"><h1 className="font-heading text-3xl font-bold text-foreground">Join Fur&amp;Fir</h1></h1>
           <p className="text-muted-foreground mt-1 text-sm">Anonymous. Private. Yours.</p>
         </div>
 
