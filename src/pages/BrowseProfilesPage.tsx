@@ -90,7 +90,7 @@ const BrowseProfilesPage = () => {
       .filter((p: any) => p.user_id !== user.id && p.mode_preference === mode)
       .sort((a: any, b: any) => (b.is_online ? 1 : 0) - (a.is_online ? 1 : 0))
       .slice(0, 50);
-    setProfiles(data || []);
+    setProfiles(filtered || []);
     setLoading(false);
   };
 
