@@ -78,6 +78,9 @@ const AppRoutes = () => (
       <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      {/* Public pages */}
+      <Route path="/page/:slug" element={<SitePage />} />
+      <Route path="/download" element={<DownloadPage />} />
       {/* Legacy redirect */}
       <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
       {/* Admin routes */}
