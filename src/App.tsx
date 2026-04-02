@@ -27,7 +27,10 @@ import AdminChats from "./pages/admin/AdminChats";
 import AdminTickets from "./pages/admin/AdminTickets";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminPages from "./pages/admin/AdminPages";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import SitePage from "./pages/SitePage";
+import DownloadPage from "./pages/DownloadPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
@@ -75,6 +78,9 @@ const AppRoutes = () => (
       <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      {/* Public pages */}
+      <Route path="/page/:slug" element={<SitePage />} />
+      <Route path="/download" element={<DownloadPage />} />
       {/* Legacy redirect */}
       <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
       {/* Admin routes */}
@@ -85,6 +91,7 @@ const AppRoutes = () => (
       <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
       <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
       <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+      <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
       {/* Legacy redirect */}
       <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />

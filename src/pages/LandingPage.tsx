@@ -53,8 +53,16 @@ const LandingPage = () => {
       </div>
 
       {/* Footer */}
-      <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
-        Fur&amp;Fir — Privacy. Consent. Connection.
+      <footer className="border-t border-border py-5 px-4">
+        <div className="max-w-lg mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+          <button onClick={() => navigate('/page/about')} className="hover:text-foreground transition-colors">About</button>
+          <button onClick={() => navigate('/page/faq')} className="hover:text-foreground transition-colors">FAQ</button>
+          <button onClick={() => navigate('/page/privacy')} className="hover:text-foreground transition-colors">Privacy</button>
+          <button onClick={() => navigate('/page/terms')} className="hover:text-foreground transition-colors">Terms</button>
+          <button onClick={() => navigate('/page/contact')} className="hover:text-foreground transition-colors">Contact</button>
+          <button onClick={() => navigate('/download')} className="hover:text-foreground transition-colors">Download</button>
+          <span className="w-full text-center mt-2 opacity-60">© 2026 Fur&amp;Fir by Busistree</span>
+        </div>
       </footer>
     </div>
   );
