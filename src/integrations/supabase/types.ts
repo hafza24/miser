@@ -586,7 +586,67 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          alias: string | null
+          availability: string | null
+          bio: string | null
+          character_description: string | null
+          character_life_story: string | null
+          character_personality: string[] | null
+          character_title: string | null
+          emoji_avatar: string | null
+          gender: string | null
+          interests: string[] | null
+          is_online: boolean | null
+          last_seen_at: string | null
+          mode_preference: Database["public"]["Enums"]["mode_preference"] | null
+          mood_preference: string | null
+          region: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alias?: string | null
+          availability?: string | null
+          bio?: string | null
+          character_description?: string | null
+          character_life_story?: string | null
+          character_personality?: string[] | null
+          character_title?: string | null
+          emoji_avatar?: string | null
+          gender?: string | null
+          interests?: string[] | null
+          is_online?: boolean | null
+          last_seen_at?: string | null
+          mode_preference?:
+            | Database["public"]["Enums"]["mode_preference"]
+            | null
+          mood_preference?: string | null
+          region?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alias?: string | null
+          availability?: string | null
+          bio?: string | null
+          character_description?: string | null
+          character_life_story?: string | null
+          character_personality?: string[] | null
+          character_title?: string | null
+          emoji_avatar?: string | null
+          gender?: string | null
+          interests?: string[] | null
+          is_online?: boolean | null
+          last_seen_at?: string | null
+          mode_preference?:
+            | Database["public"]["Enums"]["mode_preference"]
+            | null
+          mood_preference?: string | null
+          region?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       accept_chat_request: {
