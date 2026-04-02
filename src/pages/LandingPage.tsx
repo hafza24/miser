@@ -54,7 +54,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <footer className="text-center py-6 text-xs text-muted-foreground border-t border-border">
-        MrsMrB — Privacy. Consent. Connection.
+        Fur&amp;Fir — Privacy. Consent. Connection.
       </footer>
     </div>
   );

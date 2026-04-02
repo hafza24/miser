@@ -36,7 +36,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2">
             <span className="text-2xl">{profile?.emoji_avatar || '💫'}</span>
             <div>
-              <h1 className="font-heading text-lg font-bold text-foreground leading-none">MrsMrB</h1>
+              <h1 className="font-heading text-lg font-bold text-foreground leading-none"><h1 className="font-heading text-lg font-bold text-foreground leading-none">Fur&Fir</h1></h1>
               <span className="text-xs text-muted-foreground">{profile?.alias}</span>
             </div>
           </button>
