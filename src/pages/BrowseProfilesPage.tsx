@@ -85,14 +85,11 @@ const BrowseProfilesPage = () => {
 
   const loadProfiles = async () => {
     if (!user) return;
-    const { data } = await supabase
-      .from('profiles')
-      .select('user_id, alias, emoji_avatar, bio, interests, mood_preference, region, availability, character_title, character_description, character_personality, character_life_story, is_online, last_seen_at, gender, mode_preference')
-      .neq('user_id', user.id)
-      .eq('is_suspended', false)
-      .eq('mode_preference', mode)
-      .order('is_online', { ascending: false })
-      .limit(50);
+    const { data } = await supabase.rpc('get_public_profiles');
+    const filtered = (data || [])
+      .filter((p: any) => p.user_id !== user.id && p.mode_preference === mode)
+      .sort((a: any, b: any) => (b.is_online ? 1 : 0) - (a.is_online ? 1 : 0))
+      .slice(0, 50);
     setProfiles(data || []);
     setLoading(false);
   };
