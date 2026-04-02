@@ -27,7 +27,10 @@ import AdminChats from "./pages/admin/AdminChats";
 import AdminTickets from "./pages/admin/AdminTickets";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminPages from "./pages/admin/AdminPages";
 import SubscriptionPage from "./pages/SubscriptionPage";
+import SitePage from "./pages/SitePage";
+import DownloadPage from "./pages/DownloadPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
