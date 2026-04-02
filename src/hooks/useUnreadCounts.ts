@@ -93,21 +93,21 @@ export const useUnreadCounts = () => {
     fetchCounts();
   }, [fetchCounts]);
 
-  // Listen for new messages in real-time — only refetch on new messages, not participant updates
+  // Listen for new messages in real-time
   useEffect(() => {
     if (!user) return;
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const channelName = `unread-counts-${user.id}`;
 
-    const debouncedFetch = () => {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(() => {
-        fetchCounts();
-      }, 1000);
-    };
+    // Remove any existing channel with this name first
+    const existingChannel = supabase.getChannels().find(ch => ch.topic === `realtime:${channelName}`);
+    if (existingChannel) {
+      supabase.removeChannel(existingChannel);
+    }
 
     const channel = supabase
-      .channel(`unread-counts-${user.id}`)
+      .channel(channelName)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
@@ -119,7 +119,10 @@ export const useUnreadCounts = () => {
           const desktopPref = localStorage.getItem('notif_desktop');
           if (soundPref !== 'false') playNotificationSound();
           if (desktopPref === 'true') showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
-          debouncedFetch();
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            fetchCounts();
+          }, 1000);
         }
       })
       .subscribe();
@@ -128,7 +131,8 @@ export const useUnreadCounts = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [user, fetchCounts]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   // Request notification permission on mount
   useEffect(() => {
