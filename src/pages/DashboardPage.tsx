@@ -136,10 +136,7 @@ const DashboardPage = () => {
         const otherIds = (parts || []).map(p => p.user_id).filter(id => id !== user.id);
         let participants: { alias: string; emoji_avatar: string }[] = [];
         if (otherIds.length) {
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('alias, emoji_avatar')
-            .in('user_id', otherIds);
+          const { data: profiles } = await supabase.rpc('get_public_profile_by_ids', { user_ids: otherIds });
           participants = profiles || [];
         }
 
