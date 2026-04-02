@@ -91,6 +91,7 @@ const AppRoutes = () => (
       <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
       <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
       <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+      <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
       {/* Legacy redirect */}
       <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />
