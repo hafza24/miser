@@ -603,6 +603,35 @@ export type Database = {
       }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      get_public_profile_by_ids: {
+        Args: { user_ids: string[] }
+        Returns: {
+          alias: string
+          emoji_avatar: string
+          user_id: string
+        }[]
+      }
+      get_public_profiles: {
+        Args: never
+        Returns: {
+          alias: string
+          availability: string
+          bio: string
+          character_description: string
+          character_life_story: string
+          character_personality: string[]
+          character_title: string
+          emoji_avatar: string
+          gender: string
+          interests: string[]
+          is_online: boolean
+          last_seen_at: string
+          mode_preference: Database["public"]["Enums"]["mode_preference"]
+          mood_preference: string
+          region: string
+          user_id: string
+        }[]
+      }
       get_user_plan_limits: {
         Args: { _user_id: string }
         Returns: {

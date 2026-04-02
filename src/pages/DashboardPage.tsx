@@ -136,10 +136,7 @@ const DashboardPage = () => {
         const otherIds = (parts || []).map(p => p.user_id).filter(id => id !== user.id);
         let participants: { alias: string; emoji_avatar: string }[] = [];
         if (otherIds.length) {
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('alias, emoji_avatar')
-            .in('user_id', otherIds);
+          const { data: profiles } = await supabase.rpc('get_public_profile_by_ids', { user_ids: otherIds });
           participants = profiles || [];
         }
 
@@ -181,10 +178,7 @@ const DashboardPage = () => {
     if (!data?.length) { setIncoming([]); return; }
 
     const ids = data.map(r => r.sender_id);
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, alias, emoji_avatar')
-      .in('user_id', ids);
+    const { data: profiles } = await supabase.rpc('get_public_profile_by_ids', { user_ids: ids });
 
     setIncoming(data.map(r => {
       const p = profiles?.find(p => p.user_id === r.sender_id);
@@ -208,10 +202,7 @@ const DashboardPage = () => {
     if (!data?.length) { setSent([]); return; }
 
     const ids = data.map(r => r.receiver_id);
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('user_id, alias, emoji_avatar')
-      .in('user_id', ids);
+    const { data: profiles } = await supabase.rpc('get_public_profile_by_ids', { user_ids: ids });
 
     setSent(data.map(r => {
       const p = profiles?.find(p => p.user_id === r.receiver_id);

@@ -172,8 +172,8 @@ const ChatPage = () => {
     if (other.last_read_at) setOtherLastReadAt(other.last_read_at);
     if (other.user_id) {
       setOtherUserId(other.user_id);
-      const { data: prof } = await supabase.from('profiles').select('alias, emoji_avatar').eq('user_id', other.user_id).single();
-      if (prof) setOtherUser(prof);
+      const { data: prof } = await supabase.rpc('get_public_profile_by_ids', { user_ids: [other.user_id] });
+      if (prof && prof.length > 0) setOtherUser(prof[0]);
     }
   };
 
