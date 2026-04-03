@@ -30,6 +30,10 @@ const LandingPage = () => {
               Sign In
             </Button>
           </div>
+
+          <Button size="lg" variant="secondary" onClick={() => navigate('/download')} className="px-8 mt-2">
+            📲 Download App
+          </Button>
         </div>
       </div>
 
