@@ -37,8 +37,8 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center gradient-light p-4">
       <div className="w-full max-w-sm bg-card rounded-2xl shadow-soft p-8 animate-fade-in">
         <div className="text-center mb-8">
-          <h1 className="font-heading text-3xl font-bold text-foreground"><h1 className="font-heading text-3xl font-bold text-foreground">Fur&amp;Fir</h1></h1>
-          <p className="text-muted-foreground mt-1 text-sm">One Brand. Two Modes. Your Choice.</p>
+          <h1 className="font-heading text-3xl font-bold text-foreground">Welcome Back 💫</h1>
+          <p className="text-muted-foreground mt-1 text-sm">Sign in to continue your connections</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -2,12 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useSearchParams } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw } from 'lucide-react';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw, Heart } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
@@ -19,6 +20,18 @@ const PERSONALITY_OPTIONS = [
   'Mysterious', 'Funny', 'Shy', 'Bold', 'Caring',
   'Sarcastic', 'Adventurous', 'Calm', 'Energetic', 'Wise',
 ];
+
+const LIGHT_INTERESTS = ['Emotional Support', 'Friendship', 'Cute Love'];
+const DARK_INTERESTS = ['Flirting', 'Passionate Romance', 'Fantasy Roleplay'];
+
+const INTEREST_EMOJIS: Record<string, string> = {
+  'Emotional Support': '💛',
+  'Friendship': '🤝',
+  'Cute Love': '💕',
+  'Flirting': '💋',
+  'Passionate Romance': '🔥',
+  'Fantasy Roleplay': '✨',
+};
 
 interface BrowseProfile {
   user_id: string;
@@ -49,25 +62,32 @@ interface RequestInfo {
 const BrowseProfilesPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
+  const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [requestMap, setRequestMap] = useState<Record<string, RequestInfo>>({});
   const [actionId, setActionId] = useState<string | null>(null);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(() => {
+    const param = searchParams.get('interest');
+    return param ? [param] : [];
+  });
   const [filterCountry, setFilterCountry] = useState('');
   const [filterAvailability, setFilterAvailability] = useState('');
   const [filterGender, setFilterGender] = useState('');
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
 
-  const hasActiveFilters = filterCountry || filterAvailability || filterGender || selectedTraits.length > 0;
+  const modeInterests = mode === 'light' ? LIGHT_INTERESTS : DARK_INTERESTS;
+  const hasActiveFilters = filterCountry || filterAvailability || filterGender || selectedTraits.length > 0 || selectedInterests.length > 0;
 
   const resetFilters = () => {
     setFilterCountry('');
     setFilterAvailability('');
     setFilterGender('');
     setSelectedTraits([]);
+    setSelectedInterests([]);
   };
 
   useEffect(() => {
@@ -136,12 +156,23 @@ const BrowseProfilesPage = () => {
     setSelectedTraits(prev => prev.includes(trait) ? prev.filter(t => t !== trait) : [...prev, trait]);
   };
 
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests(prev =>
+      prev.includes(interest) ? prev.filter(i => i !== interest) : [...prev, interest]
+    );
+  };
+
   const filtered = profiles.filter(p => {
     if (blockedIds.has(p.user_id)) return false;
     if (search.trim()) {
       const q = search.toLowerCase();
       const matchesText = p.alias.toLowerCase().includes(q) || p.bio?.toLowerCase().includes(q) || p.interests?.some(i => i.toLowerCase().includes(q)) || p.region?.toLowerCase().includes(q) || p.character_title?.toLowerCase().includes(q) || p.character_description?.toLowerCase().includes(q);
       if (!matchesText) return false;
+    }
+    // Interest-based filtering
+    if (selectedInterests.length > 0) {
+      const userInterests = p.interests || [];
+      if (!selectedInterests.some(i => userInterests.includes(i))) return false;
     }
     if (selectedTraits.length > 0) { const traits = p.character_personality || []; if (!selectedTraits.some(t => traits.includes(t))) return false; }
     if (filterCountry && p.region !== filterCountry) return false;
@@ -179,7 +210,36 @@ const BrowseProfilesPage = () => {
           <h2 className="font-heading text-xl font-bold text-foreground mb-0.5">
             {mode === 'light' ? '🌸 Discover People' : '🔮 Discover People'}
           </h2>
-          <p className="text-xs text-muted-foreground">Browse anonymous profiles and send chat requests</p>
+          <p className="text-xs text-muted-foreground">Find someone who understands you</p>
+        </div>
+
+        {/* Interest Selection Chips */}
+        <div className="mb-3">
+          <div className="flex items-center gap-1.5 mb-2">
+            <Heart className="h-3.5 w-3.5 text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interests</span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {modeInterests.map((interest) => {
+              const isSelected = selectedInterests.includes(interest);
+              return (
+                <button
+                  key={interest}
+                  onClick={() => toggleInterest(interest)}
+                  className={`
+                    px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap
+                    transition-all duration-200 ease-out
+                    ${isSelected
+                      ? 'bg-primary text-primary-foreground shadow-soft scale-105'
+                      : 'bg-secondary text-secondary-foreground hover:bg-primary/20 hover:scale-[1.02]'
+                    }
+                  `}
+                >
+                  {INTEREST_EMOJIS[interest]} {interest}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Search bar with filter icon */}
@@ -212,7 +272,7 @@ const BrowseProfilesPage = () => {
         {showFilters && (
           <div className="mb-4 p-3 bg-muted/30 rounded-xl border border-border space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filters</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">More Filters</span>
               {hasActiveFilters && (
                 <button onClick={resetFilters} className="flex items-center gap-1 text-xs text-primary hover:underline">
                   <RotateCcw className="h-3 w-3" />
@@ -221,7 +281,6 @@ const BrowseProfilesPage = () => {
               )}
             </div>
 
-            {/* Dropdowns in a responsive grid */}
             <div className="grid grid-cols-1 gap-2">
               <div className="flex items-center gap-2">
                 <Globe className="h-3.5 w-3.5 text-primary flex-shrink-0" />
@@ -284,16 +343,26 @@ const BrowseProfilesPage = () => {
         )}
 
         {loading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">Loading profiles...</div>
+          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
+            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm">Finding people...</span>
+          </div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-20">
+          <div className="text-center py-20 animate-fade-in">
             <div className="text-5xl mb-4">🔍</div>
-            <p className="text-muted-foreground">No profiles found</p>
+            <h3 className="font-heading text-lg font-semibold text-foreground mb-2">No matches found</h3>
+            <p className="text-sm text-muted-foreground mb-4">Try selecting different interests or adjusting your filters.</p>
+            {selectedInterests.length > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setSelectedInterests([])}>
+                Clear interest filters
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-2.5">
+            <p className="text-xs text-muted-foreground">{filtered.length} {filtered.length === 1 ? 'person' : 'people'} found</p>
             {filtered.map((p) => (
-              <div key={p.user_id} className="flex items-start gap-2.5 p-3 rounded-xl bg-card shadow-card border border-border">
+              <div key={p.user_id} className="flex items-start gap-2.5 p-3 rounded-xl bg-card shadow-card border border-border hover:shadow-soft transition-shadow">
                 <div className="text-2xl flex-shrink-0 relative">
                   {p.emoji_avatar}
                   <OnlineIndicator isOnline={p.is_online} size="sm" className="absolute -bottom-0.5 -right-0.5" />
@@ -310,7 +379,12 @@ const BrowseProfilesPage = () => {
                     <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{p.bio}</p>
                   )}
                   <div className="flex flex-wrap gap-1 mt-1.5">
-                    {p.character_personality?.slice(0, 3).map((trait) => (
+                    {p.interests?.slice(0, 3).map((interest) => (
+                      <span key={interest} className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/30 text-accent-foreground font-medium">
+                        {INTEREST_EMOJIS[interest] || '•'} {interest}
+                      </span>
+                    ))}
+                    {p.character_personality?.slice(0, 2).map((trait) => (
                       <span key={trait} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{trait}</span>
                     ))}
                     {p.region && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground">🌍 {p.region}</span>}
