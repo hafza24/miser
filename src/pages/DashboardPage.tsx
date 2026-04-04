@@ -297,27 +297,27 @@ const DashboardPage = () => {
     <AppLayout>
       <div className="p-4">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
-            <h2 className="font-heading text-2xl font-bold text-foreground">
+            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">
               {mode === 'light' ? '🌞 Light Space' : '🌑 Dark Space'}
             </h2>
             <p className="text-sm text-muted-foreground">
               {mode === 'light' ? 'Emotional connections' : '18+ connections'}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
               onClick={handleSurpriseMe}
               variant="outline"
               size="sm"
-              className="gap-2"
+              className="gap-2 flex-1 sm:flex-initial"
               disabled={surpriseLoading}
             >
               <Sparkles className="h-4 w-4" />
               {surpriseLoading ? 'Searching...' : 'Surprise Me'}
             </Button>
-            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2">
+            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2 flex-1 sm:flex-initial">
               <Plus className="h-4 w-4" />
               Find People
             </Button>
