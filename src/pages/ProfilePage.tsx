@@ -97,6 +97,7 @@ const ProfilePage = () => {
         character_life_story: charLifeStory.trim() || null,
         gender: gender || null,
         emoji_avatar: emojiAvatar,
+        interests: selectedInterest ? [selectedInterest] : [],
       })
       .eq('user_id', profile.user_id);
 
