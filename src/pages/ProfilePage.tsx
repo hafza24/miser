@@ -25,6 +25,8 @@ const PERSONALITY_OPTIONS = [
   'Sarcastic', 'Adventurous', 'Calm', 'Energetic', 'Wise',
 ];
 
+const INTEREST_OPTIONS = ['Friendship', 'Cute Love', 'Emotional Support'];
+
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
   const [bio, setBio] = useState(profile?.bio || '');

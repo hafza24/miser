@@ -71,6 +71,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           .eq('user_id', userId);
         (data as any).scheduled_deletion_at = null;
       }
+      // Enforce dark mode lock immediately — if blocked, force light mode
+      if ((data as any).dark_mode_blocked && (data as any).mode_preference === 'dark') {
+        (data as any).mode_preference = 'light';
+        await supabase
+          .from('profiles')
+          .update({ mode_preference: 'light' })
+          .eq('user_id', userId);
+        // Also update localStorage so ModeContext picks it up
+        localStorage.setItem('mrsmrb-mode', 'light');
+        document.documentElement.classList.remove('dark-mode');
+      }
       setProfile(data as Profile);
     }
   };

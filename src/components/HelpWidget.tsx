@@ -155,11 +155,11 @@ const HelpWidget = () => {
 
   return (
     <>
-      {/* Floating button — always visible, below panel */}
+      {/* Floating button — hidden on mobile (md:flex), visible on desktop */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-20 right-4 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all flex items-center justify-center hover:scale-105"
+          className="fixed bottom-20 right-4 z-[60] h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:shadow-xl transition-all hidden md:flex items-center justify-center hover:scale-105"
           aria-label="Help & Support"
         >
           <HelpCircle className="h-5 w-5" />
