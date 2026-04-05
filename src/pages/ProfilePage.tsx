@@ -57,6 +57,7 @@ const ProfilePage = () => {
       setCharLifeStory(profile.character_life_story || '');
       setGender(profile.gender || '');
       setEmojiAvatar(profile.emoji_avatar || '🙂');
+      setSelectedInterest((profile.interests && profile.interests.length > 0) ? profile.interests[0] : '');
     }
   }, [profile]);
 
