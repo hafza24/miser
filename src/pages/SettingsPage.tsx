@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sun, Moon, Trash2, Shield, Volume2, BellRing } from 'lucide-react';
+import { Sun, Moon, Trash2, Shield, Volume2, BellRing, HelpCircle } from 'lucide-react';
 import BlockedUsersList from '@/components/settings/BlockedUsersList';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -40,6 +40,7 @@ const SettingsPage = () => {
   const [showAgeVerify, setShowAgeVerify] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
     if (newMode === 'dark' && profile?.dark_mode_blocked) {
@@ -168,6 +169,34 @@ const SettingsPage = () => {
             <li>✅ Messages encrypted in database</li>
             <li>✅ Self-destruct chat support</li>
           </ul>
+        </div>
+
+        {/* Help & Support — visible on mobile as alternative to floating widget */}
+        <div className="bg-card rounded-2xl p-6 shadow-card md:hidden">
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className="w-full flex items-center justify-between"
+          >
+            <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Help & Support
+            </h3>
+            <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
+          </button>
+          {showHelp && (
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => {
+                  // Trigger the help widget by dispatching a custom event
+                  window.dispatchEvent(new CustomEvent('open-help-widget'));
+                  setShowHelp(false);
+                }}
+                className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                📖 FAQ & Contact Support
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Blocked users */}

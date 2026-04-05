@@ -25,6 +25,8 @@ const PERSONALITY_OPTIONS = [
   'Sarcastic', 'Adventurous', 'Calm', 'Energetic', 'Wise',
 ];
 
+const INTEREST_OPTIONS = ['Friendship', 'Cute Love', 'Emotional Support'];
+
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
   const [bio, setBio] = useState(profile?.bio || '');
@@ -40,6 +42,9 @@ const ProfilePage = () => {
   const [charLifeStory, setCharLifeStory] = useState(profile?.character_life_story || '');
   const [gender, setGender] = useState(profile?.gender || '');
   const [emojiAvatar, setEmojiAvatar] = useState(profile?.emoji_avatar || '🙂');
+  const [selectedInterest, setSelectedInterest] = useState<string>(
+    (profile?.interests && profile.interests.length > 0) ? profile.interests[0] : ''
+  );
 
   useEffect(() => {
     if (profile) {
@@ -52,6 +57,7 @@ const ProfilePage = () => {
       setCharLifeStory(profile.character_life_story || '');
       setGender(profile.gender || '');
       setEmojiAvatar(profile.emoji_avatar || '🙂');
+      setSelectedInterest((profile.interests && profile.interests.length > 0) ? profile.interests[0] : '');
     }
   }, [profile]);
 
@@ -91,6 +97,7 @@ const ProfilePage = () => {
         character_life_story: charLifeStory.trim() || null,
         gender: gender || null,
         emoji_avatar: emojiAvatar,
+        interests: selectedInterest ? [selectedInterest] : [],
       })
       .eq('user_id', profile.user_id);
 
@@ -174,7 +181,27 @@ const ProfilePage = () => {
           </Select>
         </div>
 
-        {/* Character Section */}
+        {/* Interest */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label className="mb-3 block">What are you looking for?</Label>
+          <div className="flex flex-wrap gap-2">
+            {INTEREST_OPTIONS.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                onClick={() => setSelectedInterest(selectedInterest === interest ? '' : interest)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                  selectedInterest === interest
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
+                }`}
+              >
+                {interest}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Select one interest</p>
+        </div>
         <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-primary" />
