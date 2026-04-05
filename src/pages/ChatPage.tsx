@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -25,7 +25,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
   DropdownMenu,
@@ -41,6 +40,7 @@ interface Message {
   content: string;
   image_url: string | null;
   created_at: string;
+  reply_to: string | null;
 }
 
 interface ChatInfo {
@@ -77,6 +77,7 @@ const ChatPage = () => {
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
@@ -183,9 +184,12 @@ const ChatPage = () => {
     const result = moderateMessage(newMessage, chatMode);
     if (result.blocked) { toast.error(result.reason); return; }
     setSending(true);
-    const { error } = await supabase.from('messages').insert({ chat_id: chatId, sender_id: userId, content: newMessage.trim() });
+    const insertData: any = { chat_id: chatId, sender_id: userId, content: newMessage.trim() };
+    if (replyTo) insertData.reply_to = replyTo.id;
+    const { error } = await supabase.from('messages').insert(insertData);
     if (error) toast.error('Failed to send message');
     setNewMessage('');
+    setReplyTo(null);
     setSending(false);
     setShowEmoji(false);
   };
@@ -238,6 +242,11 @@ const ChatPage = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => { setNewMessage(e.target.value); sendTyping(); };
 
+  const getReplyContent = (replyToId: string | null) => {
+    if (!replyToId) return null;
+    return messages.find(m => m.id === replyToId);
+  };
+
   if (loadingChat) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading chat...</div>;
   }
@@ -260,7 +269,6 @@ const ChatPage = () => {
             </span>
           </div>
           
-          {/* Compact action buttons */}
           <div className="flex items-center gap-1 flex-shrink-0">
             {chatInfo && userId && (
               <ChatModeSwitch chatId={chatId!} chatMode={chatMode} currentUserId={userId} onModeChanged={(newMode) => { setChatMode(newMode); setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev); }} />
@@ -269,7 +277,6 @@ const ChatPage = () => {
               <ChatTimer chatId={chatId!} expiresAt={chatInfo.expires_at} timerStopped={chatInfo.timer_stopped} currentUserId={userId} />
             )}
             
-            {/* More actions dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full h-8 w-8">
@@ -384,15 +391,43 @@ const ChatPage = () => {
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 const isScene = msg.content.startsWith('📖 Scene');
                 const isOtherScene = isScene && !isMe;
+                const repliedMsg = getReplyContent(msg.reply_to);
                 return (
                   <div key={msg.id}>
-                    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                      <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
-                        {msg.content}
-                        <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
-                          <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          {isMe && <SeenIndicator isSeen={isSeen} />}
+                    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
+                      <div className="flex items-end gap-1">
+                        {/* Reply button for other's messages */}
+                        {!isMe && !expired && !chatEnded && (
+                          <button
+                            onClick={() => setReplyTo(msg)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
+                          >
+                            <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                        )}
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
+                          {/* Reply preview */}
+                          {repliedMsg && (
+                            <div className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}>
+                              <span className="font-medium">{repliedMsg.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</span>
+                              <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
+                            </div>
+                          )}
+                          {msg.content}
+                          <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
+                            <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                            {isMe && <SeenIndicator isSeen={isSeen} />}
+                          </div>
                         </div>
+                        {/* Reply button for own messages */}
+                        {isMe && !expired && !chatEnded && (
+                          <button
+                            onClick={() => setReplyTo(msg)}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
+                          >
+                            <Reply className="h-3.5 w-3.5 text-muted-foreground" />
+                          </button>
+                        )}
                       </div>
                     </div>
                     {isOtherScene && !expired && !chatEnded && (
@@ -418,6 +453,22 @@ const ChatPage = () => {
                 {EMOJI_LIST.map(emoji => (
                   <button key={emoji} onClick={() => setNewMessage(prev => prev + emoji)} className="text-2xl hover:scale-125 transition-transform">{emoji}</button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Reply preview bar */}
+          {replyTo && (
+            <div className="border-t border-border bg-card/90 px-4 py-2 max-w-2xl mx-auto w-full">
+              <div className="flex items-center gap-2">
+                <Reply className="h-4 w-4 text-primary flex-shrink-0" />
+                <div className="flex-1 min-w-0 border-l-2 border-primary pl-2">
+                  <p className="text-xs font-medium text-primary">{replyTo.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</p>
+                  <p className="text-xs text-muted-foreground truncate">{replyTo.content.substring(0, 80)}</p>
+                </div>
+                <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0" onClick={() => setReplyTo(null)}>
+                  <X className="h-3.5 w-3.5" />
+                </Button>
               </div>
             </div>
           )}

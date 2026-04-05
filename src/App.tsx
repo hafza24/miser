@@ -28,6 +28,7 @@ import AdminTickets from "./pages/admin/AdminTickets";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminPages from "./pages/admin/AdminPages";
+import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SitePage from "./pages/SitePage";
 import DownloadPage from "./pages/DownloadPage";
@@ -92,6 +93,7 @@ const AppRoutes = () => (
       <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
       <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
       <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
+      <Route path="/admin/payment-info" element={<AdminRoute><AdminPaymentInfo /></AdminRoute>} />
       {/* Legacy redirect */}
       <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />

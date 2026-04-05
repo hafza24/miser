@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useSubscription, SubscriptionPlan } from '@/hooks/useSubscription';
@@ -16,8 +16,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap, Moon } from 'lucide-react';
+import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+
+interface PaymentInfoRow {
+  id: string;
+  method_name: string;
+  account_number: string;
+  account_holder: string;
+}
 
 const SubscriptionPage = () => {
   const { user, profile, refreshProfile } = useAuth();
@@ -30,6 +37,19 @@ const SubscriptionPage = () => {
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfoRow[]>([]);
+
+  useEffect(() => {
+    const loadPaymentInfo = async () => {
+      const { data } = await supabase
+        .from('payment_info')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true });
+      if (data) setPaymentInfo(data as any);
+    };
+    loadPaymentInfo();
+  }, []);
 
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
@@ -45,7 +65,6 @@ const SubscriptionPage = () => {
 
     setSubmitting(true);
     try {
-      // Upload screenshot
       const fileExt = screenshot.name.split('.').pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -61,7 +80,6 @@ const SubscriptionPage = () => {
         expiryDate.setFullYear(expiryDate.getFullYear() + 1);
       }
 
-      // Create subscription (pending)
       const { data: subData, error: subError } = await supabase
         .from('subscriptions')
         .insert({
@@ -77,7 +95,6 @@ const SubscriptionPage = () => {
 
       if (subError) throw subError;
 
-      // Create payment record
       const { error: payError } = await supabase.from('payments').insert({
         user_id: user.id,
         subscription_id: (subData as any).id,
@@ -242,23 +259,23 @@ const SubscriptionPage = () => {
           </Card>
         )}
 
-        {/* Payment Details */}
-        {!showForm && plans.length > 0 && (
+        {/* Payment Details - Dynamic from DB */}
+        {!showForm && paymentInfo.length > 0 && (
           <Card>
             <CardContent className="p-5 space-y-2">
               <h3 className="font-heading font-semibold text-foreground">Payment Details</h3>
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Methods:</span>
-                  <span className="font-medium text-foreground">JazzCash · EasyPaisa · Nayapay</span>
+                  <span className="font-medium text-foreground">{paymentInfo.map(p => p.method_name).join(' · ')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Account:</span>
-                  <span className="font-medium text-foreground">03016912786</span>
+                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_number}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">Asim Azeemi</span>
+                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_holder}</span>
                 </div>
               </div>
             </CardContent>
@@ -290,9 +307,15 @@ const SubscriptionPage = () => {
                   <Select value={method} onValueChange={setMethod}>
                     <SelectTrigger><SelectValue placeholder="Select method" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="JazzCash">JazzCash</SelectItem>
-                      <SelectItem value="EasyPaisa">EasyPaisa</SelectItem>
-                      <SelectItem value="Nayapay">Nayapay</SelectItem>
+                      {paymentInfo.length > 0 ? paymentInfo.map(p => (
+                        <SelectItem key={p.id} value={p.method_name}>{p.method_name}</SelectItem>
+                      )) : (
+                        <>
+                          <SelectItem value="JazzCash">JazzCash</SelectItem>
+                          <SelectItem value="EasyPaisa">EasyPaisa</SelectItem>
+                          <SelectItem value="Nayapay">Nayapay</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
