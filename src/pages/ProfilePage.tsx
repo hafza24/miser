@@ -181,7 +181,27 @@ const ProfilePage = () => {
           </Select>
         </div>
 
-        {/* Character Section */}
+        {/* Interest */}
+        <div className="bg-card rounded-2xl p-6 shadow-card">
+          <Label className="mb-3 block">What are you looking for?</Label>
+          <div className="flex flex-wrap gap-2">
+            {INTEREST_OPTIONS.map((interest) => (
+              <button
+                key={interest}
+                type="button"
+                onClick={() => setSelectedInterest(selectedInterest === interest ? '' : interest)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                  selectedInterest === interest
+                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                    : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
+                }`}
+              >
+                {interest}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">Select one interest</p>
+        </div>
         <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles className="w-5 h-5 text-primary" />
