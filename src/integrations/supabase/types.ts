@@ -128,6 +128,7 @@ export type Database = {
           created_at: string
           id: string
           image_url: string | null
+          reply_to: string | null
           self_destruct_minutes: number | null
           sender_id: string
         }
@@ -137,6 +138,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          reply_to?: string | null
           self_destruct_minutes?: number | null
           sender_id: string
         }
@@ -146,6 +148,7 @@ export type Database = {
           created_at?: string
           id?: string
           image_url?: string | null
+          reply_to?: string | null
           self_destruct_minutes?: number | null
           sender_id?: string
         }
@@ -155,6 +158,13 @@ export type Database = {
             columns: ["chat_id"]
             isOneToOne: false
             referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_fkey"
+            columns: ["reply_to"]
+            isOneToOne: false
+            referencedRelation: "messages"
             referencedColumns: ["id"]
           },
         ]
@@ -215,6 +225,39 @@ export type Database = {
           message_text?: string | null
           user_id?: string
           violation_type?: Database["public"]["Enums"]["violation_type"]
+        }
+        Relationships: []
+      }
+      payment_info: {
+        Row: {
+          account_holder: string
+          account_number: string
+          created_at: string
+          id: string
+          is_active: boolean
+          method_name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          account_holder: string
+          account_number: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          account_holder?: string
+          account_number?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_name?: string
+          sort_order?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -311,6 +354,7 @@ export type Database = {
         Row: {
           age_verified: boolean
           alias: string
+          alias_changed_at: string | null
           availability: string | null
           bio: string | null
           character_description: string | null
@@ -344,6 +388,7 @@ export type Database = {
         Insert: {
           age_verified?: boolean
           alias: string
+          alias_changed_at?: string | null
           availability?: string | null
           bio?: string | null
           character_description?: string | null
@@ -377,6 +422,7 @@ export type Database = {
         Update: {
           age_verified?: boolean
           alias?: string
+          alias_changed_at?: string | null
           availability?: string | null
           bio?: string | null
           character_description?: string | null
