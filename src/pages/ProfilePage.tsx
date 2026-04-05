@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { MessageCircle, Sparkles } from 'lucide-react';
+import { MessageCircle, Sparkles, Pencil, Check, X } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 
@@ -34,6 +34,11 @@ const ProfilePage = () => {
   const [availability, setAvailability] = useState(profile?.availability || '');
   const [saving, setSaving] = useState(false);
   const [chatsUsedToday, setChatsUsedToday] = useState(0);
+
+  // Alias editing
+  const [editingAlias, setEditingAlias] = useState(false);
+  const [newAlias, setNewAlias] = useState('');
+  const [aliasSaving, setAliasSaving] = useState(false);
 
   // Character fields
   const [charTitle, setCharTitle] = useState(profile?.character_title || '');
@@ -75,6 +80,56 @@ const ProfilePage = () => {
     };
     fetchDailyCount();
   }, [profile]);
+
+  const canChangeAlias = () => {
+    if (!profile) return false;
+    const changedAt = (profile as any).alias_changed_at;
+    if (!changedAt) return true;
+    const lastChanged = new Date(changedAt);
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    return lastChanged <= monthAgo;
+  };
+
+  const getDaysUntilAliasChange = () => {
+    if (!profile) return 0;
+    const changedAt = (profile as any).alias_changed_at;
+    if (!changedAt) return 0;
+    const nextAllowed = new Date(changedAt);
+    nextAllowed.setMonth(nextAllowed.getMonth() + 1);
+    const days = Math.ceil((nextAllowed.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, days);
+  };
+
+  const handleAliasEdit = () => {
+    if (!canChangeAlias()) {
+      toast.error(`You can change your name again in ${getDaysUntilAliasChange()} days`);
+      return;
+    }
+    setNewAlias(profile?.alias || '');
+    setEditingAlias(true);
+  };
+
+  const handleAliasSave = async () => {
+    if (!profile || !newAlias.trim()) return;
+    if (newAlias.trim().length < 3 || newAlias.trim().length > 30) {
+      toast.error('Username must be 3-30 characters');
+      return;
+    }
+    setAliasSaving(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ alias: newAlias.trim(), alias_changed_at: new Date().toISOString() } as any)
+      .eq('user_id', profile.user_id);
+    if (error) {
+      toast.error('Failed to update username');
+    } else {
+      toast.success('Username updated!');
+      await refreshProfile();
+    }
+    setAliasSaving(false);
+    setEditingAlias(false);
+  };
 
   const togglePersonality = (trait: string) => {
     setCharPersonality((prev) =>
@@ -126,9 +181,35 @@ const ProfilePage = () => {
             />
           </div>
           <div className="flex items-center justify-center gap-2 mt-2">
-            <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
+            {editingAlias ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={newAlias}
+                  onChange={(e) => setNewAlias(e.target.value)}
+                  className="w-40 h-8 text-center text-sm"
+                  maxLength={30}
+                  autoFocus
+                />
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleAliasSave} disabled={aliasSaving}>
+                  <Check className="h-4 w-4 text-green-500" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingAlias(false)}>
+                  <X className="h-4 w-4 text-destructive" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleAliasEdit}>
+                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                </Button>
+              </>
+            )}
             <OnlineIndicator isOnline={profile.is_online ?? true} size="md" showLabel lastSeenAt={profile.last_seen_at} />
           </div>
+          {!editingAlias && !canChangeAlias() && (
+            <p className="text-xs text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
+          )}
           {gender && <p className="text-sm text-muted-foreground mt-1">{gender}</p>}
           <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
