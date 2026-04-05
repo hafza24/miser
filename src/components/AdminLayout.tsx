@@ -16,6 +16,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { path: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { path: '/admin/pages', icon: FileText, label: 'Pages' },
+    { path: '/admin/payment-info', icon: Wallet, label: 'Payment Info' },
   ];
 
   return (
