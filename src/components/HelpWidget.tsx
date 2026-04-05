@@ -91,6 +91,13 @@ const HelpWidget = () => {
     }
   }, [open, tab]);
 
+  // Listen for custom event from Settings page (mobile)
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('open-help-widget', handler);
+    return () => window.removeEventListener('open-help-widget', handler);
+  }, []);
+
   useEffect(() => {
     if (!user) return;
     const channel = supabase
