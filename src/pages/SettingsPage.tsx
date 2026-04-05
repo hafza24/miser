@@ -40,6 +40,13 @@ const SettingsPage = () => {
   const [showAgeVerify, setShowAgeVerify] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [consentConfirmed, setConsentConfirmed] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const { mode, setMode } = useMode();
+  const { soundEnabled, desktopEnabled, setSoundEnabled, setDesktopEnabled } = useNotifications();
+  const navigate = useNavigate();
+  const [showAgeVerify, setShowAgeVerify] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [consentConfirmed, setConsentConfirmed] = useState(false);
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
     if (newMode === 'dark' && profile?.dark_mode_blocked) {
