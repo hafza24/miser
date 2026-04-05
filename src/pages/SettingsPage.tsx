@@ -171,6 +171,34 @@ const SettingsPage = () => {
           </ul>
         </div>
 
+        {/* Help & Support — visible on mobile as alternative to floating widget */}
+        <div className="bg-card rounded-2xl p-6 shadow-card md:hidden">
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            className="w-full flex items-center justify-between"
+          >
+            <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+              <HelpCircle className="h-5 w-5" />
+              Help & Support
+            </h3>
+            <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
+          </button>
+          {showHelp && (
+            <div className="mt-4 space-y-2">
+              <button
+                onClick={() => {
+                  // Trigger the help widget by dispatching a custom event
+                  window.dispatchEvent(new CustomEvent('open-help-widget'));
+                  setShowHelp(false);
+                }}
+                className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+              >
+                📖 FAQ & Contact Support
+              </button>
+            </div>
+          )}
+        </div>
+
         {/* Blocked users */}
         <BlockedUsersList />
 
