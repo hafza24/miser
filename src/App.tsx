@@ -28,6 +28,7 @@ import AdminTickets from "./pages/admin/AdminTickets";
 import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminPages from "./pages/admin/AdminPages";
+import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SitePage from "./pages/SitePage";
 import DownloadPage from "./pages/DownloadPage";
