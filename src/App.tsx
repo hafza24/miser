@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { initNativePlugins } from "@/lib/native";
 import { ModeProvider } from "@/contexts/ModeContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { NotificationProvider } from "@/contexts/NotificationContext";
@@ -101,21 +103,27 @@ const AppRoutes = () => (
   </BrowserRouter>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ModeProvider>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-            <HelpWidget />
-          </TooltipProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </ModeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    initNativePlugins();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ModeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+              <HelpWidget />
+            </TooltipProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ModeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

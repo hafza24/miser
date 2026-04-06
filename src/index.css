@@ -132,3 +132,16 @@
     text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
   }
 }
+
+/* Capacitor — keyboard open adjustments */
+body.keyboard-open {
+  --safe-bottom: 0px;
+}
+body.keyboard-open .fixed.bottom-0 {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Safe area insets for notched devices */
+html {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
