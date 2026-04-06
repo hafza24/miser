@@ -103,21 +103,27 @@ const AppRoutes = () => (
   </BrowserRouter>
 );
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ModeProvider>
-      <AuthProvider>
-        <NotificationProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <AppRoutes />
-            <HelpWidget />
-          </TooltipProvider>
-        </NotificationProvider>
-      </AuthProvider>
-    </ModeProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  useEffect(() => {
+    initNativePlugins();
+  }, []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ModeProvider>
+        <AuthProvider>
+          <NotificationProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <AppRoutes />
+              <HelpWidget />
+            </TooltipProvider>
+          </NotificationProvider>
+        </AuthProvider>
+      </ModeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
