@@ -395,17 +395,17 @@ const ChatPage = () => {
                 return (
                   <div key={msg.id}>
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
-                      <div className="flex items-end gap-1">
+                      <div className={`flex items-end gap-1 ${isMe ? 'max-w-[75%] ml-auto' : 'max-w-[75%] mr-auto'}`}>
                         {/* Reply button for other's messages */}
                         {!isMe && !expired && !chatEnded && (
                           <button
                             onClick={() => setReplyTo(msg)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1 flex-shrink-0"
                           >
                             <Reply className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         )}
-                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
+                        <div className={`rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
                           {/* Reply preview */}
                           {repliedMsg && (
                             <div className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}>
