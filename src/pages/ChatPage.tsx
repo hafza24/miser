@@ -112,6 +112,10 @@ const ChatPage = () => {
         loadMessages();
         markAsRead();
       })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, (payload) => {
+        const deletedId = (payload.old as any)?.id;
+        if (deletedId) setMessages(prev => prev.filter(m => m.id !== deletedId));
+      })
       .subscribe();
 
     const chatChannel = supabase
