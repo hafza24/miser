@@ -279,6 +279,72 @@ const ChatPage = () => {
     return messages.find(m => m.id === replyToId);
   };
 
+  // Cleanup pending-delete timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(pendingTimersRef.current).forEach(({ timeout, interval }) => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      });
+    };
+  }, []);
+
+  const startDeleteForEveryone = (msg: Message) => {
+    if (msg.sender_id !== userId) return;
+    if (pendingTimersRef.current[msg.id]) return;
+
+    setPendingDeletes(prev => ({ ...prev, [msg.id]: { remaining: 5 } }));
+
+    const interval = window.setInterval(() => {
+      setPendingDeletes(prev => {
+        const cur = prev[msg.id];
+        if (!cur) return prev;
+        const next = Math.max(0, cur.remaining - 1);
+        return { ...prev, [msg.id]: { remaining: next } };
+      });
+    }, 1000);
+
+    const timeout = window.setTimeout(async () => {
+      clearInterval(interval);
+      delete pendingTimersRef.current[msg.id];
+      const { error } = await supabase.from('messages').delete().eq('id', msg.id);
+      setPendingDeletes(prev => {
+        const { [msg.id]: _omit, ...rest } = prev;
+        return rest;
+      });
+      if (error) {
+        toast.error('Failed to delete message');
+      } else {
+        setMessages(prev => prev.filter(m => m.id !== msg.id));
+      }
+    }, 5000);
+
+    pendingTimersRef.current[msg.id] = { timeout, interval };
+  };
+
+  const undoDelete = (msgId: string) => {
+    const t = pendingTimersRef.current[msgId];
+    if (t) {
+      clearTimeout(t.timeout);
+      clearInterval(t.interval);
+      delete pendingTimersRef.current[msgId];
+    }
+    setPendingDeletes(prev => {
+      const { [msgId]: _omit, ...rest } = prev;
+      return rest;
+    });
+    toast.success('Deletion undone');
+  };
+
+  const scrollToMessage = (msgId: string) => {
+    const el = messageRefs.current[msgId];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1200);
+    }
+  };
+
   if (loadingChat) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading chat...</div>;
   }
