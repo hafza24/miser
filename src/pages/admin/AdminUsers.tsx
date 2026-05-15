@@ -92,7 +92,7 @@ const AdminUsers = () => {
     setUpdating(userId);
     const { error } = await supabase
       .from('profiles')
-      .update({ [field]: newValue })
+      .update({ [field]: newValue } as any)
       .eq('id', userId);
     if (error) {
       toast.error('Failed to update limit');
