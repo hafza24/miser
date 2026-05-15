@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -15,6 +15,7 @@ import SeenIndicator from '@/components/chat/SeenIndicator';
 import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import SceneGenerator from '@/components/chat/SceneGenerator';
+import SwipeableMessage from '@/components/chat/SwipeableMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
 import {
   AlertDialog,
@@ -78,7 +79,13 @@ const ChatPage = () => {
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [actionMessage, setActionMessage] = useState<Message | null>(null);
+  const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
+  const pendingTimersRef = useRef<Record<string, { timeout: number; interval: number }>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const initialScrollDoneRef = useRef(false);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
@@ -105,6 +112,10 @@ const ChatPage = () => {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, () => {
         loadMessages();
         markAsRead();
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, (payload) => {
+        const deletedId = (payload.old as any)?.id;
+        if (deletedId) setMessages(prev => prev.filter(m => m.id !== deletedId));
       })
       .subscribe();
 
@@ -140,9 +151,31 @@ const ChatPage = () => {
     if (messages.length > 0) markAsRead();
   }, [messages.length, markAsRead]);
 
+  // Smart scroll: instant jump to bottom on first load; smooth scroll afterwards
+  // only if the user is already near the bottom (so reading older history isn't disrupted).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container || messages.length === 0) return;
+
+    if (!initialScrollDoneRef.current) {
+      // Defer to next frame so DOM has painted heights, then jump instantly
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+        initialScrollDoneRef.current = true;
+      });
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 160) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, isOtherTyping]);
+
+  // Reset initial-scroll flag when chat changes
+  useEffect(() => {
+    initialScrollDoneRef.current = false;
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatInfo || chatInfo.timer_stopped || !chatInfo.expires_at) { setExpired(false); return; }
@@ -247,6 +280,72 @@ const ChatPage = () => {
     return messages.find(m => m.id === replyToId);
   };
 
+  // Cleanup pending-delete timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(pendingTimersRef.current).forEach(({ timeout, interval }) => {
+        clearTimeout(timeout);
+        clearInterval(interval);
+      });
+    };
+  }, []);
+
+  const startDeleteForEveryone = (msg: Message) => {
+    if (msg.sender_id !== userId) return;
+    if (pendingTimersRef.current[msg.id]) return;
+
+    setPendingDeletes(prev => ({ ...prev, [msg.id]: { remaining: 5 } }));
+
+    const interval = window.setInterval(() => {
+      setPendingDeletes(prev => {
+        const cur = prev[msg.id];
+        if (!cur) return prev;
+        const next = Math.max(0, cur.remaining - 1);
+        return { ...prev, [msg.id]: { remaining: next } };
+      });
+    }, 1000);
+
+    const timeout = window.setTimeout(async () => {
+      clearInterval(interval);
+      delete pendingTimersRef.current[msg.id];
+      const { error } = await supabase.from('messages').delete().eq('id', msg.id);
+      setPendingDeletes(prev => {
+        const { [msg.id]: _omit, ...rest } = prev;
+        return rest;
+      });
+      if (error) {
+        toast.error('Failed to delete message');
+      } else {
+        setMessages(prev => prev.filter(m => m.id !== msg.id));
+      }
+    }, 5000);
+
+    pendingTimersRef.current[msg.id] = { timeout, interval };
+  };
+
+  const undoDelete = (msgId: string) => {
+    const t = pendingTimersRef.current[msgId];
+    if (t) {
+      clearTimeout(t.timeout);
+      clearInterval(t.interval);
+      delete pendingTimersRef.current[msgId];
+    }
+    setPendingDeletes(prev => {
+      const { [msgId]: _omit, ...rest } = prev;
+      return rest;
+    });
+    toast.success('Deletion undone');
+  };
+
+  const scrollToMessage = (msgId: string) => {
+    const el = messageRefs.current[msgId];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1200);
+    }
+  };
+
   if (loadingChat) {
     return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading chat...</div>;
   }
@@ -336,7 +435,55 @@ const ChatPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* End Chat Dialog */}
+      {/* Message action sheet (long-press on own message) */}
+      <AlertDialog open={!!actionMessage} onOpenChange={(open) => !open && setActionMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Message options</AlertDialogTitle>
+            <AlertDialogDescription className="line-clamp-3 italic">
+              "{actionMessage?.content}"
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-between">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (actionMessage) startDeleteForEveryone(actionMessage);
+                setActionMessage(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete for Everyone
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pending-delete snackbar */}
+      {Object.keys(pendingDeletes).length > 0 && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-1.5 w-[min(92vw,420px)]">
+          {Object.entries(pendingDeletes).map(([id, { remaining }]) => (
+            <div
+              key={id}
+              className="flex items-center justify-between gap-3 bg-foreground text-background rounded-full pl-4 pr-1.5 py-1.5 shadow-lg animate-fade-in"
+            >
+              <span className="text-xs font-medium">
+                Deleting in {remaining}s…
+              </span>
+              <button
+                type="button"
+                onClick={() => undoDelete(id)}
+                className="flex items-center gap-1 bg-background/15 hover:bg-background/25 transition-colors text-background text-xs font-semibold rounded-full px-3 py-1"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+                Undo
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -377,7 +524,7 @@ const ChatPage = () => {
       {/* Messages area */}
       {!chatEnded && (!expired || chatInfo?.timer_stopped) && (
         <>
-          <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
             <div className="flex justify-center mb-4">
               <div className="bg-muted/50 text-muted-foreground text-xs px-4 py-2 rounded-full text-center max-w-xs">
                 {chatInfo?.timer_stopped ? '✅ Timer stopped — this chat is permanent' : '⏳ This chat expires in 24 hours.'}
@@ -385,45 +532,56 @@ const ChatPage = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg, idx) => {
+              {messages.map((msg) => {
                 const isMe = msg.sender_id === user?.id;
-                const isLastOwnMsg = isMe && !messages.slice(idx + 1).some(m => m.sender_id === user?.id);
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 const isScene = msg.content.startsWith('📖 Scene');
                 const isOtherScene = isScene && !isMe;
                 const repliedMsg = getReplyContent(msg.reply_to);
+                const isPendingDelete = !!pendingDeletes[msg.id];
+                const interactive = !expired && !chatEnded;
                 return (
-                  <div key={msg.id}>
+                  <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
                       <div className={`flex items-end gap-1 ${isMe ? 'max-w-[75%] ml-auto' : 'max-w-[75%] mr-auto'}`}>
-                        {/* Reply button for other's messages */}
-                        {!isMe && !expired && !chatEnded && (
+                        {/* Desktop reply button (other's messages) */}
+                        {!isMe && interactive && !isPendingDelete && (
                           <button
                             onClick={() => setReplyTo(msg)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1 flex-shrink-0"
+                            className="hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1 flex-shrink-0"
                           >
                             <Reply className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         )}
-                        <div className={`rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
-                          {/* Reply preview */}
-                          {repliedMsg && (
-                            <div className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}>
-                              <span className="font-medium">{repliedMsg.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</span>
-                              <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
+                        <SwipeableMessage
+                          isMe={isMe}
+                          disabled={!interactive || isPendingDelete}
+                          onReply={() => setReplyTo(msg)}
+                          onLongPress={() => isMe && setActionMessage(msg)}
+                        >
+                          <div className={`rounded-2xl px-4 py-2.5 text-sm select-none ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''} ${isPendingDelete ? 'opacity-40 line-through' : ''}`}>
+                            {repliedMsg && (
+                              <button
+                                type="button"
+                                onClick={() => scrollToMessage(repliedMsg.id)}
+                                className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 block w-full text-left ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}
+                              >
+                                <span className="font-medium">{repliedMsg.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</span>
+                                <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
+                              </button>
+                            )}
+                            {msg.content}
+                            <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
+                              <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              {isMe && <SeenIndicator isSeen={isSeen} />}
                             </div>
-                          )}
-                          {msg.content}
-                          <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
-                            <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            {isMe && <SeenIndicator isSeen={isSeen} />}
                           </div>
-                        </div>
-                        {/* Reply button for own messages */}
-                        {isMe && !expired && !chatEnded && (
+                        </SwipeableMessage>
+                        {/* Desktop reply button (own messages) */}
+                        {isMe && interactive && !isPendingDelete && (
                           <button
                             onClick={() => setReplyTo(msg)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
+                            className="hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
                           >
                             <Reply className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>

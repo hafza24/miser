@@ -176,11 +176,34 @@ const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId }: ChatTimer
 
   // Show pending request sent by current user
   if (stopRequest && stopRequest.sender_id === currentUserId) {
+    const cancelStop = async () => {
+      setSending(true);
+      const { error } = await supabase
+        .from('timer_stop_requests')
+        .update({ status: 'cancelled' } as any)
+        .eq('id', stopRequest.id);
+      setSending(false);
+      if (error) {
+        toast.error('Failed to cancel request');
+      } else {
+        setStopRequest(null);
+        toast.success('Request cancelled');
+      }
+    };
     return (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 pl-3 pr-1 py-1 rounded-full">
         <Clock className="h-3 w-3 animate-pulse" />
         <span>{timeLeft}</span>
-        <span className="text-primary">• Request sent</span>
+        <span className="text-primary">• Sent</span>
+        <button
+          type="button"
+          onClick={cancelStop}
+          disabled={sending}
+          aria-label="Cancel request"
+          className="ml-1 p-0.5 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
     );
   }
