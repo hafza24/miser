@@ -476,7 +476,7 @@ const ChatPage = () => {
       {/* Messages area */}
       {!chatEnded && (!expired || chatInfo?.timer_stopped) && (
         <>
-          <div className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
+          <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto w-full">
             <div className="flex justify-center mb-4">
               <div className="bg-muted/50 text-muted-foreground text-xs px-4 py-2 rounded-full text-center max-w-xs">
                 {chatInfo?.timer_stopped ? '✅ Timer stopped — this chat is permanent' : '⏳ This chat expires in 24 hours.'}
@@ -484,45 +484,56 @@ const ChatPage = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg, idx) => {
+              {messages.map((msg) => {
                 const isMe = msg.sender_id === user?.id;
-                const isLastOwnMsg = isMe && !messages.slice(idx + 1).some(m => m.sender_id === user?.id);
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 const isScene = msg.content.startsWith('📖 Scene');
                 const isOtherScene = isScene && !isMe;
                 const repliedMsg = getReplyContent(msg.reply_to);
+                const isPendingDelete = !!pendingDeletes[msg.id];
+                const interactive = !expired && !chatEnded;
                 return (
-                  <div key={msg.id}>
+                  <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
                       <div className={`flex items-end gap-1 ${isMe ? 'max-w-[75%] ml-auto' : 'max-w-[75%] mr-auto'}`}>
-                        {/* Reply button for other's messages */}
-                        {!isMe && !expired && !chatEnded && (
+                        {/* Desktop reply button (other's messages) */}
+                        {!isMe && interactive && !isPendingDelete && (
                           <button
                             onClick={() => setReplyTo(msg)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1 flex-shrink-0"
+                            className="hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1 flex-shrink-0"
                           >
                             <Reply className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
                         )}
-                        <div className={`rounded-2xl px-4 py-2.5 text-sm ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''}`}>
-                          {/* Reply preview */}
-                          {repliedMsg && (
-                            <div className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}>
-                              <span className="font-medium">{repliedMsg.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</span>
-                              <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
+                        <SwipeableMessage
+                          isMe={isMe}
+                          disabled={!interactive || isPendingDelete}
+                          onReply={() => setReplyTo(msg)}
+                          onLongPress={() => isMe && setActionMessage(msg)}
+                        >
+                          <div className={`rounded-2xl px-4 py-2.5 text-sm select-none ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''} ${isPendingDelete ? 'opacity-40 line-through' : ''}`}>
+                            {repliedMsg && (
+                              <button
+                                type="button"
+                                onClick={() => scrollToMessage(repliedMsg.id)}
+                                className={`mb-1.5 px-2 py-1 rounded-lg text-xs border-l-2 block w-full text-left ${isMe ? 'bg-primary-foreground/10 border-primary-foreground/40 text-primary-foreground/80' : 'bg-background/50 border-primary/40 text-muted-foreground'}`}
+                              >
+                                <span className="font-medium">{repliedMsg.sender_id === userId ? 'You' : otherUser?.alias || 'Them'}</span>
+                                <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
+                              </button>
+                            )}
+                            {msg.content}
+                            <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
+                              <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                              {isMe && <SeenIndicator isSeen={isSeen} />}
                             </div>
-                          )}
-                          {msg.content}
-                          <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
-                            <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                            {isMe && <SeenIndicator isSeen={isSeen} />}
                           </div>
-                        </div>
-                        {/* Reply button for own messages */}
-                        {isMe && !expired && !chatEnded && (
+                        </SwipeableMessage>
+                        {/* Desktop reply button (own messages) */}
+                        {isMe && interactive && !isPendingDelete && (
                           <button
                             onClick={() => setReplyTo(msg)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
+                            className="hidden sm:block opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-muted mb-1"
                           >
                             <Reply className="h-3.5 w-3.5 text-muted-foreground" />
                           </button>
