@@ -15,6 +15,7 @@ import SeenIndicator from '@/components/chat/SeenIndicator';
 import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import SceneGenerator from '@/components/chat/SceneGenerator';
+import SwipeableMessage from '@/components/chat/SwipeableMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
 import {
   AlertDialog,
