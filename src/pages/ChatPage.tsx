@@ -150,9 +150,31 @@ const ChatPage = () => {
     if (messages.length > 0) markAsRead();
   }, [messages.length, markAsRead]);
 
+  // Smart scroll: instant jump to bottom on first load; smooth scroll afterwards
+  // only if the user is already near the bottom (so reading older history isn't disrupted).
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container || messages.length === 0) return;
+
+    if (!initialScrollDoneRef.current) {
+      // Defer to next frame so DOM has painted heights, then jump instantly
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+        initialScrollDoneRef.current = true;
+      });
+      return;
+    }
+
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 160) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, isOtherTyping]);
+
+  // Reset initial-scroll flag when chat changes
+  useEffect(() => {
+    initialScrollDoneRef.current = false;
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatInfo || chatInfo.timer_stopped || !chatInfo.expires_at) { setExpired(false); return; }
