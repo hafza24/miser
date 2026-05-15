@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X } from 'lucide-react';
+import { ArrowLeft, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -78,7 +78,13 @@ const ChatPage = () => {
   const [showBlockDialog, setShowBlockDialog] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [actionMessage, setActionMessage] = useState<Message | null>(null);
+  const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
+  const pendingTimersRef = useRef<Record<string, { timeout: number; interval: number }>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const initialScrollDoneRef = useRef(false);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
