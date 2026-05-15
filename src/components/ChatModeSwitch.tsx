@@ -176,10 +176,33 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   // Pending request sent by current user
   if (request && request.sender_id === currentUserId) {
+    const cancelRequest = async () => {
+      setSending(true);
+      const { error } = await supabase
+        .from('mode_switch_requests')
+        .update({ status: 'cancelled' } as any)
+        .eq('id', request.id);
+      setSending(false);
+      if (error) {
+        toast.error('Failed to cancel request');
+      } else {
+        setRequest(null);
+        toast.success('Request cancelled');
+      }
+    };
     return (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 pl-3 pr-1 py-1 rounded-full">
         <Moon className="h-3 w-3 animate-pulse" />
         <span className="text-primary">Dark request sent</span>
+        <button
+          type="button"
+          onClick={cancelRequest}
+          disabled={sending}
+          aria-label="Cancel request"
+          className="ml-1 p-0.5 rounded-full hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-colors"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
     );
   }
