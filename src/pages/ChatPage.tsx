@@ -435,7 +435,55 @@ const ChatPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* End Chat Dialog */}
+      {/* Message action sheet (long-press on own message) */}
+      <AlertDialog open={!!actionMessage} onOpenChange={(open) => !open && setActionMessage(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Message options</AlertDialogTitle>
+            <AlertDialogDescription className="line-clamp-3 italic">
+              "{actionMessage?.content}"
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="sm:justify-between">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (actionMessage) startDeleteForEveryone(actionMessage);
+                setActionMessage(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete for Everyone
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Pending-delete snackbar */}
+      {Object.keys(pendingDeletes).length > 0 && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[60] flex flex-col gap-1.5 w-[min(92vw,420px)]">
+          {Object.entries(pendingDeletes).map(([id, { remaining }]) => (
+            <div
+              key={id}
+              className="flex items-center justify-between gap-3 bg-foreground text-background rounded-full pl-4 pr-1.5 py-1.5 shadow-lg animate-fade-in"
+            >
+              <span className="text-xs font-medium">
+                Deleting in {remaining}s…
+              </span>
+              <button
+                type="button"
+                onClick={() => undoDelete(id)}
+                className="flex items-center gap-1 bg-background/15 hover:bg-background/25 transition-colors text-background text-xs font-semibold rounded-full px-3 py-1"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+                Undo
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
