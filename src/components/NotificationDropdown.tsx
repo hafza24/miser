@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, MessageCircle, Clock, CheckCheck } from 'lucide-react';
+import { Bell, MessageCircle, Clock, CheckCheck, MessageSquare, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -8,12 +8,21 @@ import { formatDistanceToNow } from 'date-fns';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 const NotificationDropdown = () => {
-  const { notifications, unreadNotifCount, markAllRead } = useNotifications();
+  const { notifications, unreadNotifCount, markAllRead, markRead } = useNotifications();
   const navigate = useNavigate();
 
   const handleClick = (n: typeof notifications[0]) => {
+    markRead(n.id);
     if (n.meta?.chatId) navigate(`/chat/${n.meta.chatId}`);
     else if (n.type === 'chat_request') navigate('/dashboard');
+    else if (n.type.startsWith('subscription') || n.type === 'payment_pending') navigate('/subscription');
+  };
+
+  const iconFor = (type: typeof notifications[0]['type']) => {
+    if (type === 'chat_request') return <MessageCircle className="h-4 w-4 text-primary" />;
+    if (type === 'new_message') return <MessageSquare className="h-4 w-4 text-primary" />;
+    if (type === 'expiry_alert') return <Clock className="h-4 w-4 text-destructive" />;
+    return <CreditCard className="h-4 w-4 text-primary" />;
   };
 
   return (
@@ -55,13 +64,7 @@ const NotificationDropdown = () => {
                     !n.read ? 'bg-accent/20' : ''
                   }`}
                 >
-                  <div className="mt-0.5 shrink-0">
-                    {n.type === 'chat_request' ? (
-                      <MessageCircle className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Clock className="h-4 w-4 text-destructive" />
-                    )}
-                  </div>
+                  <div className="mt-0.5 shrink-0">{iconFor(n.type)}</div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
                     <p className="text-xs text-muted-foreground truncate">{n.message}</p>
