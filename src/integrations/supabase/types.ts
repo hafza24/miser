@@ -121,6 +121,48 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reports: {
+        Row: {
+          admin_note: string | null
+          chat_id: string | null
+          created_at: string
+          id: string
+          message_content: string | null
+          message_id: string | null
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          reviewed_at: string | null
+          status: string
+        }
+        Insert: {
+          admin_note?: string | null
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          message_content?: string | null
+          message_id?: string | null
+          reason: string
+          reported_user_id: string
+          reporter_id: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Update: {
+          admin_note?: string | null
+          chat_id?: string | null
+          created_at?: string
+          id?: string
+          message_content?: string | null
+          message_id?: string | null
+          reason?: string
+          reported_user_id?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           chat_id: string
@@ -377,6 +419,7 @@ export type Database = {
           light_mode_blocked: boolean
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
+          muted_until: string | null
           notification_sound_enabled: boolean
           payment_status: string
           region: string | null
@@ -411,6 +454,7 @@ export type Database = {
           light_mode_blocked?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
+          muted_until?: string | null
           notification_sound_enabled?: boolean
           payment_status?: string
           region?: string | null
@@ -445,6 +489,7 @@ export type Database = {
           light_mode_blocked?: boolean
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
+          muted_until?: string | null
           notification_sound_enabled?: boolean
           payment_status?: string
           region?: string | null
@@ -727,9 +772,23 @@ export type Database = {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
       }
+      process_violation: {
+        Args: { _content: string; _mode?: string }
+        Returns: Json
+      }
       record_user_report: {
         Args: { _reported_user_id: string }
         Returns: undefined
+      }
+      report_message: {
+        Args: {
+          _chat_id: string
+          _message_content: string
+          _message_id: string
+          _reason: string
+          _reported_user_id: string
+        }
+        Returns: string
       }
       start_random_chat: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }

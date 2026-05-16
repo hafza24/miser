@@ -81,6 +81,10 @@ const ChatPage = () => {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [actionMessage, setActionMessage] = useState<Message | null>(null);
   const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
+  const [mutedUntil, setMutedUntil] = useState<string | null>(null);
+  const [reportMsgReason, setReportMsgReason] = useState('');
+  const [reportMsgTarget, setReportMsgTarget] = useState<Message | null>(null);
+  const [reportingMsg, setReportingMsg] = useState(false);
   const pendingTimersRef = useRef<Record<string, { timeout: number; interval: number }>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -211,11 +215,40 @@ const ChatPage = () => {
     }
   };
 
+  const loadMyMute = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase.from('profiles').select('muted_until, is_suspended').eq('user_id', userId).maybeSingle();
+    if (data) setMutedUntil((data as any).muted_until ?? null);
+  }, [userId]);
+
+  useEffect(() => { loadMyMute(); }, [loadMyMute]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
+    if (mutedUntil && new Date(mutedUntil).getTime() > Date.now()) {
+      const mins = Math.ceil((new Date(mutedUntil).getTime() - Date.now()) / 60000);
+      toast.error(`You are muted for ${mins} more minute${mins === 1 ? '' : 's'}.`);
+      return;
+    }
     const result = moderateMessage(newMessage, chatMode);
-    if (result.blocked) { toast.error(result.reason); return; }
+    if (result.blocked) {
+      toast.error(result.reason);
+      try {
+        const { data } = await supabase.rpc('process_violation' as any, { _content: newMessage, _mode: chatMode });
+        const info = data as any;
+        if (info?.suspended) {
+          toast.error('Account suspended due to repeated violations.');
+          navigate('/suspended');
+        } else if (info?.muted_until) {
+          setMutedUntil(info.muted_until);
+          toast.warning(`Strike ${info.strike}/5 — you are muted until ${new Date(info.muted_until).toLocaleTimeString()}`);
+        } else {
+          toast.warning(`Warning ${info?.strike ?? ''}/5 — continued violations will mute or suspend your account.`);
+        }
+      } catch (err) { /* ignore */ }
+      return;
+    }
     setSending(true);
     const insertData: any = { chat_id: chatId, sender_id: userId, content: newMessage.trim() };
     if (replyTo) insertData.reply_to = replyTo.id;
@@ -225,6 +258,24 @@ const ChatPage = () => {
     setReplyTo(null);
     setSending(false);
     setShowEmoji(false);
+  };
+
+  const handleReportMessage = async () => {
+    if (!reportMsgTarget || !otherUserId || !chatId) return;
+    if (reportMsgReason.trim().length < 5) { toast.error('Please describe the issue (min 5 chars).'); return; }
+    setReportingMsg(true);
+    const { error } = await supabase.rpc('report_message' as any, {
+      _reported_user_id: otherUserId,
+      _chat_id: chatId,
+      _message_id: reportMsgTarget.id,
+      _message_content: reportMsgTarget.content,
+      _reason: reportMsgReason.trim(),
+    });
+    setReportingMsg(false);
+    if (error) { toast.error('Failed to submit report'); return; }
+    toast.success('Message reported. Our team will review it.');
+    setReportMsgReason('');
+    setReportMsgTarget(null);
   };
 
   const sendGameMessage = async (content: string) => {
@@ -497,7 +548,23 @@ const ChatPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Chat ended overlay */}
+      {/* Report message dialog */}
+      <AlertDialog open={!!reportMsgTarget} onOpenChange={(open) => { if (!open) { setReportMsgTarget(null); setReportMsgReason(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Report this message?</AlertDialogTitle>
+            <AlertDialogDescription className="italic line-clamp-3">"{reportMsgTarget?.content}"</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea placeholder="Why are you reporting this? (min 5 chars)" value={reportMsgReason} onChange={(e) => setReportMsgReason(e.target.value)} maxLength={500} className="min-h-[80px]" />
+          <p className="text-xs text-muted-foreground text-right">{reportMsgReason.length}/500</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReportMessage} disabled={reportingMsg || reportMsgReason.trim().length < 5} className="bg-amber-500 text-white hover:bg-amber-600">
+              {reportingMsg ? 'Sending...' : 'Report Message'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {chatEnded && (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
@@ -557,7 +624,7 @@ const ChatPage = () => {
                           isMe={isMe}
                           disabled={!interactive || isPendingDelete}
                           onReply={() => setReplyTo(msg)}
-                          onLongPress={() => isMe && setActionMessage(msg)}
+                          onLongPress={() => isMe ? setActionMessage(msg) : setReportMsgTarget(msg)}
                         >
                           <div className={`rounded-2xl px-4 py-2.5 text-sm select-none ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''} ${isPendingDelete ? 'opacity-40 line-through' : ''}`}>
                             {repliedMsg && (
