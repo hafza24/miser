@@ -215,11 +215,40 @@ const ChatPage = () => {
     }
   };
 
+  const loadMyMute = useCallback(async () => {
+    if (!userId) return;
+    const { data } = await supabase.from('profiles').select('muted_until, is_suspended').eq('user_id', userId).maybeSingle();
+    if (data) setMutedUntil((data as any).muted_until ?? null);
+  }, [userId]);
+
+  useEffect(() => { loadMyMute(); }, [loadMyMute]);
+
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !userId || !chatId || expired || chatEnded) return;
+    if (mutedUntil && new Date(mutedUntil).getTime() > Date.now()) {
+      const mins = Math.ceil((new Date(mutedUntil).getTime() - Date.now()) / 60000);
+      toast.error(`You are muted for ${mins} more minute${mins === 1 ? '' : 's'}.`);
+      return;
+    }
     const result = moderateMessage(newMessage, chatMode);
-    if (result.blocked) { toast.error(result.reason); return; }
+    if (result.blocked) {
+      toast.error(result.reason);
+      try {
+        const { data } = await supabase.rpc('process_violation' as any, { _content: newMessage, _mode: chatMode });
+        const info = data as any;
+        if (info?.suspended) {
+          toast.error('Account suspended due to repeated violations.');
+          navigate('/suspended');
+        } else if (info?.muted_until) {
+          setMutedUntil(info.muted_until);
+          toast.warning(`Strike ${info.strike}/5 — you are muted until ${new Date(info.muted_until).toLocaleTimeString()}`);
+        } else {
+          toast.warning(`Warning ${info?.strike ?? ''}/5 — continued violations will mute or suspend your account.`);
+        }
+      } catch (err) { /* ignore */ }
+      return;
+    }
     setSending(true);
     const insertData: any = { chat_id: chatId, sender_id: userId, content: newMessage.trim() };
     if (replyTo) insertData.reply_to = replyTo.id;
@@ -229,6 +258,24 @@ const ChatPage = () => {
     setReplyTo(null);
     setSending(false);
     setShowEmoji(false);
+  };
+
+  const handleReportMessage = async () => {
+    if (!reportMsgTarget || !otherUserId || !chatId) return;
+    if (reportMsgReason.trim().length < 5) { toast.error('Please describe the issue (min 5 chars).'); return; }
+    setReportingMsg(true);
+    const { error } = await supabase.rpc('report_message' as any, {
+      _reported_user_id: otherUserId,
+      _chat_id: chatId,
+      _message_id: reportMsgTarget.id,
+      _message_content: reportMsgTarget.content,
+      _reason: reportMsgReason.trim(),
+    });
+    setReportingMsg(false);
+    if (error) { toast.error('Failed to submit report'); return; }
+    toast.success('Message reported. Our team will review it.');
+    setReportMsgReason('');
+    setReportMsgTarget(null);
   };
 
   const sendGameMessage = async (content: string) => {
