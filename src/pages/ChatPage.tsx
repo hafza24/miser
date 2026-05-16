@@ -81,6 +81,10 @@ const ChatPage = () => {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [actionMessage, setActionMessage] = useState<Message | null>(null);
   const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
+  const [mutedUntil, setMutedUntil] = useState<string | null>(null);
+  const [reportMsgReason, setReportMsgReason] = useState('');
+  const [reportMsgTarget, setReportMsgTarget] = useState<Message | null>(null);
+  const [reportingMsg, setReportingMsg] = useState(false);
   const pendingTimersRef = useRef<Record<string, { timeout: number; interval: number }>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
