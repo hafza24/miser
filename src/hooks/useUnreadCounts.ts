@@ -115,10 +115,7 @@ export const useUnreadCounts = () => {
       }, (payload) => {
         const msg = payload.new as any;
         if (msg.sender_id !== user.id) {
-          const soundPref = localStorage.getItem('notif_sound');
-          const desktopPref = localStorage.getItem('notif_desktop');
-          if (soundPref !== 'false') playNotificationSound();
-          if (desktopPref === 'true') showDesktopNotification('New Message', msg.content?.slice(0, 100) || 'You have a new message');
+          // Sound/desktop notification is centralized in NotificationContext to avoid duplicates.
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(() => {
             fetchCounts();
