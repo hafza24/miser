@@ -64,13 +64,7 @@ const NotificationDropdown = () => {
                     !n.read ? 'bg-accent/20' : ''
                   }`}
                 >
-                  <div className="mt-0.5 shrink-0">
-                    {n.type === 'chat_request' ? (
-                      <MessageCircle className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Clock className="h-4 w-4 text-destructive" />
-                    )}
-                  </div>
+                  <div className="mt-0.5 shrink-0">{iconFor(n.type)}</div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
                     <p className="text-xs text-muted-foreground truncate">{n.message}</p>
