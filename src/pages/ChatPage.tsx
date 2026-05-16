@@ -608,7 +608,7 @@ const ChatPage = () => {
                           isMe={isMe}
                           disabled={!interactive || isPendingDelete}
                           onReply={() => setReplyTo(msg)}
-                          onLongPress={() => isMe && setActionMessage(msg)}
+                          onLongPress={() => isMe ? setActionMessage(msg) : setReportMsgTarget(msg)}
                         >
                           <div className={`rounded-2xl px-4 py-2.5 text-sm select-none ${isMe ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'} ${isScene ? 'border border-border/40 italic' : ''} ${isPendingDelete ? 'opacity-40 line-through' : ''}`}>
                             {repliedMsg && (
