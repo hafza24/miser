@@ -548,7 +548,23 @@ const ChatPage = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Chat ended overlay */}
+      {/* Report message dialog */}
+      <AlertDialog open={!!reportMsgTarget} onOpenChange={(open) => { if (!open) { setReportMsgTarget(null); setReportMsgReason(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Report this message?</AlertDialogTitle>
+            <AlertDialogDescription className="italic line-clamp-3">"{reportMsgTarget?.content}"</AlertDialogDescription>
+          </AlertDialogHeader>
+          <Textarea placeholder="Why are you reporting this? (min 5 chars)" value={reportMsgReason} onChange={(e) => setReportMsgReason(e.target.value)} maxLength={500} className="min-h-[80px]" />
+          <p className="text-xs text-muted-foreground text-right">{reportMsgReason.length}/500</p>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReportMessage} disabled={reportingMsg || reportMsgReason.trim().length < 5} className="bg-amber-500 text-white hover:bg-amber-600">
+              {reportingMsg ? 'Sending...' : 'Report Message'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       {chatEnded && (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
