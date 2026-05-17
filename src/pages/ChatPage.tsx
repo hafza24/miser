@@ -90,6 +90,9 @@ const ChatPage = () => {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const initialScrollDoneRef = useRef(false);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const prevMessageCountRef = useRef(0);
+  const [showJumpButton, setShowJumpButton] = useState(false);
+  const [unreadNew, setUnreadNew] = useState(0);
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
