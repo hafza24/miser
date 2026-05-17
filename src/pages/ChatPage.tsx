@@ -402,7 +402,7 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen h-[100dvh] flex flex-col bg-background overflow-hidden">
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md px-3 py-2.5">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
