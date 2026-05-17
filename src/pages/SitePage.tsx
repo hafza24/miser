@@ -41,10 +41,10 @@ const SitePage = () => {
 
       if (trimmed.startsWith('# ')) {
         if (inList) { html.push('</ul>'); inList = false; }
-        html.push(`<h1 class="text-2xl font-bold font-heading text-foreground mt-6 mb-3">${trimmed.slice(2)}</h1>`);
+        html.push(`<h1 class="text-2xl font-bold font-heading text-foreground mt-6 mb-3">${escapeHtml(trimmed.slice(2))}</h1>`);
       } else if (trimmed.startsWith('## ')) {
         if (inList) { html.push('</ul>'); inList = false; }
-        html.push(`<h2 class="text-xl font-semibold font-heading text-foreground mt-5 mb-2">${trimmed.slice(3)}</h2>`);
+        html.push(`<h2 class="text-xl font-semibold font-heading text-foreground mt-5 mb-2">${escapeHtml(trimmed.slice(3))}</h2>`);
       } else if (trimmed.startsWith('- ')) {
         if (!inList) { html.push('<ul class="list-disc list-inside space-y-1 text-muted-foreground">'); inList = true; }
         html.push(`<li>${formatInline(trimmed.slice(2))}</li>`);
@@ -60,10 +60,15 @@ const SitePage = () => {
   };
 
   const formatInline = (text: string) => {
-    return text
+    return escapeHtml(text)
       .replace(/\*\*(.+?)\*\*/g, '<strong class="text-foreground font-semibold">$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>');
   };
+
+  const safeHtml = useMemo(
+    () => DOMPurify.sanitize(renderMarkdown(page.content), { USE_PROFILES: { html: true } }),
+    [page.content]
+  );
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,7 +81,7 @@ const SitePage = () => {
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-4 py-6">
-        <div dangerouslySetInnerHTML={{ __html: renderMarkdown(page.content) }} />
+        <div dangerouslySetInnerHTML={{ __html: safeHtml }} />
       </main>
       <SiteFooter />
     </div>
