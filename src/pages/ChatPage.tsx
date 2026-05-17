@@ -158,30 +158,89 @@ const ChatPage = () => {
     if (messages.length > 0) markAsRead();
   }, [messages.length, markAsRead]);
 
-  // Smart scroll: instant jump to bottom on first load; smooth scroll afterwards
-  // only if the user is already near the bottom (so reading older history isn't disrupted).
+  // Helper: scroll to absolute bottom
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+    setShowJumpButton(false);
+    setUnreadNew(0);
+  }, []);
+
+  // Initial load: synchronously pin to bottom BEFORE paint, then re-pin across a few
+  // frames to absorb late layout shifts (avatars, fonts, images).
+  useLayoutEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || messages.length === 0 || initialScrollDoneRef.current) return;
+
+    const pin = () => { container.scrollTop = container.scrollHeight; };
+    pin();
+    const raf1 = requestAnimationFrame(() => {
+      pin();
+      const raf2 = requestAnimationFrame(() => {
+        pin();
+        initialScrollDoneRef.current = true;
+        prevMessageCountRef.current = messages.length;
+      });
+      return () => cancelAnimationFrame(raf2);
+    });
+    return () => cancelAnimationFrame(raf1);
+  }, [messages.length]);
+
+  // On new messages after initial load: auto-scroll if near bottom or it's my own
+  // message; otherwise show "Jump to latest" with unread count.
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (!container || messages.length === 0) return;
+    if (!container || !initialScrollDoneRef.current) return;
+    const prev = prevMessageCountRef.current;
+    const delta = messages.length - prev;
+    prevMessageCountRef.current = messages.length;
+    if (delta <= 0) return;
 
-    if (!initialScrollDoneRef.current) {
-      // Defer to next frame so DOM has painted heights, then jump instantly
-      requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-        initialScrollDoneRef.current = true;
-      });
-      return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    const last = messages[messages.length - 1];
+    const isMine = last?.sender_id === userId;
+    if (isMine || distanceFromBottom < 160) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      setUnreadNew((n) => n + delta);
+      setShowJumpButton(true);
     }
+  }, [messages, userId]);
 
+  // Auto-scroll for typing indicator if user is already near bottom
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || !isOtherTyping) return;
     const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
     if (distanceFromBottom < 160) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isOtherTyping]);
+  }, [isOtherTyping]);
 
-  // Reset initial-scroll flag when chat changes
+  // Track scroll position to toggle the jump-to-latest button
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const onScroll = () => {
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distanceFromBottom < 80) {
+        setShowJumpButton(false);
+        setUnreadNew(0);
+      } else if (distanceFromBottom > 200) {
+        setShowJumpButton(true);
+      }
+    };
+    container.addEventListener('scroll', onScroll, { passive: true });
+    return () => container.removeEventListener('scroll', onScroll);
+  }, [chatId]);
+
+  // Reset state when chat changes
   useEffect(() => {
     initialScrollDoneRef.current = false;
+    prevMessageCountRef.current = 0;
+    setShowJumpButton(false);
+    setUnreadNew(0);
   }, [chatId]);
 
   useEffect(() => {
