@@ -134,6 +134,7 @@ export type Database = {
           reporter_id: string
           reviewed_at: string | null
           status: string
+          unique_key: string | null
         }
         Insert: {
           admin_note?: string | null
@@ -147,6 +148,7 @@ export type Database = {
           reporter_id: string
           reviewed_at?: string | null
           status?: string
+          unique_key?: string | null
         }
         Update: {
           admin_note?: string | null
@@ -160,6 +162,7 @@ export type Database = {
           reporter_id?: string
           reviewed_at?: string | null
           status?: string
+          unique_key?: string | null
         }
         Relationships: []
       }
