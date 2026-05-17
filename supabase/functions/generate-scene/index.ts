@@ -207,40 +207,46 @@ Profile B (${other.alias}):
 - mood: ${other.mood_preference ?? 'none'}
 ${continuationContext}`;
 
-    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!geminiApiKey) {
-      return new Response(JSON.stringify({ error: 'Gemini API key is not configured.' }), {
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!lovableApiKey) {
+      return new Response(JSON.stringify({ error: 'Lovable AI is not configured.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const aiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiApiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            { role: 'user', parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] },
-          ],
-          generationConfig: {
-            temperature: 0.9,
-            maxOutputTokens: 1024,
-          },
-        }),
-      }
-    );
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${lovableApiKey}`,
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-3-flash-preview',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        temperature: 0.9,
+        max_tokens: 1024,
+      }),
+    });
 
     if (!aiResponse.ok) {
       const text = await aiResponse.text();
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limits exceeded, please try again in a moment.' }), {
+        return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again in a moment.' }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      console.error('Gemini API error:', aiResponse.status, text);
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to your Lovable workspace.' }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      console.error('Lovable AI error:', aiResponse.status, text);
       return new Response(JSON.stringify({ error: 'Failed to generate scene.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -248,7 +254,7 @@ ${continuationContext}`;
     }
 
     const aiData = await aiResponse.json();
-    const scene = aiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    const scene = aiData?.choices?.[0]?.message?.content?.trim();
 
     if (!scene) {
       return new Response(JSON.stringify({ error: 'The AI returned an empty scene.' }), {
