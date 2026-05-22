@@ -170,6 +170,7 @@ const ChatPage = () => {
   // Initial load: synchronously pin to bottom BEFORE paint, then re-pin across a few
   // frames to absorb late layout shifts (avatars, fonts, images).
   useLayoutEffect(() => {
+    if (loadingChat) return;
     const container = messagesContainerRef.current;
     if (!container || messages.length === 0 || initialScrollDoneRef.current) return;
 
@@ -179,13 +180,18 @@ const ChatPage = () => {
       pin();
       const raf2 = requestAnimationFrame(() => {
         pin();
-        initialScrollDoneRef.current = true;
-        prevMessageCountRef.current = messages.length;
+        // Final pin after a short delay to catch image/font load shifts
+        setTimeout(() => {
+          const c = messagesContainerRef.current;
+          if (c) c.scrollTop = c.scrollHeight;
+          initialScrollDoneRef.current = true;
+          prevMessageCountRef.current = messages.length;
+        }, 120);
       });
       return () => cancelAnimationFrame(raf2);
     });
     return () => cancelAnimationFrame(raf1);
-  }, [messages.length]);
+  }, [loadingChat, messages.length]);
 
   // On new messages after initial load: auto-scroll if near bottom or it's my own
   // message; otherwise show "Jump to latest" with unread count.
