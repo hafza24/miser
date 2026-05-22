@@ -141,6 +141,17 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
 
   const respondToRequest = async (accept: boolean) => {
     if (!request) return;
+    if (accept && request.target_mode === 'dark' && !selfHasDark) {
+      // Auto-decline: receiver has no dark mode access.
+      await supabase
+        .from('mode_switch_requests')
+        .update({ status: 'declined' })
+        .eq('id', request.id);
+      setRequest(null);
+      toast.error("You're on the Basic plan — upgrade to accept Dark Mode requests.");
+      navigate('/subscription');
+      return;
+    }
     setSending(true);
 
     if (accept) {
@@ -165,16 +176,20 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
 
   // Incoming request from other user
   if (request && request.sender_id !== currentUserId) {
+    const canAccept = !(request.target_mode === 'dark' && !selfHasDark);
     return (
       <div className="flex items-center gap-2 bg-accent/30 border border-border px-3 py-1.5 rounded-full">
         <Moon className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-medium text-foreground">Go dark?</span>
+        <span className="text-xs font-medium text-foreground">
+          {canAccept ? 'Go dark?' : 'Dark requires Pro'}
+        </span>
         <Button
           size="icon"
           variant="default"
           className="h-6 w-6 rounded-full"
           disabled={sending}
           onClick={() => respondToRequest(true)}
+          title={canAccept ? 'Accept dark mode' : "You don't have Dark Mode access — tap to see plans"}
         >
           <Check className="h-3 w-3" />
         </Button>
