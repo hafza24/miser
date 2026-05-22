@@ -57,7 +57,7 @@ const ChatPage = () => {
   const { chatId } = useParams();
   const { user } = useAuth();
   const userId = user?.id;
-  const { mode } = useMode();
+  const { mode, setMode } = useMode();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -157,6 +157,20 @@ const ChatPage = () => {
   useEffect(() => {
     if (messages.length > 0) markAsRead();
   }, [messages.length, markAsRead]);
+
+  // Sync the global app theme to the chat's mode so every screen/component
+  // (header, inputs, dialogs, scene generator, etc.) consistently follows it
+  // while the user is inside this chat. Restore the user's prior preference on exit.
+  const userPrefModeRef = useRef<'light' | 'dark'>((localStorage.getItem('mrsmrb-mode') as 'light' | 'dark') || 'light');
+  useEffect(() => {
+    if (!chatInfo) return;
+    if (mode !== chatMode) setMode(chatMode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chatMode, chatInfo?.id]);
+  useEffect(() => {
+    return () => { setMode(userPrefModeRef.current); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Helper: scroll to absolute bottom
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
