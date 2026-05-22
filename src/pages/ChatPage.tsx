@@ -503,7 +503,7 @@ const ChatPage = () => {
           
           <div className="flex items-center gap-1 flex-shrink-0">
             {chatInfo && userId && (
-              <ChatModeSwitch chatId={chatId!} chatMode={chatMode} currentUserId={userId} onModeChanged={(newMode) => { setChatMode(newMode); setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev); }} />
+              <ChatModeSwitch chatId={chatId!} chatMode={chatMode} currentUserId={userId} otherUserId={otherUserId} otherUserAlias={otherUser?.alias} onModeChanged={(newMode) => { setChatMode(newMode); setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev); }} />
             )}
             {chatInfo && userId && (
               <ChatTimer chatId={chatId!} expiresAt={chatInfo.expires_at} timerStopped={chatInfo.timer_stopped} currentUserId={userId} />
