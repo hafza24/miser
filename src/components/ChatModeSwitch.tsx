@@ -17,30 +17,38 @@ interface ChatModeSwitchProps {
   chatId: string;
   chatMode: 'light' | 'dark';
   currentUserId: string;
+  otherUserId?: string | null;
+  otherUserAlias?: string | null;
   onModeChanged: (newMode: 'light' | 'dark') => void;
 }
 
-const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
+const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUserAlias, onModeChanged }: ChatModeSwitchProps) => {
   const navigate = useNavigate();
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
   const [lightBlocked, setLightBlocked] = useState(false);
   const [darkBlocked, setDarkBlocked] = useState(false);
+  const [selfHasDark, setSelfHasDark] = useState(false);
+  const [otherHasDark, setOtherHasDark] = useState(false);
 
   useEffect(() => {
     const loadRestrictions = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('light_mode_blocked, dark_mode_blocked')
-        .eq('user_id', currentUserId)
-        .single();
-      if (data) {
-        setLightBlocked((data as any).light_mode_blocked ?? false);
-        setDarkBlocked((data as any).dark_mode_blocked ?? false);
+      const [{ data: profile }, { data: selfDark }] = await Promise.all([
+        supabase.from('profiles').select('light_mode_blocked, dark_mode_blocked').eq('user_id', currentUserId).single(),
+        supabase.rpc('user_has_dark_access' as any, { _user_id: currentUserId }),
+      ]);
+      if (profile) {
+        setLightBlocked((profile as any).light_mode_blocked ?? false);
+        setDarkBlocked((profile as any).dark_mode_blocked ?? false);
+      }
+      setSelfHasDark(Boolean(selfDark));
+      if (otherUserId) {
+        const { data: otherDark } = await supabase.rpc('user_has_dark_access' as any, { _user_id: otherUserId });
+        setOtherHasDark(Boolean(otherDark));
       }
     };
     loadRestrictions();
-  }, [currentUserId]);
+  }, [currentUserId, otherUserId]);
 
   useEffect(() => {
     const loadRequest = async () => {
