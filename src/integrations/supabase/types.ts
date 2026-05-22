@@ -797,6 +797,7 @@ export type Database = {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
       }
+      user_has_dark_access: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

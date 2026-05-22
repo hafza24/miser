@@ -17,30 +17,38 @@ interface ChatModeSwitchProps {
   chatId: string;
   chatMode: 'light' | 'dark';
   currentUserId: string;
+  otherUserId?: string | null;
+  otherUserAlias?: string | null;
   onModeChanged: (newMode: 'light' | 'dark') => void;
 }
 
-const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: ChatModeSwitchProps) => {
+const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUserAlias, onModeChanged }: ChatModeSwitchProps) => {
   const navigate = useNavigate();
   const [request, setRequest] = useState<ModeSwitchRequest | null>(null);
   const [sending, setSending] = useState(false);
   const [lightBlocked, setLightBlocked] = useState(false);
   const [darkBlocked, setDarkBlocked] = useState(false);
+  const [selfHasDark, setSelfHasDark] = useState(false);
+  const [otherHasDark, setOtherHasDark] = useState(false);
 
   useEffect(() => {
     const loadRestrictions = async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('light_mode_blocked, dark_mode_blocked')
-        .eq('user_id', currentUserId)
-        .single();
-      if (data) {
-        setLightBlocked((data as any).light_mode_blocked ?? false);
-        setDarkBlocked((data as any).dark_mode_blocked ?? false);
+      const [{ data: profile }, { data: selfDark }] = await Promise.all([
+        supabase.from('profiles').select('light_mode_blocked, dark_mode_blocked').eq('user_id', currentUserId).single(),
+        supabase.rpc('user_has_dark_access' as any, { _user_id: currentUserId }),
+      ]);
+      if (profile) {
+        setLightBlocked((profile as any).light_mode_blocked ?? false);
+        setDarkBlocked((profile as any).dark_mode_blocked ?? false);
+      }
+      setSelfHasDark(Boolean(selfDark));
+      if (otherUserId) {
+        const { data: otherDark } = await supabase.rpc('user_has_dark_access' as any, { _user_id: otherUserId });
+        setOtherHasDark(Boolean(otherDark));
       }
     };
     loadRestrictions();
-  }, [currentUserId]);
+  }, [currentUserId, otherUserId]);
 
   useEffect(() => {
     const loadRequest = async () => {
@@ -87,6 +95,15 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
       navigate('/subscription');
       return;
     }
+    if (!selfHasDark) {
+      toast.error("You're on the Basic plan — upgrade to unlock Dark Mode.");
+      navigate('/subscription');
+      return;
+    }
+    if (otherUserId && !otherHasDark) {
+      toast.error(`${otherUserAlias || 'This user'} doesn't have Dark Mode access (Basic plan). They can't accept a dark mode request.`);
+      return;
+    }
     // Light → Dark requires consent
     setSending(true);
     const { error } = await supabase.from('mode_switch_requests').insert({
@@ -124,6 +141,17 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   const respondToRequest = async (accept: boolean) => {
     if (!request) return;
+    if (accept && request.target_mode === 'dark' && !selfHasDark) {
+      // Auto-decline: receiver has no dark mode access.
+      await supabase
+        .from('mode_switch_requests')
+        .update({ status: 'declined' })
+        .eq('id', request.id);
+      setRequest(null);
+      toast.error("You're on the Basic plan — upgrade to accept Dark Mode requests.");
+      navigate('/subscription');
+      return;
+    }
     setSending(true);
 
     if (accept) {
@@ -148,16 +176,20 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, onModeChanged }: Chat
 
   // Incoming request from other user
   if (request && request.sender_id !== currentUserId) {
+    const canAccept = !(request.target_mode === 'dark' && !selfHasDark);
     return (
       <div className="flex items-center gap-2 bg-accent/30 border border-border px-3 py-1.5 rounded-full">
         <Moon className="h-3.5 w-3.5 text-primary" />
-        <span className="text-xs font-medium text-foreground">Go dark?</span>
+        <span className="text-xs font-medium text-foreground">
+          {canAccept ? 'Go dark?' : 'Dark requires Pro'}
+        </span>
         <Button
           size="icon"
           variant="default"
           className="h-6 w-6 rounded-full"
           disabled={sending}
           onClick={() => respondToRequest(true)}
+          title={canAccept ? 'Accept dark mode' : "You don't have Dark Mode access — tap to see plans"}
         >
           <Check className="h-3 w-3" />
         </Button>
