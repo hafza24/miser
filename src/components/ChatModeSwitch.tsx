@@ -95,6 +95,15 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
       navigate('/subscription');
       return;
     }
+    if (!selfHasDark) {
+      toast.error("You're on the Basic plan — upgrade to unlock Dark Mode.");
+      navigate('/subscription');
+      return;
+    }
+    if (otherUserId && !otherHasDark) {
+      toast.error(`${otherUserAlias || 'This user'} doesn't have Dark Mode access (Basic plan). They can't accept a dark mode request.`);
+      return;
+    }
     // Light → Dark requires consent
     setSending(true);
     const { error } = await supabase.from('mode_switch_requests').insert({
