@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { MessageCircle, Sparkles, Pencil, Check, X } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
+import { LANGUAGES } from '@/lib/languages';
+import { Switch } from '@/components/ui/switch';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
@@ -50,6 +52,9 @@ const ProfilePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string>(
     (profile?.interests && profile.interests.length > 0) ? profile.interests[0] : ''
   );
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>((profile as any)?.primary_language || 'en');
+  const [secondaryLanguage, setSecondaryLanguage] = useState<string>((profile as any)?.secondary_language || '');
+  const [autoTranslate, setAutoTranslate] = useState<boolean>((profile as any)?.auto_translate_enabled ?? true);
 
   useEffect(() => {
     if (profile) {
