@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
+import AdminTranslationSettings from './AdminTranslationSettings';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -214,6 +215,9 @@ const AdminDashboard = () => {
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
+            </div>
+            <div className="mt-6">
+              <AdminTranslationSettings />
             </div>
           </>
         )}

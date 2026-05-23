@@ -12,6 +12,8 @@ import { toast } from 'sonner';
 import { MessageCircle, Sparkles, Pencil, Check, X } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
+import { LANGUAGES } from '@/lib/languages';
+import { Switch } from '@/components/ui/switch';
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
@@ -50,6 +52,9 @@ const ProfilePage = () => {
   const [selectedInterest, setSelectedInterest] = useState<string>(
     (profile?.interests && profile.interests.length > 0) ? profile.interests[0] : ''
   );
+  const [primaryLanguage, setPrimaryLanguage] = useState<string>((profile as any)?.primary_language || 'en');
+  const [secondaryLanguage, setSecondaryLanguage] = useState<string>((profile as any)?.secondary_language || '');
+  const [autoTranslate, setAutoTranslate] = useState<boolean>((profile as any)?.auto_translate_enabled ?? true);
 
   useEffect(() => {
     if (profile) {
@@ -63,6 +68,9 @@ const ProfilePage = () => {
       setGender(profile.gender || '');
       setEmojiAvatar(profile.emoji_avatar || '🙂');
       setSelectedInterest((profile.interests && profile.interests.length > 0) ? profile.interests[0] : '');
+      setPrimaryLanguage((profile as any).primary_language || 'en');
+      setSecondaryLanguage((profile as any).secondary_language || '');
+      setAutoTranslate((profile as any).auto_translate_enabled ?? true);
     }
   }, [profile]);
 
@@ -153,7 +161,10 @@ const ProfilePage = () => {
         gender: gender || null,
         emoji_avatar: emojiAvatar,
         interests: selectedInterest ? [selectedInterest] : [],
-      })
+        primary_language: primaryLanguage,
+        secondary_language: secondaryLanguage || null,
+        auto_translate_enabled: autoTranslate,
+      } as any)
       .eq('user_id', profile.user_id);
 
     if (error) {
@@ -335,6 +346,38 @@ const ProfilePage = () => {
               maxLength={1000}
               rows={4}
             />
+          </div>
+        </div>
+
+        {/* Languages */}
+        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
+          <h3 className="font-heading text-lg font-bold text-foreground">Languages</h3>
+          <p className="text-xs text-muted-foreground -mt-2">Incoming messages auto-translate into your primary language. Messages already in your secondary language won't be translated.</p>
+          <div>
+            <Label>Primary Language</Label>
+            <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Secondary Language</Label>
+            <Select value={secondaryLanguage || 'none'} onValueChange={(v) => setSecondaryLanguage(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— None —</SelectItem>
+                {LANGUAGES.filter(l => l.code !== primaryLanguage).map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <div>
+              <Label>Auto-translate recent messages</Label>
+              <p className="text-xs text-muted-foreground">Older messages translate on double-tap.</p>
+            </div>
+            <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
           </div>
         </div>
 

@@ -16,6 +16,7 @@ import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import SceneGenerator from '@/components/chat/SceneGenerator';
 import SwipeableMessage from '@/components/chat/SwipeableMessage';
+import TranslatedMessage from '@/components/chat/TranslatedMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
 import {
   AlertDialog,
@@ -55,7 +56,7 @@ const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '�
 
 const ChatPage = () => {
   const { chatId } = useParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const userId = user?.id;
   const { mode, setMode } = useMode();
   const navigate = useNavigate();
@@ -681,7 +682,11 @@ const ChatPage = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg) => {
+              {(() => {
+                const otherMsgIdsForAuto = new Set(
+                  messages.filter(m => m.sender_id !== user?.id).slice(-2).map(m => m.id)
+                );
+                return messages.map((msg) => {
                 const isMe = msg.sender_id === user?.id;
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 const isScene = msg.content.startsWith('📖 Scene');
@@ -689,6 +694,7 @@ const ChatPage = () => {
                 const repliedMsg = getReplyContent(msg.reply_to);
                 const isPendingDelete = !!pendingDeletes[msg.id];
                 const interactive = !expired && !chatEnded;
+                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && (profile as any)?.auto_translate_enabled !== false;
                 return (
                   <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
@@ -719,7 +725,18 @@ const ChatPage = () => {
                                 <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
                               </button>
                             )}
-                            {msg.content}
+                            {isMe ? (
+                              msg.content
+                            ) : (
+                              <TranslatedMessage
+                                messageId={msg.id}
+                                content={msg.content}
+                                primaryLanguage={(profile as any)?.primary_language || 'en'}
+                                secondaryLanguage={(profile as any)?.secondary_language || null}
+                                autoTranslate={shouldAuto}
+                                isMine={false}
+                              />
+                            )}
                             <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
                               <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {isMe && <SeenIndicator isSeen={isSeen} />}
@@ -747,7 +764,8 @@ const ChatPage = () => {
                     )}
                   </div>
                 );
-              })}
+              });
+              })()}
               {isOtherTyping && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
