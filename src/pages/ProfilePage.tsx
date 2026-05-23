@@ -161,7 +161,10 @@ const ProfilePage = () => {
         gender: gender || null,
         emoji_avatar: emojiAvatar,
         interests: selectedInterest ? [selectedInterest] : [],
-      })
+        primary_language: primaryLanguage,
+        secondary_language: secondaryLanguage || null,
+        auto_translate_enabled: autoTranslate,
+      } as any)
       .eq('user_id', profile.user_id);
 
     if (error) {
