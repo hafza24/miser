@@ -77,9 +77,8 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
   const onTap = useCallback(() => {
     const now = Date.now();
     if (now - lastTapRef.current < 300) {
-      if (state.status === 'idle' || state.status === 'error' || state.status === 'skipped') {
-        // Force retranslate even if skipped, in case user wants it anyway
-        if (state.status !== 'done') fetchTranslation();
+      if (state.status !== 'done' && state.status !== 'loading') {
+        fetchTranslation();
       }
     }
     lastTapRef.current = now;
