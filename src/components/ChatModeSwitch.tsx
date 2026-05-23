@@ -101,7 +101,7 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
       return;
     }
     if (otherUserId && !otherHasDark) {
-      toast.error(`${otherUserAlias || 'This user'} doesn't have Dark Mode access (Basic plan). They can't accept a dark mode request.`);
+      toast.error(`${otherUserAlias || 'Your chat partner'} is on the Basic plan and can't access Dark Mode.`);
       return;
     }
     // Light → Dark requires consent
