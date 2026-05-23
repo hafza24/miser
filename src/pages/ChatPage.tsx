@@ -725,7 +725,18 @@ const ChatPage = () => {
                                 <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
                               </button>
                             )}
-                            {msg.content}
+                            {isMe ? (
+                              msg.content
+                            ) : (
+                              <TranslatedMessage
+                                messageId={msg.id}
+                                content={msg.content}
+                                primaryLanguage={(profile as any)?.primary_language || 'en'}
+                                secondaryLanguage={(profile as any)?.secondary_language || null}
+                                autoTranslate={shouldAuto}
+                                isMine={false}
+                              />
+                            )}
                             <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
                               <span className="text-[10px]">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                               {isMe && <SeenIndicator isSeen={isSeen} />}
