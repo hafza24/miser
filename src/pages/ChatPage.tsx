@@ -682,7 +682,11 @@ const ChatPage = () => {
             </div>
 
             <div className="space-y-3">
-              {messages.map((msg) => {
+              {(() => {
+                const otherMsgIdsForAuto = new Set(
+                  messages.filter(m => m.sender_id !== user?.id).slice(-2).map(m => m.id)
+                );
+                return messages.map((msg) => {
                 const isMe = msg.sender_id === user?.id;
                 const isSeen = isMe && !!otherLastReadAt && new Date(otherLastReadAt) >= new Date(msg.created_at);
                 const isScene = msg.content.startsWith('📖 Scene');
@@ -690,6 +694,7 @@ const ChatPage = () => {
                 const repliedMsg = getReplyContent(msg.reply_to);
                 const isPendingDelete = !!pendingDeletes[msg.id];
                 const interactive = !expired && !chatEnded;
+                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && (profile as any)?.auto_translate_enabled !== false;
                 return (
                   <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
