@@ -16,6 +16,7 @@ import TruthOrDare from '@/components/chat/TruthOrDare';
 import { useTypingIndicator } from '@/hooks/useTypingIndicator';
 import SceneGenerator from '@/components/chat/SceneGenerator';
 import SwipeableMessage from '@/components/chat/SwipeableMessage';
+import TranslatedMessage from '@/components/chat/TranslatedMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
 import {
   AlertDialog,
