@@ -68,6 +68,9 @@ const ProfilePage = () => {
       setGender(profile.gender || '');
       setEmojiAvatar(profile.emoji_avatar || '🙂');
       setSelectedInterest((profile.interests && profile.interests.length > 0) ? profile.interests[0] : '');
+      setPrimaryLanguage((profile as any).primary_language || 'en');
+      setSecondaryLanguage((profile as any).secondary_language || '');
+      setAutoTranslate((profile as any).auto_translate_enabled ?? true);
     }
   }, [profile]);
 
