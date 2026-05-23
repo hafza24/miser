@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -163,6 +181,36 @@ export type Database = {
           reviewed_at?: string | null
           status?: string
           unique_key?: string | null
+        }
+        Relationships: []
+      }
+      message_translations: {
+        Row: {
+          created_at: string
+          detected_language: string | null
+          id: string
+          message_id: string
+          status: string
+          target_language: string
+          translated_text: string
+        }
+        Insert: {
+          created_at?: string
+          detected_language?: string | null
+          id?: string
+          message_id: string
+          status?: string
+          target_language: string
+          translated_text: string
+        }
+        Update: {
+          created_at?: string
+          detected_language?: string | null
+          id?: string
+          message_id?: string
+          status?: string
+          target_language?: string
+          translated_text?: string
         }
         Relationships: []
       }
@@ -400,6 +448,7 @@ export type Database = {
           age_verified: boolean
           alias: string
           alias_changed_at: string | null
+          auto_translate_enabled: boolean
           availability: string | null
           bio: string | null
           character_description: string | null
@@ -425,8 +474,10 @@ export type Database = {
           muted_until: string | null
           notification_sound_enabled: boolean
           payment_status: string
+          primary_language: string
           region: string | null
           scheduled_deletion_at: string | null
+          secondary_language: string | null
           updated_at: string
           user_id: string
           violation_count: number
@@ -435,6 +486,7 @@ export type Database = {
           age_verified?: boolean
           alias: string
           alias_changed_at?: string | null
+          auto_translate_enabled?: boolean
           availability?: string | null
           bio?: string | null
           character_description?: string | null
@@ -460,8 +512,10 @@ export type Database = {
           muted_until?: string | null
           notification_sound_enabled?: boolean
           payment_status?: string
+          primary_language?: string
           region?: string | null
           scheduled_deletion_at?: string | null
+          secondary_language?: string | null
           updated_at?: string
           user_id: string
           violation_count?: number
@@ -470,6 +524,7 @@ export type Database = {
           age_verified?: boolean
           alias?: string
           alias_changed_at?: string | null
+          auto_translate_enabled?: boolean
           availability?: string | null
           bio?: string | null
           character_description?: string | null
@@ -495,8 +550,10 @@ export type Database = {
           muted_until?: string | null
           notification_sound_enabled?: boolean
           payment_status?: string
+          primary_language?: string
           region?: string | null
           scheduled_deletion_at?: string | null
+          secondary_language?: string | null
           updated_at?: string
           user_id?: string
           violation_count?: number
