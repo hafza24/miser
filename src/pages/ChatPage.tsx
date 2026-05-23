@@ -764,7 +764,8 @@ const ChatPage = () => {
                     )}
                   </div>
                 );
-              })}
+              });
+              })()}
               {isOtherTyping && <TypingIndicator />}
               <div ref={messagesEndRef} />
             </div>
