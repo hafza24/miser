@@ -349,6 +349,38 @@ const ProfilePage = () => {
           </div>
         </div>
 
+        {/* Languages */}
+        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
+          <h3 className="font-heading text-lg font-bold text-foreground">Languages</h3>
+          <p className="text-xs text-muted-foreground -mt-2">Incoming messages auto-translate into your primary language. Messages already in your secondary language won't be translated.</p>
+          <div>
+            <Label>Primary Language</Label>
+            <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Secondary Language</Label>
+            <Select value={secondaryLanguage || 'none'} onValueChange={(v) => setSecondaryLanguage(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— None —</SelectItem>
+                {LANGUAGES.filter(l => l.code !== primaryLanguage).map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between pt-2">
+            <div>
+              <Label>Auto-translate recent messages</Label>
+              <p className="text-xs text-muted-foreground">Older messages translate on double-tap.</p>
+            </div>
+            <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
+          </div>
+        </div>
+
         {/* Edit form */}
         <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
           <div>
