@@ -139,6 +139,98 @@ export type Database = {
         }
         Relationships: []
       }
+      group_participants: {
+        Row: {
+          gender_slot: string | null
+          id: string
+          join_status: Database["public"]["Enums"]["group_join_status"]
+          joined_at: string
+          request_id: string
+          user_id: string
+        }
+        Insert: {
+          gender_slot?: string | null
+          id?: string
+          join_status?: Database["public"]["Enums"]["group_join_status"]
+          joined_at?: string
+          request_id: string
+          user_id: string
+        }
+        Update: {
+          gender_slot?: string | null
+          id?: string
+          join_status?: Database["public"]["Enums"]["group_join_status"]
+          joined_at?: string
+          request_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_participants_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "group_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_requests: {
+        Row: {
+          admin_note: string | null
+          ai_icebreakers: string[] | null
+          ai_scene_description: string | null
+          ai_scene_title: string | null
+          chat_id: string | null
+          created_at: string
+          creator_id: string
+          expires_at: string
+          gender_requirements: Json
+          id: string
+          member_limit: number
+          mode: Database["public"]["Enums"]["mode_preference"]
+          mood_tags: string[] | null
+          status: Database["public"]["Enums"]["group_request_status"]
+          topic: string
+          type: Database["public"]["Enums"]["group_request_type"]
+        }
+        Insert: {
+          admin_note?: string | null
+          ai_icebreakers?: string[] | null
+          ai_scene_description?: string | null
+          ai_scene_title?: string | null
+          chat_id?: string | null
+          created_at?: string
+          creator_id: string
+          expires_at?: string
+          gender_requirements?: Json
+          id?: string
+          member_limit: number
+          mode?: Database["public"]["Enums"]["mode_preference"]
+          mood_tags?: string[] | null
+          status?: Database["public"]["Enums"]["group_request_status"]
+          topic: string
+          type: Database["public"]["Enums"]["group_request_type"]
+        }
+        Update: {
+          admin_note?: string | null
+          ai_icebreakers?: string[] | null
+          ai_scene_description?: string | null
+          ai_scene_title?: string | null
+          chat_id?: string | null
+          created_at?: string
+          creator_id?: string
+          expires_at?: string
+          gender_requirements?: Json
+          id?: string
+          member_limit?: number
+          mode?: Database["public"]["Enums"]["mode_preference"]
+          mood_tags?: string[] | null
+          status?: Database["public"]["Enums"]["group_request_status"]
+          topic?: string
+          type?: Database["public"]["Enums"]["group_request_type"]
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           admin_note: string | null
@@ -475,6 +567,7 @@ export type Database = {
           notification_sound_enabled: boolean
           payment_status: string
           primary_language: string
+          receive_group_invites: boolean
           region: string | null
           scheduled_deletion_at: string | null
           secondary_language: string | null
@@ -513,6 +606,7 @@ export type Database = {
           notification_sound_enabled?: boolean
           payment_status?: string
           primary_language?: string
+          receive_group_invites?: boolean
           region?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
@@ -551,6 +645,7 @@ export type Database = {
           notification_sound_enabled?: boolean
           payment_status?: string
           primary_language?: string
+          receive_group_invites?: boolean
           region?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
@@ -594,6 +689,7 @@ export type Database = {
           daily_scene_limit: number
           dark_mode_access: boolean
           description: string | null
+          group_requests_access: boolean
           id: string
           is_active: boolean
           name: string
@@ -608,6 +704,7 @@ export type Database = {
           daily_scene_limit?: number
           dark_mode_access?: boolean
           description?: string | null
+          group_requests_access?: boolean
           id?: string
           is_active?: boolean
           name: string
@@ -622,6 +719,7 @@ export type Database = {
           daily_scene_limit?: number
           dark_mode_access?: boolean
           description?: string | null
+          group_requests_access?: boolean
           id?: string
           is_active?: boolean
           name?: string
@@ -775,6 +873,16 @@ export type Database = {
         Returns: string
       }
       check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
+      create_group_request: {
+        Args: {
+          p_gender_requirements: Json
+          p_member_limit: number
+          p_mode?: Database["public"]["Enums"]["mode_preference"]
+          p_topic: string
+          p_type: Database["public"]["Enums"]["group_request_type"]
+        }
+        Returns: string
+      }
       find_random_user: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
@@ -819,6 +927,7 @@ export type Database = {
           plan_name: string
         }[]
       }
+      group_feature_enabled: { Args: never; Returns: boolean }
       has_active_subscription: { Args: { _user_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -831,6 +940,38 @@ export type Database = {
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
+      }
+      join_group_request: { Args: { p_request_id: string }; Returns: string }
+      leave_group_request: {
+        Args: { p_request_id: string }
+        Returns: undefined
+      }
+      list_eligible_group_requests: {
+        Args: never
+        Returns: {
+          admin_note: string | null
+          ai_icebreakers: string[] | null
+          ai_scene_description: string | null
+          ai_scene_title: string | null
+          chat_id: string | null
+          created_at: string
+          creator_id: string
+          expires_at: string
+          gender_requirements: Json
+          id: string
+          member_limit: number
+          mode: Database["public"]["Enums"]["mode_preference"]
+          mood_tags: string[] | null
+          status: Database["public"]["Enums"]["group_request_status"]
+          topic: string
+          type: Database["public"]["Enums"]["group_request_type"]
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "group_requests"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       process_violation: {
         Args: { _content: string; _mode?: string }
@@ -850,14 +991,27 @@ export type Database = {
         }
         Returns: string
       }
+      respond_group_join: {
+        Args: { p_approve: boolean; p_participant_id: string }
+        Returns: undefined
+      }
       start_random_chat: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
       }
       user_has_dark_access: { Args: { _user_id: string }; Returns: boolean }
+      user_has_group_access: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
+      group_join_status: "pending" | "approved" | "rejected" | "left"
+      group_request_status:
+        | "pending_review"
+        | "open"
+        | "filled"
+        | "closed"
+        | "rejected"
+      group_request_type: "threesome" | "circle"
       mode_preference: "light" | "dark"
       violation_type: "warning" | "mute" | "suspension"
     }
@@ -988,6 +1142,15 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "moderator", "user"],
+      group_join_status: ["pending", "approved", "rejected", "left"],
+      group_request_status: [
+        "pending_review",
+        "open",
+        "filled",
+        "closed",
+        "rejected",
+      ],
+      group_request_type: ["threesome", "circle"],
       mode_preference: ["light", "dark"],
       violation_type: ["warning", "mute", "suspension"],
     },
