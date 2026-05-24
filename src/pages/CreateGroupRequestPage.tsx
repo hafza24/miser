@@ -59,7 +59,7 @@ const CreateGroupRequestPage = () => {
     );
   }
 
-  if (!profile?.receive_group_invites) {
+  if (!(profile as any)?.receive_group_invites) {
     return (
       <AppLayout>
         <div className="p-6 space-y-4 text-center">
