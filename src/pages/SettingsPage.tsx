@@ -154,6 +154,7 @@ const SettingsPage = () => {
               checked={desktopEnabled}
               onCheckedChange={setDesktopEnabled}
             />
+          </div>
         </div>
 
         {/* Group invitations */}
@@ -186,7 +187,6 @@ const SettingsPage = () => {
               }}
             />
           </div>
-        </div>
         </div>
 
         {/* Privacy */}
