@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sun, Moon, Trash2, Shield, Volume2, BellRing, HelpCircle } from 'lucide-react';
+import { Sun, Moon, Trash2, Shield, Volume2, BellRing, HelpCircle, Users } from 'lucide-react';
 import BlockedUsersList from '@/components/settings/BlockedUsersList';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
