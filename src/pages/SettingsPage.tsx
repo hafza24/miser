@@ -154,7 +154,39 @@ const SettingsPage = () => {
               checked={desktopEnabled}
               onCheckedChange={setDesktopEnabled}
             />
+        </div>
+
+        {/* Group invitations */}
+        <div className="bg-card rounded-2xl p-6 shadow-card space-y-3">
+          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Group Invitations
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="pr-4">
+              <p className="font-medium text-foreground">Receive Group Invitations</p>
+              <p className="text-sm text-muted-foreground">
+                Allow being matched into premium group chats (threesomes & friend circles).
+              </p>
+            </div>
+            <Switch
+              checked={!!profile?.receive_group_invites}
+              onCheckedChange={async (v) => {
+                if (!user) return;
+                const { error } = await supabase
+                  .from('profiles')
+                  .update({ receive_group_invites: v })
+                  .eq('user_id', user.id);
+                if (error) {
+                  toast.error(error.message || 'Could not update setting');
+                  return;
+                }
+                await refreshProfile();
+                toast.success(v ? 'Group invitations enabled' : 'Group invitations disabled');
+              }}
+            />
           </div>
+        </div>
         </div>
 
         {/* Privacy */}
