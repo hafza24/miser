@@ -15,7 +15,12 @@ import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { LANGUAGES } from '@/lib/languages';
 import { Switch } from '@/components/ui/switch';
 
-const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+const GENDER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'non-binary', label: 'Non-binary' },
+  { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+];
 
 const EMOJI_OPTIONS = ['🙂', '😈', '🐼', '🌙', '🐯', '🦊', '💫', '🦋', '🌸', '🔥', '🌊', '⭐', '🎭', '🦄', '🐺', '😎', '🤖', '👻', '🐱', '🐶', '🦁', '🐸', '🍀', '🌈', '💎', '🎵', '🏆', '🌺', '🍄', '🦉'];
 
@@ -221,7 +226,7 @@ const ProfilePage = () => {
           {!editingAlias && !canChangeAlias() && (
             <p className="text-xs text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
           )}
-          {gender && <p className="text-sm text-muted-foreground mt-1">{gender}</p>}
+          {gender && <p className="text-sm text-muted-foreground mt-1">{GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}</p>}
           <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
@@ -267,7 +272,7 @@ const ProfilePage = () => {
             <SelectContent>
               <SelectItem value="none">— None —</SelectItem>
               {GENDER_OPTIONS.map((g) => (
-                <SelectItem key={g} value={g}>{g}</SelectItem>
+                <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
