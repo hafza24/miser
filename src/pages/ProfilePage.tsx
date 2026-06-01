@@ -272,7 +272,7 @@ const ProfilePage = () => {
             <SelectContent>
               <SelectItem value="none">— None —</SelectItem>
               {GENDER_OPTIONS.map((g) => (
-                <SelectItem key={g} value={g}>{g}</SelectItem>
+                <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
