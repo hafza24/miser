@@ -18,7 +18,7 @@ const BrowseGroupsPage = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!hasAccess || !(profile as any)?.receive_group_invites) {
+      if (!hasAccess || !profile?.receive_group_invites) {
         setLoading(false);
         return;
       }
@@ -27,7 +27,7 @@ const BrowseGroupsPage = () => {
       setLoading(false);
     };
     if (!accessLoading) load();
-  }, [hasAccess, (profile as any)?.receive_group_invites, accessLoading]);
+  }, [hasAccess, profile?.receive_group_invites, accessLoading]);
 
   if (accessLoading) {
     return <AppLayout><div className="p-6 text-muted-foreground">Loading…</div></AppLayout>;
