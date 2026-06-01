@@ -15,7 +15,12 @@ import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { LANGUAGES } from '@/lib/languages';
 import { Switch } from '@/components/ui/switch';
 
-const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+const GENDER_OPTIONS: { value: string; label: string }[] = [
+  { value: 'male', label: 'Male' },
+  { value: 'female', label: 'Female' },
+  { value: 'non-binary', label: 'Non-binary' },
+  { value: 'prefer-not-to-say', label: 'Prefer not to say' },
+];
 
 const EMOJI_OPTIONS = ['🙂', '😈', '🐼', '🌙', '🐯', '🦊', '💫', '🦋', '🌸', '🔥', '🌊', '⭐', '🎭', '🦄', '🐺', '😎', '🤖', '👻', '🐱', '🐶', '🦁', '🐸', '🍀', '🌈', '💎', '🎵', '🏆', '🌺', '🍄', '🦉'];
 
