@@ -27,7 +27,12 @@ interface Profile {
   dark_mode_blocked: boolean;
   light_mode_blocked: boolean;
   payment_status: string;
-  receive_group_invites?: boolean;
+  receive_group_invites: boolean;
+  primary_language?: string | null;
+  secondary_language?: string | null;
+  auto_translate_enabled?: boolean;
+  scheduled_deletion_at?: string | null;
+  muted_until?: string | null;
 }
 
 interface AuthContextType {
