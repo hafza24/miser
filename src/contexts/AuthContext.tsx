@@ -27,6 +27,7 @@ interface Profile {
   dark_mode_blocked: boolean;
   light_mode_blocked: boolean;
   payment_status: string;
+  receive_group_invites?: boolean;
 }
 
 interface AuthContextType {
