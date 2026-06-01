@@ -50,7 +50,7 @@ const BrowseGroupsPage = () => {
     );
   }
 
-  if (!(profile as any)?.receive_group_invites) {
+  if (!profile?.receive_group_invites) {
     return (
       <AppLayout>
         <div className="p-6 text-center space-y-4">
