@@ -226,7 +226,7 @@ const ProfilePage = () => {
           {!editingAlias && !canChangeAlias() && (
             <p className="text-xs text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
           )}
-          {gender && <p className="text-sm text-muted-foreground mt-1">{gender}</p>}
+          {gender && <p className="text-sm text-muted-foreground mt-1">{GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}</p>}
           <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
           <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
             {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
