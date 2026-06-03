@@ -33,7 +33,28 @@ interface Profile {
   auto_translate_enabled?: boolean;
   scheduled_deletion_at?: string | null;
   muted_until?: string | null;
+  // M1: presence, discovery, matching, notification prefs
+  presence_status: 'online' | 'away' | 'busy' | 'invisible';
+  profile_paused: boolean;
+  hidden_from_discovery: boolean;
+  looking_for: string[];
+  gender_preference: 'male' | 'female' | 'any';
+  location_preference: 'near_me' | 'same_city' | 'same_country' | 'worldwide';
+  country: string | null;
+  city: string | null;
+  age: number | null;
+  age_min: number | null;
+  age_max: number | null;
+  preferred_languages: string[];
+  notify_messages: boolean;
+  notify_matches: boolean;
+  notify_group_invites_pref: boolean;
+  notify_mentions: boolean;
+  notify_requests: boolean;
+  notify_marketing: boolean;
+  notify_expiry: boolean;
 }
+
 
 interface AuthContextType {
   user: User | null;

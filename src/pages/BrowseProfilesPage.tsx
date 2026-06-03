@@ -50,6 +50,15 @@ interface BrowseProfile {
   last_seen_at: string | null;
   gender: string | null;
   mode_preference: string | null;
+  presence_status?: 'online' | 'away' | 'busy' | 'invisible';
+  looking_for?: string[];
+  gender_preference?: string;
+  country?: string | null;
+  city?: string | null;
+  age?: number | null;
+  preferred_languages?: string[];
+  primary_language?: string | null;
+  matchScore?: number;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -60,7 +69,7 @@ interface RequestInfo {
 }
 
 const BrowseProfilesPage = () => {
-  const { user } = useAuth();
+  const { user, profile: myProfile } = useAuth();
   const { mode } = useMode();
   const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
@@ -78,6 +87,7 @@ const BrowseProfilesPage = () => {
   const [filterGender, setFilterGender] = useState('');
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [useSmartMatch, setUseSmartMatch] = useState(true);
 
   const modeInterests = mode === 'light' ? LIGHT_INTERESTS : DARK_INTERESTS;
   const hasActiveFilters = filterCountry || filterAvailability || filterGender || selectedTraits.length > 0 || selectedInterests.length > 0;
@@ -108,11 +118,11 @@ const BrowseProfilesPage = () => {
     const { data } = await supabase.rpc('get_public_profiles');
     const filtered = (data || [])
       .filter((p: any) => p.user_id !== user.id && p.mode_preference === mode)
-      .sort((a: any, b: any) => (b.is_online ? 1 : 0) - (a.is_online ? 1 : 0))
-      .slice(0, 50);
+      .slice(0, 200);
     setProfiles(filtered || []);
     setLoading(false);
   };
+
 
   const loadMyRequests = async () => {
     if (!user) return;
@@ -162,24 +172,72 @@ const BrowseProfilesPage = () => {
     );
   };
 
-  const filtered = profiles.filter(p => {
-    if (blockedIds.has(p.user_id)) return false;
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      const matchesText = p.alias.toLowerCase().includes(q) || p.bio?.toLowerCase().includes(q) || p.interests?.some(i => i.toLowerCase().includes(q)) || p.region?.toLowerCase().includes(q) || p.character_title?.toLowerCase().includes(q) || p.character_description?.toLowerCase().includes(q);
-      if (!matchesText) return false;
-    }
-    // Interest-based filtering
-    if (selectedInterests.length > 0) {
-      const userInterests = p.interests || [];
-      if (!selectedInterests.some(i => userInterests.includes(i))) return false;
-    }
-    if (selectedTraits.length > 0) { const traits = p.character_personality || []; if (!selectedTraits.some(t => traits.includes(t))) return false; }
-    if (filterCountry && p.region !== filterCountry) return false;
-    if (filterAvailability && p.availability !== filterAvailability) return false;
-    if (filterGender && p.gender !== filterGender) return false;
+  // Smart-match scoring: combines interests, looking_for, languages, and presence
+  const scoreProfile = (p: BrowseProfile): number => {
+    if (!myProfile) return 0;
+    let s = 0;
+    const myInterests = new Set(myProfile.interests ?? []);
+    const overlap = (p.interests ?? []).filter((i) => myInterests.has(i)).length;
+    s += overlap * 8;
+    const myLooking = new Set(myProfile.looking_for ?? []);
+    const lookOverlap = (p.looking_for ?? []).filter((l) => myLooking.has(l)).length;
+    s += lookOverlap * 12;
+    const myLangs = new Set([myProfile.primary_language, ...(myProfile.preferred_languages ?? [])].filter(Boolean) as string[]);
+    const langOverlap = [p.primary_language, ...(p.preferred_languages ?? [])].filter((l) => l && myLangs.has(l)).length;
+    s += langOverlap * 5;
+    if (myProfile.country && p.country && myProfile.country === p.country) s += 6;
+    if (myProfile.city && p.city && myProfile.city === p.city) s += 4;
+    if (p.is_online) s += 3;
+    if (p.presence_status === 'busy') s -= 2;
+    return s;
+  };
+
+  // Smart preference filters (applied when smart match is on)
+  const passesSmart = (p: BrowseProfile): boolean => {
+    if (!useSmartMatch || !myProfile) return true;
+    // Gender preference (viewer's preference applied to candidate.gender)
+    if (myProfile.gender_preference !== 'any' && p.gender && p.gender !== myProfile.gender_preference) return false;
+    // Location preference
+    if (myProfile.location_preference === 'same_country' && myProfile.country && p.country && myProfile.country !== p.country) return false;
+    if ((myProfile.location_preference === 'same_city' || myProfile.location_preference === 'near_me') && myProfile.city && p.city && myProfile.city !== p.city) return false;
+    // Age range
+    if (myProfile.age_min != null && p.age != null && p.age < myProfile.age_min) return false;
+    if (myProfile.age_max != null && p.age != null && p.age > myProfile.age_max) return false;
     return true;
-  });
+  };
+
+  const filtered = profiles
+    .filter((p) => {
+      if (blockedIds.has(p.user_id)) return false;
+      if (!passesSmart(p)) return false;
+      if (search.trim()) {
+        const q = search.toLowerCase();
+        const matchesText = p.alias.toLowerCase().includes(q) || p.bio?.toLowerCase().includes(q) || p.interests?.some((i) => i.toLowerCase().includes(q)) || p.region?.toLowerCase().includes(q) || p.character_title?.toLowerCase().includes(q) || p.character_description?.toLowerCase().includes(q);
+        if (!matchesText) return false;
+      }
+      if (selectedInterests.length > 0) {
+        const userInterests = p.interests || [];
+        if (!selectedInterests.some((i) => userInterests.includes(i))) return false;
+      }
+      if (selectedTraits.length > 0) {
+        const traits = p.character_personality || [];
+        if (!selectedTraits.some((t) => traits.includes(t))) return false;
+      }
+      if (filterCountry && p.region !== filterCountry && p.country !== filterCountry) return false;
+      if (filterAvailability && p.availability !== filterAvailability) return false;
+      if (filterGender && p.gender !== filterGender) return false;
+      return true;
+    })
+    .map((p) => ({ ...p, matchScore: scoreProfile(p) }))
+    .sort((a, b) => {
+      if (useSmartMatch) {
+        const diff = (b.matchScore ?? 0) - (a.matchScore ?? 0);
+        if (diff !== 0) return diff;
+      }
+      return (b.is_online ? 1 : 0) - (a.is_online ? 1 : 0);
+    })
+    .slice(0, 100);
+
 
   const renderRequestButton = (profile: BrowseProfile) => {
     const info = requestMap[profile.user_id];
@@ -267,6 +325,24 @@ const BrowseProfilesPage = () => {
             )}
           </Button>
         </div>
+
+        {/* Smart match toggle */}
+        <div className="mb-3 flex items-center justify-between p-2.5 rounded-xl bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <div>
+              <div className="text-xs font-semibold text-foreground">Smart match</div>
+              <div className="text-[11px] text-muted-foreground">Rank by your preferences (gender, location, age, interests, languages)</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setUseSmartMatch((v) => !v)}
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors ${useSmartMatch ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+          >
+            {useSmartMatch ? 'On' : 'Off'}
+          </button>
+        </div>
+
 
         {/* Collapsible Filters */}
         {showFilters && (

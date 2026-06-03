@@ -56,7 +56,7 @@ const getCurrentChatId = (): string | null => {
 };
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [soundEnabled, setSoundEnabledState] = useState(() => {
     const stored = localStorage.getItem('notif_sound');
     return stored !== null ? stored === 'true' : true;
@@ -66,6 +66,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     return stored !== null ? stored === 'true' : false;
   });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [mutedIds, setMutedIds] = useState<Set<string>>(new Set());
   const readIdsRef = useRef<Set<string>>(new Set());
   const lastEventKeyRef = useRef<Set<string>>(new Set()); // dedup realtime events
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,10 +76,21 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (!user) {
       readIdsRef.current = new Set();
       setNotifications([]);
+      setMutedIds(new Set());
       return;
     }
     readIdsRef.current = loadReadIds(user.id);
+    // Load mute list
+    supabase.from('muted_users').select('muted_id').eq('muter_id', user.id).then(({ data }) => {
+      setMutedIds(new Set((data ?? []).map((r: any) => r.muted_id)));
+    });
   }, [user?.id]);
+
+  // Pref flags (default true if profile not yet loaded)
+  const prefMessages = profile?.notify_messages ?? true;
+  const prefRequests = profile?.notify_requests ?? true;
+  const prefExpiry   = profile?.notify_expiry   ?? true;
+
 
   const setSoundEnabled = (v: boolean) => {
     setSoundEnabledState(v);
@@ -160,39 +172,46 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    requests?.forEach((req) => {
-      const p = profileCache[req.sender_id];
-      items.push({
-        id: `req-${req.id}`,
-        type: 'chat_request',
-        title: 'New Chat Request',
-        message: `${p?.emoji_avatar || '💫'} ${p?.alias || 'Someone'} wants to chat`,
-        timestamp: req.created_at,
-        read: false,
-        meta: { requestId: req.id },
+    if (prefRequests) {
+      requests?.forEach((req) => {
+        if (mutedIds.has(req.sender_id)) return;
+        const p = profileCache[req.sender_id];
+        items.push({
+          id: `req-${req.id}`,
+          type: 'chat_request',
+          title: 'New Chat Request',
+          message: `${p?.emoji_avatar || '💫'} ${p?.alias || 'Someone'} wants to chat`,
+          timestamp: req.created_at,
+          read: false,
+          meta: { requestId: req.id },
+        });
       });
-    });
+    }
 
-    unreadByChat.forEach((msgs, chatId) => {
-      const latest = msgs[0];
-      const p = profileCache[latest.sender_id];
-      const count = msgs.length;
-      const preview = (latest.content || '').slice(0, 80) || 'New message';
-      items.push({
-        id: `msg-${chatId}-${latest.id}`,
-        type: 'new_message',
-        title: count > 1
-          ? `${p?.alias || 'Someone'} • ${count} new messages`
-          : `${p?.emoji_avatar || '💬'} ${p?.alias || 'Someone'}`,
-        message: preview,
-        timestamp: latest.created_at,
-        read: false,
-        meta: { chatId },
+    if (prefMessages) {
+      unreadByChat.forEach((msgs, chatId) => {
+        const latest = msgs[0];
+        if (mutedIds.has(latest.sender_id)) return;
+        const p = profileCache[latest.sender_id];
+        const count = msgs.length;
+        const preview = (latest.content || '').slice(0, 80) || 'New message';
+        items.push({
+          id: `msg-${chatId}-${latest.id}`,
+          type: 'new_message',
+          title: count > 1
+            ? `${p?.alias || 'Someone'} • ${count} new messages`
+            : `${p?.emoji_avatar || '💬'} ${p?.alias || 'Someone'}`,
+          message: preview,
+          timestamp: latest.created_at,
+          read: false,
+          meta: { chatId },
+        });
       });
-    });
+    }
+
 
     // 3) Chats expiring within 2 hours
-    if (chatIds.length) {
+    if (prefExpiry && chatIds.length) {
       const soonExpiry = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
       const now = new Date().toISOString();
       const { data: expiringChats } = await supabase
@@ -219,6 +238,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         });
       });
     }
+
 
     // 4) Subscription notifications
     const { data: subs } = await supabase
@@ -271,7 +291,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     setNotifications(merged);
-  }, [user]);
+  }, [user, prefMessages, prefRequests, prefExpiry, mutedIds]);
 
   // Debounced refresh to coalesce bursts of realtime events
   const scheduleRefresh = useCallback(() => {
@@ -314,19 +334,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       }, (payload) => {
         const msg = payload.new as any;
         if (!msg || msg.sender_id === user.id) return;
+        if (mutedIds.has(msg.sender_id)) return;
         const key = `msg:${msg.id}`;
         if (lastEventKeyRef.current.has(key)) return;
         lastEventKeyRef.current.add(key);
 
-        // Skip alerting if the user is currently viewing that chat
         const currentChatId = getCurrentChatId();
         const isOnChat = currentChatId === msg.chat_id && document.hasFocus();
-        if (!isOnChat) {
+        if (!isOnChat && prefMessages) {
           if (soundEnabled) playNotificationSound();
           if (desktopEnabled) showDesktopNotification('New Message', (msg.content || '').slice(0, 100));
         }
         scheduleRefresh();
       })
+
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -339,7 +360,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       supabase.removeChannel(channel);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled]);
+  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages]);
 
   // Refresh expiry alerts every 5 min
   useEffect(() => {
