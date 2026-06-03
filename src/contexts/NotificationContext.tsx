@@ -360,7 +360,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       supabase.removeChannel(channel);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled]);
+  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages]);
 
   // Refresh expiry alerts every 5 min
   useEffect(() => {
