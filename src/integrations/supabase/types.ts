@@ -413,6 +413,27 @@ export type Database = {
         }
         Relationships: []
       }
+      muted_users: {
+        Row: {
+          created_at: string
+          id: string
+          muted_id: string
+          muter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          muted_id: string
+          muter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          muted_id?: string
+          muter_id?: string
+        }
+        Relationships: []
+      }
       payment_info: {
         Row: {
           account_holder: string
@@ -537,6 +558,9 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
+          age_max: number | null
+          age_min: number | null
           age_verified: boolean
           alias: string
           alias_changed_at: string | null
@@ -547,6 +571,8 @@ export type Database = {
           character_life_story: string | null
           character_personality: string[] | null
           character_title: string | null
+          city: string | null
+          country: string | null
           created_at: string
           daily_chat_limit: number
           daily_scene_limit: number
@@ -555,18 +581,32 @@ export type Database = {
           email: string | null
           emoji_avatar: string
           gender: string | null
+          gender_preference: string
+          hidden_from_discovery: boolean
           id: string
           interests: string[] | null
           is_online: boolean
           is_suspended: boolean
           last_seen_at: string | null
           light_mode_blocked: boolean
+          location_preference: string
+          looking_for: string[]
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
           muted_until: string | null
           notification_sound_enabled: boolean
+          notify_expiry: boolean
+          notify_group_invites_pref: boolean
+          notify_marketing: boolean
+          notify_matches: boolean
+          notify_mentions: boolean
+          notify_messages: boolean
+          notify_requests: boolean
           payment_status: string
+          preferred_languages: string[]
+          presence_status: Database["public"]["Enums"]["presence_status"]
           primary_language: string
+          profile_paused: boolean
           receive_group_invites: boolean
           region: string | null
           scheduled_deletion_at: string | null
@@ -576,6 +616,9 @@ export type Database = {
           violation_count: number
         }
         Insert: {
+          age?: number | null
+          age_max?: number | null
+          age_min?: number | null
           age_verified?: boolean
           alias: string
           alias_changed_at?: string | null
@@ -586,6 +629,8 @@ export type Database = {
           character_life_story?: string | null
           character_personality?: string[] | null
           character_title?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           daily_chat_limit?: number
           daily_scene_limit?: number
@@ -594,18 +639,32 @@ export type Database = {
           email?: string | null
           emoji_avatar?: string
           gender?: string | null
+          gender_preference?: string
+          hidden_from_discovery?: boolean
           id?: string
           interests?: string[] | null
           is_online?: boolean
           is_suspended?: boolean
           last_seen_at?: string | null
           light_mode_blocked?: boolean
+          location_preference?: string
+          looking_for?: string[]
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           muted_until?: string | null
           notification_sound_enabled?: boolean
+          notify_expiry?: boolean
+          notify_group_invites_pref?: boolean
+          notify_marketing?: boolean
+          notify_matches?: boolean
+          notify_mentions?: boolean
+          notify_messages?: boolean
+          notify_requests?: boolean
           payment_status?: string
+          preferred_languages?: string[]
+          presence_status?: Database["public"]["Enums"]["presence_status"]
           primary_language?: string
+          profile_paused?: boolean
           receive_group_invites?: boolean
           region?: string | null
           scheduled_deletion_at?: string | null
@@ -615,6 +674,9 @@ export type Database = {
           violation_count?: number
         }
         Update: {
+          age?: number | null
+          age_max?: number | null
+          age_min?: number | null
           age_verified?: boolean
           alias?: string
           alias_changed_at?: string | null
@@ -625,6 +687,8 @@ export type Database = {
           character_life_story?: string | null
           character_personality?: string[] | null
           character_title?: string | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           daily_chat_limit?: number
           daily_scene_limit?: number
@@ -633,18 +697,32 @@ export type Database = {
           email?: string | null
           emoji_avatar?: string
           gender?: string | null
+          gender_preference?: string
+          hidden_from_discovery?: boolean
           id?: string
           interests?: string[] | null
           is_online?: boolean
           is_suspended?: boolean
           last_seen_at?: string | null
           light_mode_blocked?: boolean
+          location_preference?: string
+          looking_for?: string[]
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           muted_until?: string | null
           notification_sound_enabled?: boolean
+          notify_expiry?: boolean
+          notify_group_invites_pref?: boolean
+          notify_marketing?: boolean
+          notify_matches?: boolean
+          notify_mentions?: boolean
+          notify_messages?: boolean
+          notify_requests?: boolean
           payment_status?: string
+          preferred_languages?: string[]
+          presence_status?: Database["public"]["Enums"]["presence_status"]
           primary_language?: string
+          profile_paused?: boolean
           receive_group_invites?: boolean
           region?: string | null
           scheduled_deletion_at?: string | null
@@ -652,6 +730,27 @@ export type Database = {
           updated_at?: string
           user_id?: string
           violation_count?: number
+        }
+        Relationships: []
+      }
+      restricted_users: {
+        Row: {
+          created_at: string
+          id: string
+          restricted_id: string
+          restrictor_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          restricted_id: string
+          restrictor_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          restricted_id?: string
+          restrictor_id?: string
         }
         Relationships: []
       }
@@ -900,6 +999,7 @@ export type Database = {
       get_public_profiles: {
         Args: never
         Returns: {
+          age: number
           alias: string
           availability: string
           bio: string
@@ -907,13 +1007,21 @@ export type Database = {
           character_life_story: string
           character_personality: string[]
           character_title: string
+          city: string
+          country: string
           emoji_avatar: string
           gender: string
+          gender_preference: string
           interests: string[]
           is_online: boolean
           last_seen_at: string
+          location_preference: string
+          looking_for: string[]
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string
+          preferred_languages: string[]
+          presence_status: Database["public"]["Enums"]["presence_status"]
+          primary_language: string
           region: string
           user_id: string
         }[]
@@ -939,6 +1047,11 @@ export type Database = {
       is_blocked: { Args: { _user1: string; _user2: string }; Returns: boolean }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_muted: { Args: { _muter: string; _other: string }; Returns: boolean }
+      is_restricted: {
+        Args: { _other: string; _restrictor: string }
         Returns: boolean
       }
       join_group_request: { Args: { p_request_id: string }; Returns: string }
@@ -1013,6 +1126,7 @@ export type Database = {
         | "rejected"
       group_request_type: "threesome" | "circle"
       mode_preference: "light" | "dark"
+      presence_status: "online" | "away" | "busy" | "invisible"
       violation_type: "warning" | "mute" | "suspension"
     }
     CompositeTypes: {
@@ -1152,6 +1266,7 @@ export const Constants = {
       ],
       group_request_type: ["threesome", "circle"],
       mode_preference: ["light", "dark"],
+      presence_status: ["online", "away", "busy", "invisible"],
       violation_type: ["warning", "mute", "suspension"],
     },
   },
