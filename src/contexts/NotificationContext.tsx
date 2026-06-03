@@ -56,7 +56,7 @@ const getCurrentChatId = (): string | null => {
 };
 
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [soundEnabled, setSoundEnabledState] = useState(() => {
     const stored = localStorage.getItem('notif_sound');
     return stored !== null ? stored === 'true' : true;
@@ -66,6 +66,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     return stored !== null ? stored === 'true' : false;
   });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [mutedIds, setMutedIds] = useState<Set<string>>(new Set());
   const readIdsRef = useRef<Set<string>>(new Set());
   const lastEventKeyRef = useRef<Set<string>>(new Set()); // dedup realtime events
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,10 +76,21 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     if (!user) {
       readIdsRef.current = new Set();
       setNotifications([]);
+      setMutedIds(new Set());
       return;
     }
     readIdsRef.current = loadReadIds(user.id);
+    // Load mute list
+    supabase.from('muted_users').select('muted_id').eq('muter_id', user.id).then(({ data }) => {
+      setMutedIds(new Set((data ?? []).map((r: any) => r.muted_id)));
+    });
   }, [user?.id]);
+
+  // Pref flags (default true if profile not yet loaded)
+  const prefMessages = profile?.notify_messages ?? true;
+  const prefRequests = profile?.notify_requests ?? true;
+  const prefExpiry   = profile?.notify_expiry   ?? true;
+
 
   const setSoundEnabled = (v: boolean) => {
     setSoundEnabledState(v);
