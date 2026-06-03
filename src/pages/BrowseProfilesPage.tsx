@@ -326,6 +326,24 @@ const BrowseProfilesPage = () => {
           </Button>
         </div>
 
+        {/* Smart match toggle */}
+        <div className="mb-3 flex items-center justify-between p-2.5 rounded-xl bg-primary/5 border border-primary/20">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <div>
+              <div className="text-xs font-semibold text-foreground">Smart match</div>
+              <div className="text-[11px] text-muted-foreground">Rank by your preferences (gender, location, age, interests, languages)</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setUseSmartMatch((v) => !v)}
+            className={`px-3 py-1 rounded-full text-[11px] font-semibold transition-colors ${useSmartMatch ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+          >
+            {useSmartMatch ? 'On' : 'Off'}
+          </button>
+        </div>
+
+
         {/* Collapsible Filters */}
         {showFilters && (
           <div className="mb-4 p-3 bg-muted/30 rounded-xl border border-border space-y-3 animate-fade-in">
