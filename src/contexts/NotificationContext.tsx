@@ -211,7 +211,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
 
     // 3) Chats expiring within 2 hours
-    if (chatIds.length) {
+    if (prefExpiry && chatIds.length) {
       const soonExpiry = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
       const now = new Date().toISOString();
       const { data: expiringChats } = await supabase
@@ -238,6 +238,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         });
       });
     }
+
 
     // 4) Subscription notifications
     const { data: subs } = await supabase
