@@ -50,6 +50,15 @@ interface BrowseProfile {
   last_seen_at: string | null;
   gender: string | null;
   mode_preference: string | null;
+  presence_status?: 'online' | 'away' | 'busy' | 'invisible';
+  looking_for?: string[];
+  gender_preference?: string;
+  country?: string | null;
+  city?: string | null;
+  age?: number | null;
+  preferred_languages?: string[];
+  primary_language?: string | null;
+  matchScore?: number;
 }
 
 type RequestStatus = 'none' | 'pending' | 'accepted' | 'declined';
@@ -60,7 +69,7 @@ interface RequestInfo {
 }
 
 const BrowseProfilesPage = () => {
-  const { user } = useAuth();
+  const { user, profile: myProfile } = useAuth();
   const { mode } = useMode();
   const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
@@ -78,6 +87,7 @@ const BrowseProfilesPage = () => {
   const [filterGender, setFilterGender] = useState('');
   const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const [showFilters, setShowFilters] = useState(false);
+  const [useSmartMatch, setUseSmartMatch] = useState(true);
 
   const modeInterests = mode === 'light' ? LIGHT_INTERESTS : DARK_INTERESTS;
   const hasActiveFilters = filterCountry || filterAvailability || filterGender || selectedTraits.length > 0 || selectedInterests.length > 0;
@@ -108,11 +118,11 @@ const BrowseProfilesPage = () => {
     const { data } = await supabase.rpc('get_public_profiles');
     const filtered = (data || [])
       .filter((p: any) => p.user_id !== user.id && p.mode_preference === mode)
-      .sort((a: any, b: any) => (b.is_online ? 1 : 0) - (a.is_online ? 1 : 0))
-      .slice(0, 50);
+      .slice(0, 200);
     setProfiles(filtered || []);
     setLoading(false);
   };
+
 
   const loadMyRequests = async () => {
     if (!user) return;
