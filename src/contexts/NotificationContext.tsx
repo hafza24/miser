@@ -334,19 +334,20 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       }, (payload) => {
         const msg = payload.new as any;
         if (!msg || msg.sender_id === user.id) return;
+        if (mutedIds.has(msg.sender_id)) return;
         const key = `msg:${msg.id}`;
         if (lastEventKeyRef.current.has(key)) return;
         lastEventKeyRef.current.add(key);
 
-        // Skip alerting if the user is currently viewing that chat
         const currentChatId = getCurrentChatId();
         const isOnChat = currentChatId === msg.chat_id && document.hasFocus();
-        if (!isOnChat) {
+        if (!isOnChat && prefMessages) {
           if (soundEnabled) playNotificationSound();
           if (desktopEnabled) showDesktopNotification('New Message', (msg.content || '').slice(0, 100));
         }
         scheduleRefresh();
       })
+
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
