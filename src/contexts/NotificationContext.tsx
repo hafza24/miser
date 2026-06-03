@@ -172,36 +172,43 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
-    requests?.forEach((req) => {
-      const p = profileCache[req.sender_id];
-      items.push({
-        id: `req-${req.id}`,
-        type: 'chat_request',
-        title: 'New Chat Request',
-        message: `${p?.emoji_avatar || '💫'} ${p?.alias || 'Someone'} wants to chat`,
-        timestamp: req.created_at,
-        read: false,
-        meta: { requestId: req.id },
+    if (prefRequests) {
+      requests?.forEach((req) => {
+        if (mutedIds.has(req.sender_id)) return;
+        const p = profileCache[req.sender_id];
+        items.push({
+          id: `req-${req.id}`,
+          type: 'chat_request',
+          title: 'New Chat Request',
+          message: `${p?.emoji_avatar || '💫'} ${p?.alias || 'Someone'} wants to chat`,
+          timestamp: req.created_at,
+          read: false,
+          meta: { requestId: req.id },
+        });
       });
-    });
+    }
 
-    unreadByChat.forEach((msgs, chatId) => {
-      const latest = msgs[0];
-      const p = profileCache[latest.sender_id];
-      const count = msgs.length;
-      const preview = (latest.content || '').slice(0, 80) || 'New message';
-      items.push({
-        id: `msg-${chatId}-${latest.id}`,
-        type: 'new_message',
-        title: count > 1
-          ? `${p?.alias || 'Someone'} • ${count} new messages`
-          : `${p?.emoji_avatar || '💬'} ${p?.alias || 'Someone'}`,
-        message: preview,
-        timestamp: latest.created_at,
-        read: false,
-        meta: { chatId },
+    if (prefMessages) {
+      unreadByChat.forEach((msgs, chatId) => {
+        const latest = msgs[0];
+        if (mutedIds.has(latest.sender_id)) return;
+        const p = profileCache[latest.sender_id];
+        const count = msgs.length;
+        const preview = (latest.content || '').slice(0, 80) || 'New message';
+        items.push({
+          id: `msg-${chatId}-${latest.id}`,
+          type: 'new_message',
+          title: count > 1
+            ? `${p?.alias || 'Someone'} • ${count} new messages`
+            : `${p?.emoji_avatar || '💬'} ${p?.alias || 'Someone'}`,
+          message: preview,
+          timestamp: latest.created_at,
+          read: false,
+          meta: { chatId },
+        });
       });
-    });
+    }
+
 
     // 3) Chats expiring within 2 hours
     if (chatIds.length) {
