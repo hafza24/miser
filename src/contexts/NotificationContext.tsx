@@ -291,7 +291,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     setNotifications(merged);
-  }, [user]);
+  }, [user, prefMessages, prefRequests, prefExpiry, mutedIds]);
 
   // Debounced refresh to coalesce bursts of realtime events
   const scheduleRefresh = useCallback(() => {
