@@ -82,7 +82,7 @@ const SettingsPage = () => {
 
   const updateProfile = async (patch: Record<string, unknown>, successMsg?: string) => {
     if (!user) return;
-    const { error } = await supabase.from('profiles').update(patch).eq('user_id', user.id);
+    const { error } = await supabase.from('profiles').update(patch as any).eq('user_id', user.id);
     if (error) {
       toast.error(error.message || 'Could not save');
       return;
@@ -90,6 +90,7 @@ const SettingsPage = () => {
     await refreshProfile();
     if (successMsg) toast.success(successMsg);
   };
+
 
   const toggleLookingFor = async (value: string) => {
     const current = profile?.looking_for ?? [];
