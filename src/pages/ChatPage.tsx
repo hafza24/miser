@@ -6,7 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2 } from 'lucide-react';
+import MediaUploader from '@/components/chat/MediaUploader';
+import MediaMessage from '@/components/chat/MediaMessage';
+import GroupInfoSheet from '@/components/chat/GroupInfoSheet';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -43,6 +46,12 @@ interface Message {
   image_url: string | null;
   created_at: string;
   reply_to: string | null;
+  media_type?: string | null;
+  media_path?: string | null;
+  view_once?: boolean;
+  expires_at?: string | null;
+  viewed_by?: string[] | null;
+  deleted_for_all?: boolean;
 }
 
 interface ChatInfo {
@@ -50,6 +59,10 @@ interface ChatInfo {
   expires_at: string | null;
   timer_stopped: boolean;
   mode: 'light' | 'dark';
+  is_group: boolean;
+  name: string | null;
+  image_url: string | null;
+  created_by: string | null;
 }
 
 const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '😈', '💫', '🌙', '🐼', '🦊', '✨', '💖', '🙈'];
