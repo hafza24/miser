@@ -107,6 +107,22 @@ const ChatPage = () => {
   const prevMessageCountRef = useRef(0);
   const [showJumpButton, setShowJumpButton] = useState(false);
   const [unreadNew, setUnreadNew] = useState(0);
+  const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeName, setUpgradeName] = useState('');
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!chatId) return;
+    setUpgrading(true);
+    const { error } = await supabase.rpc('upgrade_chat_to_group' as any, { p_chat_id: chatId, p_name: upgradeName });
+    setUpgrading(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Converted to group');
+    setUpgradeOpen(false);
+    setUpgradeName('');
+    loadChatInfo();
+  };
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
@@ -505,10 +521,10 @@ const ChatPage = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="rounded-full flex-shrink-0 h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <span className="text-xl flex-shrink-0">{otherUser?.emoji_avatar || '💬'}</span>
+          <span className="text-xl flex-shrink-0">{chatInfo?.is_group ? '👥' : (otherUser?.emoji_avatar || '💬')}</span>
           <div className="flex-1 min-w-0">
             <h2 className="font-heading font-semibold text-foreground leading-none truncate text-sm">
-              {otherUser?.alias || 'Anonymous'}
+              {chatInfo?.is_group ? (chatInfo.name || 'Group chat') : (otherUser?.alias || 'Anonymous')}
             </h2>
             <span className="text-[11px] text-muted-foreground">
               {isOtherTyping ? 'typing...' : chatMode === 'light' ? '🌞 Light' : '🌑 Dark'}
@@ -530,6 +546,15 @@ const ChatPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
+                {chatInfo?.is_group ? (
+                  <DropdownMenuItem onClick={() => setGroupInfoOpen(true)}>
+                    <Users className="h-4 w-4 mr-2" /> Group info
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => setUpgradeOpen(true)}>
+                    <UserPlus2 className="h-4 w-4 mr-2" /> Convert to group
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="text-amber-500 focus:text-amber-500">
                   <Flag className="h-4 w-4 mr-2" />
                   Report User
