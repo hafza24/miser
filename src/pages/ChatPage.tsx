@@ -303,7 +303,7 @@ const ChatPage = () => {
 
   const loadChatInfo = async () => {
     if (!chatId) return;
-    const { data } = await supabase.from('chats').select('id, expires_at, timer_stopped, mode').eq('id', chatId).single();
+    const { data } = await supabase.from('chats').select('id, expires_at, timer_stopped, mode, is_group, name, image_url, created_by').eq('id', chatId).single();
     if (data) { setChatInfo(data as any); setChatMode((data as any).mode || 'light'); }
   };
 
