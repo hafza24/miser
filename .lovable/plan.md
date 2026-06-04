@@ -1,101 +1,121 @@
-## Premium Group Requests — Threesome + Friend Circle Matching
+## M2 — Groups, 1:1 → Group upgrade, Ephemeral media
 
-A premium-only feature for creating curated private group chats (3–10 people) with gender composition, topic, AI-generated scene, opt-in matching, admin moderation, and auto-created group chat when filled.
+Builds on the existing `chats.is_group` schema. No new "free group request" flow — any user can convert a 1:1 chat into a group and add members, and the premium curated request flow already handles group creation from scratch.
 
 ---
 
-### 1. Access Control
-- Gated by `user_has_dark_access` / active premium subscription (reuse `has_active_subscription` + plan flag).
-- Add new plan flag `group_requests_access boolean` on `subscription_plans` (default false), and a new helper `user_has_group_access(_user_id)`.
-- Global admin toggle in `app_settings`: `group_requests_enabled`.
+### 1. Database (single migration)
 
-### 2. User Opt-in
-- New column `profiles.receive_group_invites boolean default false`.
-- Toggle on `SettingsPage` under a new "Group Invitations" card. Users with OFF excluded from matching pool & discovery.
+**`chats`** — add metadata
+- `name text` (null for 1:1)
+- `image_url text`
+- `created_by uuid` (null for legacy rows; set on new groups)
+- `member_limit int default 10`
 
-### 3. Database (migration)
+**`chat_participants`** — add role
+- `role text default 'member'` check in ('owner','admin','member')
+- `removed_at timestamptz` (soft kick)
 
-**`group_requests`**
-- id, creator_id, type (`threesome` | `circle`), member_limit (3–10), gender_requirements (jsonb: `{men, women, any}`), topic (text, from allowed list), ai_scene_title, ai_scene_description, ai_icebreakers (text[]), mood_tags (text[]), status (`pending_review` | `open` | `filled` | `closed` | `rejected`), chat_id (nullable, set when filled), admin_note, created_at, expires_at (24h).
+**`messages`** — add ephemeral fields
+- `media_type text` check in ('image','video','audio','file') null
+- `media_path text` (storage object key, not URL)
+- `media_size int`
+- `view_once boolean default false`
+- `expires_at timestamptz` (timed expiry, distinct from `self_destruct_minutes` which already exists for text)
+- `viewed_by uuid[] default '{}'` (for view-once tracking in groups)
+- `deleted_for_all boolean default false` (set when media expires/viewed)
 
-**`group_participants`**
-- id, request_id, user_id, join_status (`pending` | `approved` | `rejected` | `left`), joined_at, unique(request_id, user_id).
+**New table: `chat_invites`**
+- id, chat_id, inviter_id, invitee_id, status ('pending'|'accepted'|'declined'|'cancelled'), created_at, responded_at
+- unique(chat_id, invitee_id) where status='pending'
 
-**`app_settings`** keys
-- `group_requests_enabled` (bool), `group_allowed_topics` (string[]), `group_require_admin_approval` (bool), `group_daily_create_limit` (int, default 3).
+**New table: `media_views`** (per-user view tracking)
+- id, message_id, viewer_id, viewed_at, unique(message_id, viewer_id)
 
-**RLS**
-- `group_requests`: creator can SELECT/INSERT/UPDATE own; eligible premium+opted-in users can SELECT rows with `status='open'`; admins all.
-- `group_participants`: user sees own + creator sees all rows of their request; insert requires opted-in + premium + not already joined + seats remaining.
-- Security definer RPCs handle the heavy logic:
-  - `create_group_request(...)` — validates premium, opt-in, daily limit, allowed topic, gender math == member_limit, calls scene generator marker (scene filled by edge function after insert), returns id.
-  - `join_group_request(_request_id)` — validates eligibility, gender slot availability; auto-creates `chats` row + `chat_participants` when filled.
-  - `respond_group_join(_participant_id, _approve bool)` — creator/admin approval flow when `require_admin_approval=true`.
+**RPCs (security definer)**
+- `upgrade_chat_to_group(p_chat_id, p_name)` — owner = caller, both existing participants become members, sets `is_group=true`, preserves message history, stops timer.
+- `invite_to_chat(p_chat_id, p_user_id)` — only owner/admin, validates not blocked/restricted, not already member, under member_limit; creates `chat_invites` row.
+- `respond_chat_invite(p_invite_id, p_accept)` — invitee accepts → adds to `chat_participants`.
+- `remove_chat_member(p_chat_id, p_user_id)` — owner/admin only, can't remove owner; sets `removed_at`.
+- `leave_chat(p_chat_id)` — soft-removes self; if owner leaves, promote oldest admin or close chat.
+- `update_group_meta(p_chat_id, p_name, p_image_url)` — owner/admin only.
+- `mark_media_viewed(p_message_id)` — appends to `viewed_by`, inserts `media_views`; if `view_once` and all non-sender participants viewed → set `deleted_for_all=true`, schedule storage deletion via cleanup function.
 
-### 4. AI Scene Generation
-- New edge function `generate-group-scene` (Lovable AI Gateway, `google/gemini-3-flash-preview`, tool-calling for structured `{title, description, icebreakers[], mood_tags[]}`).
-- Called from frontend immediately after `create_group_request` returns; updates the row with the scene.
-- System prompt tuned to topic + gender composition + size; safe-for-platform for `light` mode requests; spicier tone only allowed when creator has dark access AND topic is in adult set.
+**RLS updates**
+- `chat_participants` insert: relax to also allow inserts from `chat_invites.status='accepted'` (via security definer RPC, so RLS just blocks raw client inserts outside the invite/request flow).
+- `messages` select: also hide rows where `deleted_for_all=true` from non-senders.
+- New tables: standard auth-scoped policies; service_role full access.
 
-### 5. Matching / Discovery
-- `BrowseGroupsPage` (new) lists `status='open'` requests where current user:
-  - has premium + group access
-  - has `receive_group_invites=true`
-  - matches at least one open gender slot
-  - is not the creator and hasn't already joined
-- Server-side filtering via a security-definer view or RPC `list_eligible_group_requests()` to avoid leaking ineligible rows.
+**Realtime**: add `chat_invites`, `chat_participants` UPDATE events already covered.
 
-### 6. UI
-- **`SettingsPage`**: new "Group Invitations" card with switch.
-- **`SubscriptionPage`**: surface group access under premium plan benefits.
-- **`CreateGroupRequestPage`** (`/groups/new`): wizard — type → size → gender composition (validated to sum = size) → topic → review → submit. Shows AI scene after creation.
-- **`BrowseGroupsPage`** (`/groups`): grid of group cards (topic, type, seats left, gender mix, scene preview, creator alias/emoji, Join button).
-- **`GroupRequestDetailPage`** (`/groups/:id`): full scene, icebreakers, participants (anonymized), join/leave actions.
-- **`AppLayout` nav**: add "Groups" entry for premium users.
-- On group filled → redirect to `/chat/:chatId` (existing `ChatPage`). Pin AI scene as first system message in the new chat (insert a message with `sender_id = creator` and a `[SCENE]` prefix, or store on `chats` table — simpler: insert a system-style first message).
+### 2. Storage
 
-### 7. Admin
-- **`AdminGroups.tsx`** (new, linked from `AdminDashboard`):
-  - Toggle global enable, edit allowed topics, set daily create limit, toggle admin-approval-required.
-  - Table of all requests with filters (status, creator, topic), actions: approve / reject / close / remove participant / ban creator from feature.
-  - Usage analytics: total requests, filled rate, by topic.
+- New private bucket `chat-media` (signed URLs, 60s TTL).
+- RLS on `storage.objects`:
+  - INSERT: authenticated user uploading under `{chat_id}/{message_id}/...` where they are a participant.
+  - SELECT: participants of the chat referenced in the path.
+  - DELETE: service_role only (cleanup function).
 
-### 8. Safety
-- Explicit join action required (no auto-add).
-- Leave button removes participant; if creator leaves, request auto-closes.
-- Existing block / report systems reused inside the group chat.
-- Opted-out users filtered at the DB function level — never see or receive requests.
+### 3. Edge function
 
-### 9. Files
+`cleanup-ephemeral-media` — cron every 5 min:
+- Find `messages` rows where (`expires_at < now()` OR `deleted_for_all=true`) AND `media_path IS NOT NULL`.
+- Delete storage objects, null out `media_path`, set `content='[expired]'`.
+
+Schedule via `supabase--insert` (pg_cron + pg_net), per the scheduled-jobs guide.
+
+### 4. Frontend
+
+**`ChatPage.tsx`** (edits)
+- Group-aware header: shows group name + image when `is_group`, otherwise existing 1:1 alias.
+- "Convert to group" action in chat menu when 1:1 → opens dialog (name + first invitee).
+- "Group info" sheet: members list with roles, invite, rename, change image, leave, remove member (owner/admin).
+- Message composer: paperclip → media picker with toggles "View once" and "Expires in" (1h/24h/7d/never).
+- Render media messages with view-once gating (blur until tapped, then mark viewed, single-show).
+- Filter out `deleted_for_all` messages.
+
+**New: `src/components/chat/GroupInfoSheet.tsx`** — members, roles, invite, rename, image.
+**New: `src/components/chat/MediaUploader.tsx`** — file pick, preview, view-once + expiry options, signed upload.
+**New: `src/components/chat/MediaMessage.tsx`** — view-once / countdown rendering, signed-URL fetch.
+**New: `src/components/chat/InviteUserDialog.tsx`** — search by alias, send invite.
+
+**`DashboardPage.tsx`** — show pending `chat_invites` in a new "Group Invites" list with Accept/Decline.
+
+**Notifications** — `NotificationContext.tsx`: new event type `group_invite` honoring `notify_group_invites_pref`.
+
+### 5. Admin
+
+`AdminChats.tsx` — add columns: members count, group/1:1 badge, view-once message count. Action: force-close group, remove member, purge media.
+
+### 6. Files
 
 **New**
-- `supabase/migrations/<ts>_group_requests.sql`
-- `supabase/functions/generate-group-scene/index.ts`
-- `src/pages/CreateGroupRequestPage.tsx`
-- `src/pages/BrowseGroupsPage.tsx`
-- `src/pages/GroupRequestDetailPage.tsx`
-- `src/pages/admin/AdminGroups.tsx`
-- `src/hooks/useGroupAccess.ts`
-- `src/lib/groupTopics.ts`
+- `supabase/migrations/<ts>_m2_groups_media.sql`
+- `supabase/functions/cleanup-ephemeral-media/index.ts`
+- `src/components/chat/GroupInfoSheet.tsx`
+- `src/components/chat/MediaUploader.tsx`
+- `src/components/chat/MediaMessage.tsx`
+- `src/components/chat/InviteUserDialog.tsx`
+- `src/hooks/useSignedMediaUrl.ts`
 
 **Edited**
-- `src/App.tsx` — routes
-- `src/components/AppLayout.tsx` — nav entry
-- `src/pages/SettingsPage.tsx` — opt-in switch
-- `src/pages/admin/AdminDashboard.tsx` — link to AdminGroups
-- `src/pages/SubscriptionPage.tsx` — benefit row
-- `src/integrations/supabase/types.ts` — regenerated
+- `src/pages/ChatPage.tsx`
+- `src/pages/DashboardPage.tsx`
+- `src/contexts/NotificationContext.tsx`
+- `src/pages/admin/AdminChats.tsx`
+- `src/integrations/supabase/types.ts` (regenerated)
 
-### Out of scope
-- Cross-language matching weighting beyond reusing `primary_language`.
-- Voice/video group features.
-- Group-level subscription billing tiers (uses existing premium plan).
+### 7. Out of scope (deferred to M3/M4)
 
----
+- End-to-end encryption of media bytes (M4).
+- Voice/video calls.
+- Message reactions / threads beyond existing `reply_to`.
+- Per-member read receipts in groups beyond existing `last_read_at`.
 
-### Technical notes
-- All eligibility checks duplicated in RLS + RPC so the client can't bypass.
-- `create_group_request` enforces `sum(gender_requirements) == member_limit` (or `any` mode).
-- Daily limit tracked via `count(*) where creator_id=auth.uid() and created_at >= today`.
-- Auto-create chat uses existing `chats` + `chat_participants` schema; `is_group=true`, `mode` inherited from creator's current mode.
-- Realtime: subscribe to `group_participants` for live seat counts on detail page.
+### Order of execution
+
+1. Migration (waits for approval).
+2. Storage bucket + storage RLS migration.
+3. Edge function + cron schedule.
+4. Frontend components + page edits.
+5. Verify build, test invite/upgrade/media flow in preview.

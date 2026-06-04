@@ -53,12 +53,52 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_invites: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          invitee_id: string
+          inviter_id: string
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          invitee_id: string
+          inviter_id: string
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          invitee_id?: string
+          inviter_id?: string
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_invites_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_participants: {
         Row: {
           chat_id: string
           id: string
           joined_at: string
           last_read_at: string | null
+          removed_at: string | null
+          role: string
           user_id: string
         }
         Insert: {
@@ -66,6 +106,8 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string | null
+          removed_at?: string | null
+          role?: string
           user_id: string
         }
         Update: {
@@ -73,6 +115,8 @@ export type Database = {
           id?: string
           joined_at?: string
           last_read_at?: string | null
+          removed_at?: string | null
+          role?: string
           user_id?: string
         }
         Relationships: [
@@ -115,26 +159,38 @@ export type Database = {
       chats: {
         Row: {
           created_at: string
+          created_by: string | null
           expires_at: string | null
           id: string
+          image_url: string | null
           is_group: boolean
+          member_limit: number
           mode: Database["public"]["Enums"]["mode_preference"]
+          name: string | null
           timer_stopped: boolean
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           expires_at?: string | null
           id?: string
+          image_url?: string | null
           is_group?: boolean
+          member_limit?: number
           mode?: Database["public"]["Enums"]["mode_preference"]
+          name?: string | null
           timer_stopped?: boolean
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           expires_at?: string | null
           id?: string
+          image_url?: string | null
           is_group?: boolean
+          member_limit?: number
           mode?: Database["public"]["Enums"]["mode_preference"]
+          name?: string | null
           timer_stopped?: boolean
         }
         Relationships: []
@@ -231,6 +287,35 @@ export type Database = {
         }
         Relationships: []
       }
+      media_views: {
+        Row: {
+          id: string
+          message_id: string
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_views_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reports: {
         Row: {
           admin_note: string | null
@@ -309,33 +394,54 @@ export type Database = {
       messages: {
         Row: {
           chat_id: string
-          content: string
+          content: string | null
           created_at: string
+          deleted_for_all: boolean
+          expires_at: string | null
           id: string
           image_url: string | null
+          media_path: string | null
+          media_size: number | null
+          media_type: string | null
           reply_to: string | null
           self_destruct_minutes: number | null
           sender_id: string
+          view_once: boolean
+          viewed_by: string[]
         }
         Insert: {
           chat_id: string
-          content: string
+          content?: string | null
           created_at?: string
+          deleted_for_all?: boolean
+          expires_at?: string | null
           id?: string
           image_url?: string | null
+          media_path?: string | null
+          media_size?: number | null
+          media_type?: string | null
           reply_to?: string | null
           self_destruct_minutes?: number | null
           sender_id: string
+          view_once?: boolean
+          viewed_by?: string[]
         }
         Update: {
           chat_id?: string
-          content?: string
+          content?: string | null
           created_at?: string
+          deleted_for_all?: boolean
+          expires_at?: string | null
           id?: string
           image_url?: string | null
+          media_path?: string | null
+          media_size?: number | null
+          media_type?: string | null
           reply_to?: string | null
           self_destruct_minutes?: number | null
           sender_id?: string
+          view_once?: boolean
+          viewed_by?: string[]
         }
         Relationships: [
           {
@@ -971,6 +1077,10 @@ export type Database = {
         }
         Returns: string
       }
+      chat_role: {
+        Args: { _chat_id: string; _user_id: string }
+        Returns: string
+      }
       check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
       create_group_request: {
         Args: {
@@ -1044,6 +1154,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      invite_to_chat: {
+        Args: { p_chat_id: string; p_user_id: string }
+        Returns: string
+      }
       is_blocked: { Args: { _user1: string; _user2: string }; Returns: boolean }
       is_chat_participant: {
         Args: { _chat_id: string; _user_id: string }
@@ -1055,6 +1169,7 @@ export type Database = {
         Returns: boolean
       }
       join_group_request: { Args: { p_request_id: string }; Returns: string }
+      leave_chat: { Args: { p_chat_id: string }; Returns: undefined }
       leave_group_request: {
         Args: { p_request_id: string }
         Returns: undefined
@@ -1086,12 +1201,17 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      mark_media_viewed: { Args: { p_message_id: string }; Returns: undefined }
       process_violation: {
         Args: { _content: string; _mode?: string }
         Returns: Json
       }
       record_user_report: {
         Args: { _reported_user_id: string }
+        Returns: undefined
+      }
+      remove_chat_member: {
+        Args: { p_chat_id: string; p_user_id: string }
         Returns: undefined
       }
       report_message: {
@@ -1104,6 +1224,10 @@ export type Database = {
         }
         Returns: string
       }
+      respond_chat_invite: {
+        Args: { p_accept: boolean; p_invite_id: string }
+        Returns: string
+      }
       respond_group_join: {
         Args: { p_approve: boolean; p_participant_id: string }
         Returns: undefined
@@ -1111,6 +1235,14 @@ export type Database = {
       start_random_chat: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
+      }
+      update_group_meta: {
+        Args: { p_chat_id: string; p_image_url: string; p_name: string }
+        Returns: undefined
+      }
+      upgrade_chat_to_group: {
+        Args: { p_chat_id: string; p_name: string }
+        Returns: undefined
       }
       user_has_dark_access: { Args: { _user_id: string }; Returns: boolean }
       user_has_group_access: { Args: { _user_id: string }; Returns: boolean }
