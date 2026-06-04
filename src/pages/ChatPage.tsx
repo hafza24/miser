@@ -763,7 +763,18 @@ const ChatPage = () => {
                                 <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
                               </button>
                             )}
-                            {isMe ? (
+                            {msg.media_path && userId ? (
+                              <MediaMessage
+                                messageId={msg.id}
+                                mediaPath={msg.media_path}
+                                mediaType={msg.media_type || 'file'}
+                                viewOnce={!!msg.view_once}
+                                expiresAt={msg.expires_at || null}
+                                isMine={isMe}
+                                viewedBy={msg.viewed_by || []}
+                                currentUserId={userId}
+                              />
+                            ) : isMe ? (
                               msg.content
                             ) : (
                               <TranslatedMessage
@@ -867,6 +878,7 @@ const ChatPage = () => {
                 <Smile className="h-5 w-5" />
               </Button>
               <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
+              {chatId && userId && <MediaUploader chatId={chatId} senderId={userId} disabled={expired || chatEnded} />}
               {chatId && otherUserId && (
                 <SceneGenerator mode={mode as 'light' | 'dark'} chatId={chatId} otherUserId={otherUserId} disabled={expired || chatEnded || sending} onSend={sendGeneratedScene} continuationTrigger={continuationTrigger} />
               )}
