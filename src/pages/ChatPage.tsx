@@ -890,6 +890,39 @@ const ChatPage = () => {
           </div>
         </>
       )}
+
+      {chatInfo?.is_group && userId && chatId && (
+        <GroupInfoSheet
+          open={groupInfoOpen}
+          onOpenChange={setGroupInfoOpen}
+          chatId={chatId}
+          currentUserId={userId}
+          onLeft={() => { setGroupInfoOpen(false); navigate('/dashboard'); }}
+        />
+      )}
+
+      <AlertDialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convert to group chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This chat becomes a group. The timer stops and you can invite more people. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            placeholder="Group name"
+            value={upgradeName}
+            onChange={(e) => setUpgradeName(e.target.value)}
+            maxLength={60}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUpgrade} disabled={upgrading}>
+              {upgrading ? 'Converting…' : 'Convert'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
