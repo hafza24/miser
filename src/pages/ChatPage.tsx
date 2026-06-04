@@ -6,7 +6,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2 } from 'lucide-react';
+import MediaUploader from '@/components/chat/MediaUploader';
+import MediaMessage from '@/components/chat/MediaMessage';
+import GroupInfoSheet from '@/components/chat/GroupInfoSheet';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import ChatTimer from '@/components/ChatTimer';
@@ -43,6 +46,12 @@ interface Message {
   image_url: string | null;
   created_at: string;
   reply_to: string | null;
+  media_type?: string | null;
+  media_path?: string | null;
+  view_once?: boolean;
+  expires_at?: string | null;
+  viewed_by?: string[] | null;
+  deleted_for_all?: boolean;
 }
 
 interface ChatInfo {
@@ -50,6 +59,10 @@ interface ChatInfo {
   expires_at: string | null;
   timer_stopped: boolean;
   mode: 'light' | 'dark';
+  is_group: boolean;
+  name: string | null;
+  image_url: string | null;
+  created_by: string | null;
 }
 
 const EMOJI_LIST = ['😊', '❤️', '😂', '🥰', '😘', '💕', '🔥', '😈', '💫', '🌙', '🐼', '🦊', '✨', '💖', '🙈'];
@@ -94,6 +107,22 @@ const ChatPage = () => {
   const prevMessageCountRef = useRef(0);
   const [showJumpButton, setShowJumpButton] = useState(false);
   const [unreadNew, setUnreadNew] = useState(0);
+  const [groupInfoOpen, setGroupInfoOpen] = useState(false);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [upgradeName, setUpgradeName] = useState('');
+  const [upgrading, setUpgrading] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!chatId) return;
+    setUpgrading(true);
+    const { error } = await supabase.rpc('upgrade_chat_to_group' as any, { p_chat_id: chatId, p_name: upgradeName });
+    setUpgrading(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Converted to group');
+    setUpgradeOpen(false);
+    setUpgradeName('');
+    loadChatInfo();
+  };
 
   const { isOtherTyping, sendTyping } = useTypingIndicator(chatId, userId);
 
@@ -274,7 +303,7 @@ const ChatPage = () => {
 
   const loadChatInfo = async () => {
     if (!chatId) return;
-    const { data } = await supabase.from('chats').select('id, expires_at, timer_stopped, mode').eq('id', chatId).single();
+    const { data } = await supabase.from('chats').select('id, expires_at, timer_stopped, mode, is_group, name, image_url, created_by').eq('id', chatId).single();
     if (data) { setChatInfo(data as any); setChatMode((data as any).mode || 'light'); }
   };
 
@@ -492,10 +521,10 @@ const ChatPage = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="rounded-full flex-shrink-0 h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <span className="text-xl flex-shrink-0">{otherUser?.emoji_avatar || '💬'}</span>
+          <span className="text-xl flex-shrink-0">{chatInfo?.is_group ? '👥' : (otherUser?.emoji_avatar || '💬')}</span>
           <div className="flex-1 min-w-0">
             <h2 className="font-heading font-semibold text-foreground leading-none truncate text-sm">
-              {otherUser?.alias || 'Anonymous'}
+              {chatInfo?.is_group ? (chatInfo.name || 'Group chat') : (otherUser?.alias || 'Anonymous')}
             </h2>
             <span className="text-[11px] text-muted-foreground">
               {isOtherTyping ? 'typing...' : chatMode === 'light' ? '🌞 Light' : '🌑 Dark'}
@@ -517,6 +546,15 @@ const ChatPage = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
+                {chatInfo?.is_group ? (
+                  <DropdownMenuItem onClick={() => setGroupInfoOpen(true)}>
+                    <Users className="h-4 w-4 mr-2" /> Group info
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem onClick={() => setUpgradeOpen(true)}>
+                    <UserPlus2 className="h-4 w-4 mr-2" /> Convert to group
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="text-amber-500 focus:text-amber-500">
                   <Flag className="h-4 w-4 mr-2" />
                   Report User
@@ -725,7 +763,18 @@ const ChatPage = () => {
                                 <p className="truncate">{repliedMsg.content.substring(0, 60)}{repliedMsg.content.length > 60 ? '...' : ''}</p>
                               </button>
                             )}
-                            {isMe ? (
+                            {msg.media_path && userId ? (
+                              <MediaMessage
+                                messageId={msg.id}
+                                mediaPath={msg.media_path}
+                                mediaType={msg.media_type || 'file'}
+                                viewOnce={!!msg.view_once}
+                                expiresAt={msg.expires_at || null}
+                                isMine={isMe}
+                                viewedBy={msg.viewed_by || []}
+                                currentUserId={userId}
+                              />
+                            ) : isMe ? (
                               msg.content
                             ) : (
                               <TranslatedMessage
@@ -829,6 +878,7 @@ const ChatPage = () => {
                 <Smile className="h-5 w-5" />
               </Button>
               <TruthOrDare onSend={sendGameMessage} disabled={expired || chatEnded} />
+              {chatId && userId && <MediaUploader chatId={chatId} senderId={userId} disabled={expired || chatEnded} />}
               {chatId && otherUserId && (
                 <SceneGenerator mode={mode as 'light' | 'dark'} chatId={chatId} otherUserId={otherUserId} disabled={expired || chatEnded || sending} onSend={sendGeneratedScene} continuationTrigger={continuationTrigger} />
               )}
@@ -840,6 +890,39 @@ const ChatPage = () => {
           </div>
         </>
       )}
+
+      {chatInfo?.is_group && userId && chatId && (
+        <GroupInfoSheet
+          open={groupInfoOpen}
+          onOpenChange={setGroupInfoOpen}
+          chatId={chatId}
+          currentUserId={userId}
+          onLeft={() => { setGroupInfoOpen(false); navigate('/dashboard'); }}
+        />
+      )}
+
+      <AlertDialog open={upgradeOpen} onOpenChange={setUpgradeOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Convert to group chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This chat becomes a group. The timer stops and you can invite more people. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <Input
+            placeholder="Group name"
+            value={upgradeName}
+            onChange={(e) => setUpgradeName(e.target.value)}
+            maxLength={60}
+          />
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUpgrade} disabled={upgrading}>
+              {upgrading ? 'Converting…' : 'Convert'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
