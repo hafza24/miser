@@ -129,6 +129,27 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const idsToFetch = new Set<string>();
     requests?.forEach((r) => idsToFetch.add(r.sender_id));
 
+    // 1b) Pending group invites
+    const { data: invites } = await supabase
+      .from('chat_invites')
+      .select('id, chat_id, inviter_id, created_at')
+      .eq('invitee_id', user.id)
+      .eq('status', 'pending')
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    invites?.forEach((i) => idsToFetch.add(i.inviter_id));
+    const inviteChatIds = [...new Set((invites ?? []).map(i => i.chat_id))];
+    let inviteChatNameMap = new Map<string, string | null>();
+    if (inviteChatIds.length) {
+      const { data: inviteChats } = await supabase
+        .from('chats')
+        .select('id, name')
+        .in('id', inviteChatIds);
+      inviteChatNameMap = new Map((inviteChats ?? []).map((c: any) => [c.id, c.name as string | null]));
+    }
+
+
     // 2) Unread messages — one notification per chat
     const { data: participations } = await supabase
       .from('chat_participants')
