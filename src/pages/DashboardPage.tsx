@@ -227,6 +227,62 @@ const DashboardPage = () => {
     }));
   };
 
+  // ─── Load pending group invites ───
+  const loadInvites = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('chat_invites')
+      .select('id, chat_id, inviter_id, created_at')
+      .eq('invitee_id', user.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (!data?.length) { setInvites([]); return; }
+
+    const inviterIds = [...new Set(data.map(r => r.inviter_id))];
+    const chatIds = [...new Set(data.map(r => r.chat_id))];
+    const [{ data: profiles }, { data: chatRows }] = await Promise.all([
+      supabase.rpc('get_public_profile_by_ids', { user_ids: inviterIds }),
+      supabase.from('chats').select('id, name').in('id', chatIds),
+    ]);
+    const chatMap = new Map((chatRows ?? []).map((c: any) => [c.id, c.name as string | null]));
+
+    setInvites(data.map(r => {
+      const p = profiles?.find((p: any) => p.user_id === r.inviter_id);
+      return {
+        ...r,
+        alias: p?.alias || 'Anonymous',
+        emoji: p?.emoji_avatar || '💫',
+        group_name: chatMap.get(r.chat_id) ?? null,
+      };
+    }));
+  };
+
+  // ─── Accept / Decline group invite ───
+  const respondToInvite = async (inviteId: string, accept: boolean) => {
+    setActionId(inviteId);
+    try {
+      const { data: chatId, error } = await supabase.rpc('respond_chat_invite', {
+        p_invite_id: inviteId,
+        p_accept: accept,
+      });
+      if (error) throw error;
+      setInvites(prev => prev.filter(i => i.id !== inviteId));
+      if (accept) {
+        toast.success('Joined group!');
+        await loadChats();
+        if (chatId) navigate(`/chat/${chatId}`);
+      } else {
+        toast.success('Invite declined.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to respond to invite');
+    }
+    setActionId(null);
+  };
+
+
+
   // ─── Accept / Decline incoming ───
   const respondToRequest = async (requestId: string, accept: boolean) => {
     if (!user) return;
