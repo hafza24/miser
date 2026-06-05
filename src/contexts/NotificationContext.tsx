@@ -90,6 +90,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const prefMessages = profile?.notify_messages ?? true;
   const prefRequests = profile?.notify_requests ?? true;
   const prefExpiry   = profile?.notify_expiry   ?? true;
+  const prefGroupInvites = profile?.notify_group_invites_pref ?? true;
 
 
   const setSoundEnabled = (v: boolean) => {
