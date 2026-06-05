@@ -126,17 +126,24 @@ const AdminChats = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">
-                            {chat.participants.map(p => p.alias).join(' & ') || 'No participants'}
+                            {chat.is_group
+                              ? (chat.name || 'Group chat')
+                              : (chat.participants.map(p => p.alias).join(' & ') || 'No participants')}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {chat.messageCount} messages · {new Date(chat.created_at).toLocaleDateString()}
+                            {chat.memberCount} members · {chat.messageCount} messages
+                            {chat.viewOnceCount > 0 && ` · ${chat.viewOnceCount} view-once`}
+                            {' · '}{new Date(chat.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                         <Badge variant={active ? 'default' : 'secondary'} className="text-[10px]">
                           {active ? 'Active' : 'Expired'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {chat.is_group ? 'Group' : '1:1'}
                         </Badge>
                         <Badge variant="outline" className="text-[10px] capitalize">{chat.mode}</Badge>
                         {chat.timer_stopped && (
