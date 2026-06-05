@@ -210,6 +210,25 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       });
     }
 
+    if (prefGroupInvites) {
+      invites?.forEach((inv) => {
+        if (mutedIds.has(inv.inviter_id)) return;
+        const p = profileCache[inv.inviter_id];
+        const name = inviteChatNameMap.get(inv.chat_id);
+        items.push({
+          id: `inv-${inv.id}`,
+          type: 'group_invite',
+          title: 'Group Invite',
+          message: `${p?.emoji_avatar || '👥'} ${p?.alias || 'Someone'} invited you to ${name ? `“${name}”` : 'a group chat'}`,
+          timestamp: inv.created_at,
+          read: false,
+          meta: { inviteId: inv.id, chatId: inv.chat_id },
+        });
+      });
+    }
+
+
+
     if (prefMessages) {
       unreadByChat.forEach((msgs, chatId) => {
         const latest = msgs[0];
