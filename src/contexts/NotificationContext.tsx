@@ -395,6 +395,22 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         table: 'chat_participants',
         filter: `user_id=eq.${user.id}`,
       }, () => scheduleRefresh())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_invites',
+        filter: `invitee_id=eq.${user.id}`,
+      }, (payload) => {
+        const inv = (payload.new ?? payload.old) as any;
+        const key = `inv:${inv?.id}:${payload.eventType}`;
+        if (lastEventKeyRef.current.has(key)) return;
+        lastEventKeyRef.current.add(key);
+        if (payload.eventType === 'INSERT' && prefGroupInvites) {
+          if (soundEnabled) playNotificationSound();
+          if (desktopEnabled) showDesktopNotification('Group Invite', 'You were invited to a group chat');
+        }
+        scheduleRefresh();
+      })
       .subscribe();
 
     return () => {
