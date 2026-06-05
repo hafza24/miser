@@ -41,6 +41,16 @@ interface SentRequest {
   emoji: string;
 }
 
+interface GroupInvite {
+  id: string;
+  chat_id: string;
+  inviter_id: string;
+  created_at: string;
+  alias: string;
+  emoji: string;
+  group_name: string | null;
+}
+
 const DashboardPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
@@ -49,6 +59,7 @@ const DashboardPage = () => {
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
+  const [invites, setInvites] = useState<GroupInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
@@ -56,7 +67,7 @@ const DashboardPage = () => {
   const reload = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    await Promise.all([loadChats(), loadIncoming(), loadSent()]);
+    await Promise.all([loadChats(), loadIncoming(), loadSent(), loadInvites()]);
     setLoading(false);
   }, [user]);
 
