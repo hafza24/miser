@@ -397,6 +397,54 @@ const DashboardPage = () => {
           </div>
         </div>
 
+        {/* Group Invites */}
+        {invites.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Group Invites ({invites.length})
+            </h3>
+            <div className="space-y-2">
+              {invites.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border"
+                >
+                  <div className="text-2xl">{inv.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground truncate block">
+                      {inv.alias} invited you
+                    </span>
+                    <p className="text-xs text-muted-foreground truncate">
+                      to join {inv.group_name ? `“${inv.group_name}”` : 'a group chat'}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="icon"
+                      variant="default"
+                      className="h-8 w-8"
+                      disabled={actionId === inv.id}
+                      onClick={() => respondToInvite(inv.id, true)}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      disabled={actionId === inv.id}
+                      onClick={() => respondToInvite(inv.id, false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Incoming Requests */}
         {incoming.length > 0 && (
           <div className="mb-6">
