@@ -5,12 +5,12 @@ import { playNotificationSound, showDesktopNotification } from '@/hooks/useUnrea
 
 export interface NotificationItem {
   id: string;
-  type: 'chat_request' | 'new_message' | 'expiry_alert' | 'subscription_expiring' | 'subscription_expired' | 'payment_pending';
+  type: 'chat_request' | 'new_message' | 'expiry_alert' | 'subscription_expiring' | 'subscription_expired' | 'payment_pending' | 'group_invite';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
-  meta?: { chatId?: string; requestId?: string };
+  meta?: { chatId?: string; requestId?: string; inviteId?: string };
 }
 
 interface NotificationContextType {
@@ -90,6 +90,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const prefMessages = profile?.notify_messages ?? true;
   const prefRequests = profile?.notify_requests ?? true;
   const prefExpiry   = profile?.notify_expiry   ?? true;
+  const prefGroupInvites = profile?.notify_group_invites_pref ?? true;
 
 
   const setSoundEnabled = (v: boolean) => {
@@ -127,6 +128,27 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     const profileCache: Record<string, { alias?: string; emoji_avatar?: string }> = {};
     const idsToFetch = new Set<string>();
     requests?.forEach((r) => idsToFetch.add(r.sender_id));
+
+    // 1b) Pending group invites
+    const { data: invites } = await supabase
+      .from('chat_invites')
+      .select('id, chat_id, inviter_id, created_at')
+      .eq('invitee_id', user.id)
+      .eq('status', 'pending')
+      .gte('created_at', cutoff)
+      .order('created_at', { ascending: false })
+      .limit(20);
+    invites?.forEach((i) => idsToFetch.add(i.inviter_id));
+    const inviteChatIds = [...new Set((invites ?? []).map(i => i.chat_id))];
+    let inviteChatNameMap = new Map<string, string | null>();
+    if (inviteChatIds.length) {
+      const { data: inviteChats } = await supabase
+        .from('chats')
+        .select('id, name')
+        .in('id', inviteChatIds);
+      inviteChatNameMap = new Map((inviteChats ?? []).map((c: any) => [c.id, c.name as string | null]));
+    }
+
 
     // 2) Unread messages — one notification per chat
     const { data: participations } = await supabase
@@ -187,6 +209,25 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         });
       });
     }
+
+    if (prefGroupInvites) {
+      invites?.forEach((inv) => {
+        if (mutedIds.has(inv.inviter_id)) return;
+        const p = profileCache[inv.inviter_id];
+        const name = inviteChatNameMap.get(inv.chat_id);
+        items.push({
+          id: `inv-${inv.id}`,
+          type: 'group_invite',
+          title: 'Group Invite',
+          message: `${p?.emoji_avatar || '👥'} ${p?.alias || 'Someone'} invited you to ${name ? `“${name}”` : 'a group chat'}`,
+          timestamp: inv.created_at,
+          read: false,
+          meta: { inviteId: inv.id, chatId: inv.chat_id },
+        });
+      });
+    }
+
+
 
     if (prefMessages) {
       unreadByChat.forEach((msgs, chatId) => {
@@ -291,7 +332,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     setNotifications(merged);
-  }, [user, prefMessages, prefRequests, prefExpiry, mutedIds]);
+  }, [user, prefMessages, prefRequests, prefExpiry, prefGroupInvites, mutedIds]);
 
   // Debounced refresh to coalesce bursts of realtime events
   const scheduleRefresh = useCallback(() => {
@@ -354,13 +395,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         table: 'chat_participants',
         filter: `user_id=eq.${user.id}`,
       }, () => scheduleRefresh())
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_invites',
+        filter: `invitee_id=eq.${user.id}`,
+      }, (payload) => {
+        const inv = (payload.new ?? payload.old) as any;
+        const key = `inv:${inv?.id}:${payload.eventType}`;
+        if (lastEventKeyRef.current.has(key)) return;
+        lastEventKeyRef.current.add(key);
+        if (payload.eventType === 'INSERT' && prefGroupInvites) {
+          if (soundEnabled) playNotificationSound();
+          if (desktopEnabled) showDesktopNotification('Group Invite', 'You were invited to a group chat');
+        }
+        scheduleRefresh();
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages]);
+  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites]);
 
   // Refresh expiry alerts every 5 min
   useEffect(() => {

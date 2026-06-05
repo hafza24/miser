@@ -11,11 +11,14 @@ interface ChatRow {
   id: string;
   mode: string;
   is_group: boolean;
+  name: string | null;
   timer_stopped: boolean;
   expires_at: string | null;
   created_at: string;
   participants: { alias: string; emoji_avatar: string }[];
+  memberCount: number;
   messageCount: number;
+  viewOnceCount: number;
 }
 
 const AdminChats = () => {
@@ -26,7 +29,7 @@ const AdminChats = () => {
     const load = async () => {
       const { data: chatData, error } = await supabase
         .from('chats')
-        .select('id, mode, is_group, timer_stopped, expires_at, created_at')
+        .select('id, mode, is_group, name, timer_stopped, expires_at, created_at')
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -43,13 +46,14 @@ const AdminChats = () => {
         return;
       }
 
-      // Load participants
+      // Load participants (only active members)
       const { data: participants } = await supabase
         .from('chat_participants')
-        .select('chat_id, user_id')
+        .select('chat_id, user_id, removed_at')
         .in('chat_id', chatIds);
 
-      const userIds = [...new Set((participants ?? []).map(p => p.user_id))];
+      const activeParts = (participants ?? []).filter(p => !p.removed_at);
+      const userIds = [...new Set(activeParts.map(p => p.user_id))];
       const { data: profiles } = await supabase
         .from('profiles')
         .select('user_id, alias, emoji_avatar')
@@ -57,18 +61,20 @@ const AdminChats = () => {
 
       const profileMap = new Map((profiles ?? []).map(p => [p.user_id, p]));
 
-      // Count messages per chat
+      // Counts per chat
       const messageCounts = new Map<string, number>();
-      for (const chatId of chatIds) {
-        const { count } = await supabase
-          .from('messages')
-          .select('id', { count: 'exact', head: true })
-          .eq('chat_id', chatId);
-        messageCounts.set(chatId, count ?? 0);
-      }
+      const viewOnceCounts = new Map<string, number>();
+      await Promise.all(chatIds.map(async (chatId) => {
+        const [{ count: total }, { count: vo }] = await Promise.all([
+          supabase.from('messages').select('id', { count: 'exact', head: true }).eq('chat_id', chatId),
+          supabase.from('messages').select('id', { count: 'exact', head: true }).eq('chat_id', chatId).eq('view_once', true),
+        ]);
+        messageCounts.set(chatId, total ?? 0);
+        viewOnceCounts.set(chatId, vo ?? 0);
+      }));
 
       setChats((chatData ?? []).map(chat => {
-        const chatParticipants = (participants ?? [])
+        const chatParticipants = activeParts
           .filter(p => p.chat_id === chat.id)
           .map(p => profileMap.get(p.user_id))
           .filter(Boolean) as { alias: string; emoji_avatar: string }[];
@@ -76,7 +82,9 @@ const AdminChats = () => {
         return {
           ...chat,
           participants: chatParticipants,
+          memberCount: chatParticipants.length,
           messageCount: messageCounts.get(chat.id) ?? 0,
+          viewOnceCount: viewOnceCounts.get(chat.id) ?? 0,
         };
       }));
       setLoading(false);
@@ -118,17 +126,24 @@ const AdminChats = () => {
                         </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">
-                            {chat.participants.map(p => p.alias).join(' & ') || 'No participants'}
+                            {chat.is_group
+                              ? (chat.name || 'Group chat')
+                              : (chat.participants.map(p => p.alias).join(' & ') || 'No participants')}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {chat.messageCount} messages · {new Date(chat.created_at).toLocaleDateString()}
+                            {chat.memberCount} members · {chat.messageCount} messages
+                            {chat.viewOnceCount > 0 && ` · ${chat.viewOnceCount} view-once`}
+                            {' · '}{new Date(chat.created_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
                         <Badge variant={active ? 'default' : 'secondary'} className="text-[10px]">
                           {active ? 'Active' : 'Expired'}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px]">
+                          {chat.is_group ? 'Group' : '1:1'}
                         </Badge>
                         <Badge variant="outline" className="text-[10px] capitalize">{chat.mode}</Badge>
                         {chat.timer_stopped && (

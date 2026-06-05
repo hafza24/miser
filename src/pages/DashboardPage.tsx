@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Users, MessageCircle, Check, X,
-  Inbox, SendHorizontal, Clock, Trash2, Sparkles,
+  Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus,
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { toast } from 'sonner';
@@ -41,6 +41,16 @@ interface SentRequest {
   emoji: string;
 }
 
+interface GroupInvite {
+  id: string;
+  chat_id: string;
+  inviter_id: string;
+  created_at: string;
+  alias: string;
+  emoji: string;
+  group_name: string | null;
+}
+
 const DashboardPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
@@ -49,6 +59,7 @@ const DashboardPage = () => {
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
+  const [invites, setInvites] = useState<GroupInvite[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
@@ -56,7 +67,7 @@ const DashboardPage = () => {
   const reload = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    await Promise.all([loadChats(), loadIncoming(), loadSent()]);
+    await Promise.all([loadChats(), loadIncoming(), loadSent(), loadInvites()]);
     setLoading(false);
   }, [user]);
 
@@ -95,6 +106,12 @@ const DashboardPage = () => {
         schema: 'public',
         table: 'chat_participants',
         filter: `user_id=eq.${user.id}`,
+      }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_invites',
+        filter: `invitee_id=eq.${user.id}`,
       }, scheduleReload)
       .subscribe();
 
@@ -210,6 +227,62 @@ const DashboardPage = () => {
     }));
   };
 
+  // ─── Load pending group invites ───
+  const loadInvites = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('chat_invites')
+      .select('id, chat_id, inviter_id, created_at')
+      .eq('invitee_id', user.id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+
+    if (!data?.length) { setInvites([]); return; }
+
+    const inviterIds = [...new Set(data.map(r => r.inviter_id))];
+    const chatIds = [...new Set(data.map(r => r.chat_id))];
+    const [{ data: profiles }, { data: chatRows }] = await Promise.all([
+      supabase.rpc('get_public_profile_by_ids', { user_ids: inviterIds }),
+      supabase.from('chats').select('id, name').in('id', chatIds),
+    ]);
+    const chatMap = new Map((chatRows ?? []).map((c: any) => [c.id, c.name as string | null]));
+
+    setInvites(data.map(r => {
+      const p = profiles?.find((p: any) => p.user_id === r.inviter_id);
+      return {
+        ...r,
+        alias: p?.alias || 'Anonymous',
+        emoji: p?.emoji_avatar || '💫',
+        group_name: chatMap.get(r.chat_id) ?? null,
+      };
+    }));
+  };
+
+  // ─── Accept / Decline group invite ───
+  const respondToInvite = async (inviteId: string, accept: boolean) => {
+    setActionId(inviteId);
+    try {
+      const { data: chatId, error } = await supabase.rpc('respond_chat_invite', {
+        p_invite_id: inviteId,
+        p_accept: accept,
+      });
+      if (error) throw error;
+      setInvites(prev => prev.filter(i => i.id !== inviteId));
+      if (accept) {
+        toast.success('Joined group!');
+        await loadChats();
+        if (chatId) navigate(`/chat/${chatId}`);
+      } else {
+        toast.success('Invite declined.');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to respond to invite');
+    }
+    setActionId(null);
+  };
+
+
+
   // ─── Accept / Decline incoming ───
   const respondToRequest = async (requestId: string, accept: boolean) => {
     if (!user) return;
@@ -323,6 +396,54 @@ const DashboardPage = () => {
             </Button>
           </div>
         </div>
+
+        {/* Group Invites */}
+        {invites.length > 0 && (
+          <div className="mb-6">
+            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Group Invites ({invites.length})
+            </h3>
+            <div className="space-y-2">
+              {invites.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-accent/30 border border-border"
+                >
+                  <div className="text-2xl">{inv.emoji}</div>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium text-foreground truncate block">
+                      {inv.alias} invited you
+                    </span>
+                    <p className="text-xs text-muted-foreground truncate">
+                      to join {inv.group_name ? `“${inv.group_name}”` : 'a group chat'}
+                    </p>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <Button
+                      size="icon"
+                      variant="default"
+                      className="h-8 w-8"
+                      disabled={actionId === inv.id}
+                      onClick={() => respondToInvite(inv.id, true)}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8"
+                      disabled={actionId === inv.id}
+                      onClick={() => respondToInvite(inv.id, false)}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Incoming Requests */}
         {incoming.length > 0 && (
