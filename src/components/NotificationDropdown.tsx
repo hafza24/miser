@@ -13,6 +13,7 @@ const NotificationDropdown = () => {
 
   const handleClick = (n: typeof notifications[0]) => {
     markRead(n.id);
+    if (n.type === 'group_invite') { navigate('/dashboard'); return; }
     if (n.meta?.chatId) navigate(`/chat/${n.meta.chatId}`);
     else if (n.type === 'chat_request') navigate('/dashboard');
     else if (n.type.startsWith('subscription') || n.type === 'payment_pending') navigate('/subscription');
@@ -20,6 +21,7 @@ const NotificationDropdown = () => {
 
   const iconFor = (type: typeof notifications[0]['type']) => {
     if (type === 'chat_request') return <MessageCircle className="h-4 w-4 text-primary" />;
+    if (type === 'group_invite') return <UserPlus className="h-4 w-4 text-primary" />;
     if (type === 'new_message') return <MessageSquare className="h-4 w-4 text-primary" />;
     if (type === 'expiry_alert') return <Clock className="h-4 w-4 text-destructive" />;
     return <CreditCard className="h-4 w-4 text-primary" />;
