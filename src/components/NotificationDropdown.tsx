@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, MessageCircle, Clock, CheckCheck, MessageSquare, CreditCard } from 'lucide-react';
+import { Bell, MessageCircle, Clock, CheckCheck, MessageSquare, CreditCard, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useNotifications } from '@/contexts/NotificationContext';
