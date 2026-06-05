@@ -107,6 +107,12 @@ const DashboardPage = () => {
         table: 'chat_participants',
         filter: `user_id=eq.${user.id}`,
       }, scheduleReload)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chat_invites',
+        filter: `invitee_id=eq.${user.id}`,
+      }, scheduleReload)
       .subscribe();
 
     return () => {
