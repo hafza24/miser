@@ -7,7 +7,7 @@ import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import {
   Plus, Users, MessageCircle, Check, X,
-  Inbox, SendHorizontal, Clock, Trash2, Sparkles,
+  Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus,
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { toast } from 'sonner';
