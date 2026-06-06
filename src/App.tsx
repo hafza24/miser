@@ -85,6 +85,9 @@ const AppRoutes = () => (
       <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
+      <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
+      <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
       {/* Public pages */}
       <Route path="/page/:slug" element={<SitePage />} />
       <Route path="/download" element={<DownloadPage />} />
