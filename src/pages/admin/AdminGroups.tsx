@@ -83,9 +83,57 @@ const AdminGroups = () => {
               <Switch checked={requireApproval} onCheckedChange={(v) => { setRequireApproval(v); saveSetting('group_require_admin_approval', v); }} />
             </div>
             <div className="flex items-center gap-3">
-              <Label className="flex-1">Daily create limit per user</Label>
-              <Input type="number" min={1} max={20} value={dailyLimit} onChange={e => setDailyLimit(parseInt(e.target.value, 10) || 1)} className="w-24" />
+              <Label className="flex-1">Daily create limit per user (cap)</Label>
+              <Input type="number" min={1} max={50} value={dailyLimit} onChange={e => setDailyLimit(parseInt(e.target.value, 10) || 1)} className="w-24" />
               <Button size="sm" onClick={() => saveSetting('group_daily_create_limit', dailyLimit)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Max members allowed per group</Label>
+              <Input type="number" min={2} max={50} value={groupMax} onChange={e => setGroupMax(parseInt(e.target.value, 10) || 2)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('group_max_members', groupMax)}>Save</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Global feature toggles</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Presence status feature enabled</Label>
+              <Switch checked={presenceEnabled} onCheckedChange={(v) => { setPresenceEnabled(v); saveSetting('presence_feature_enabled', v); }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Auto-translate feature enabled</Label>
+              <Switch checked={autoTrEnabled} onCheckedChange={(v) => { setAutoTrEnabled(v); saveSetting('auto_translate_feature_enabled', v); }} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Free-tier (no subscription) defaults</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily chats</Label>
+              <Input type="number" min={0} max={50} value={freeChat} onChange={e => setFreeChat(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_chat_limit', freeChat)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily group creations</Label>
+              <Input type="number" min={0} max={20} value={freeGroup} onChange={e => setFreeGroup(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_group_limit', freeGroup)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily scene generations</Label>
+              <Input type="number" min={0} max={50} value={freeScene} onChange={e => setFreeScene(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_scene_limit', freeScene)}>Save</Button>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Presence settings allowed</Label>
+              <Switch checked={freePresence} onCheckedChange={(v) => { setFreePresence(v); saveSetting('free_presence_access', v); }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Auto-translation allowed</Label>
+              <Switch checked={freeAutoTr} onCheckedChange={(v) => { setFreeAutoTr(v); saveSetting('free_auto_translate_access', v); }} />
             </div>
           </CardContent>
         </Card>
