@@ -13,18 +13,40 @@ const AdminGroups = () => {
   const [enabled, setEnabled] = useState(true);
   const [requireApproval, setRequireApproval] = useState(false);
   const [dailyLimit, setDailyLimit] = useState(3);
+  const [groupMax, setGroupMax] = useState(8);
+  const [presenceEnabled, setPresenceEnabled] = useState(true);
+  const [autoTrEnabled, setAutoTrEnabled] = useState(true);
+  const [freeChat, setFreeChat] = useState(3);
+  const [freeGroup, setFreeGroup] = useState(1);
+  const [freeScene, setFreeScene] = useState(0);
+  const [freePresence, setFreePresence] = useState(false);
+  const [freeAutoTr, setFreeAutoTr] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     const [{ data: settings }, { data: reqs }] = await Promise.all([
-      supabase.from('app_settings').select('*').in('key', ['group_requests_enabled', 'group_require_admin_approval', 'group_daily_create_limit']),
+      supabase.from('app_settings').select('*').in('key', [
+        'group_requests_enabled','group_require_admin_approval','group_daily_create_limit','group_max_members',
+        'presence_feature_enabled','auto_translate_feature_enabled',
+        'free_daily_chat_limit','free_daily_group_limit','free_daily_scene_limit','free_presence_access','free_auto_translate_access',
+      ]),
       (supabase as any).from('group_requests').select('*').order('created_at', { ascending: false }).limit(100),
     ]);
+    const toInt = (v: any, d: number) => typeof v === 'number' ? v : parseInt(String(v), 10) || d;
+    const toBool = (v: any, d: boolean) => v === true || v === 'true' ? true : v === false || v === 'false' ? false : d;
     for (const s of settings || []) {
-      if (s.key === 'group_requests_enabled') setEnabled(s.value === true || s.value === 'true');
-      if (s.key === 'group_require_admin_approval') setRequireApproval(s.value === true || s.value === 'true');
-      if (s.key === 'group_daily_create_limit') setDailyLimit(typeof s.value === 'number' ? s.value : parseInt(String(s.value), 10) || 3);
+      if (s.key === 'group_requests_enabled') setEnabled(toBool(s.value, true));
+      if (s.key === 'group_require_admin_approval') setRequireApproval(toBool(s.value, false));
+      if (s.key === 'group_daily_create_limit') setDailyLimit(toInt(s.value, 3));
+      if (s.key === 'group_max_members') setGroupMax(toInt(s.value, 8));
+      if (s.key === 'presence_feature_enabled') setPresenceEnabled(toBool(s.value, true));
+      if (s.key === 'auto_translate_feature_enabled') setAutoTrEnabled(toBool(s.value, true));
+      if (s.key === 'free_daily_chat_limit') setFreeChat(toInt(s.value, 3));
+      if (s.key === 'free_daily_group_limit') setFreeGroup(toInt(s.value, 1));
+      if (s.key === 'free_daily_scene_limit') setFreeScene(toInt(s.value, 0));
+      if (s.key === 'free_presence_access') setFreePresence(toBool(s.value, false));
+      if (s.key === 'free_auto_translate_access') setFreeAutoTr(toBool(s.value, false));
     }
     setRequests(reqs || []);
     setLoading(false);
