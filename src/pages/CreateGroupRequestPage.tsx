@@ -51,8 +51,8 @@ const CreateGroupRequestPage = () => {
       <AppLayout>
         <div className="p-6 space-y-4 text-center">
           <Crown className="h-12 w-12 mx-auto text-primary" />
-          <h2 className="font-heading text-2xl font-bold">Premium feature</h2>
-          <p className="text-muted-foreground">Group requests are available on premium plans.</p>
+          <h2 className="font-heading text-2xl font-bold">Daily group limit reached</h2>
+          <p className="text-muted-foreground">You've used all your group creations for today. Upgrade your plan for more, or come back tomorrow.</p>
           <Button onClick={() => navigate('/subscription')}>View plans</Button>
         </div>
       </AppLayout>
