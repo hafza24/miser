@@ -13,18 +13,40 @@ const AdminGroups = () => {
   const [enabled, setEnabled] = useState(true);
   const [requireApproval, setRequireApproval] = useState(false);
   const [dailyLimit, setDailyLimit] = useState(3);
+  const [groupMax, setGroupMax] = useState(8);
+  const [presenceEnabled, setPresenceEnabled] = useState(true);
+  const [autoTrEnabled, setAutoTrEnabled] = useState(true);
+  const [freeChat, setFreeChat] = useState(3);
+  const [freeGroup, setFreeGroup] = useState(1);
+  const [freeScene, setFreeScene] = useState(0);
+  const [freePresence, setFreePresence] = useState(false);
+  const [freeAutoTr, setFreeAutoTr] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
     const [{ data: settings }, { data: reqs }] = await Promise.all([
-      supabase.from('app_settings').select('*').in('key', ['group_requests_enabled', 'group_require_admin_approval', 'group_daily_create_limit']),
+      supabase.from('app_settings').select('*').in('key', [
+        'group_requests_enabled','group_require_admin_approval','group_daily_create_limit','group_max_members',
+        'presence_feature_enabled','auto_translate_feature_enabled',
+        'free_daily_chat_limit','free_daily_group_limit','free_daily_scene_limit','free_presence_access','free_auto_translate_access',
+      ]),
       (supabase as any).from('group_requests').select('*').order('created_at', { ascending: false }).limit(100),
     ]);
+    const toInt = (v: any, d: number) => typeof v === 'number' ? v : parseInt(String(v), 10) || d;
+    const toBool = (v: any, d: boolean) => v === true || v === 'true' ? true : v === false || v === 'false' ? false : d;
     for (const s of settings || []) {
-      if (s.key === 'group_requests_enabled') setEnabled(s.value === true || s.value === 'true');
-      if (s.key === 'group_require_admin_approval') setRequireApproval(s.value === true || s.value === 'true');
-      if (s.key === 'group_daily_create_limit') setDailyLimit(typeof s.value === 'number' ? s.value : parseInt(String(s.value), 10) || 3);
+      if (s.key === 'group_requests_enabled') setEnabled(toBool(s.value, true));
+      if (s.key === 'group_require_admin_approval') setRequireApproval(toBool(s.value, false));
+      if (s.key === 'group_daily_create_limit') setDailyLimit(toInt(s.value, 3));
+      if (s.key === 'group_max_members') setGroupMax(toInt(s.value, 8));
+      if (s.key === 'presence_feature_enabled') setPresenceEnabled(toBool(s.value, true));
+      if (s.key === 'auto_translate_feature_enabled') setAutoTrEnabled(toBool(s.value, true));
+      if (s.key === 'free_daily_chat_limit') setFreeChat(toInt(s.value, 3));
+      if (s.key === 'free_daily_group_limit') setFreeGroup(toInt(s.value, 1));
+      if (s.key === 'free_daily_scene_limit') setFreeScene(toInt(s.value, 0));
+      if (s.key === 'free_presence_access') setFreePresence(toBool(s.value, false));
+      if (s.key === 'free_auto_translate_access') setFreeAutoTr(toBool(s.value, false));
     }
     setRequests(reqs || []);
     setLoading(false);
@@ -61,9 +83,57 @@ const AdminGroups = () => {
               <Switch checked={requireApproval} onCheckedChange={(v) => { setRequireApproval(v); saveSetting('group_require_admin_approval', v); }} />
             </div>
             <div className="flex items-center gap-3">
-              <Label className="flex-1">Daily create limit per user</Label>
-              <Input type="number" min={1} max={20} value={dailyLimit} onChange={e => setDailyLimit(parseInt(e.target.value, 10) || 1)} className="w-24" />
+              <Label className="flex-1">Daily create limit per user (cap)</Label>
+              <Input type="number" min={1} max={50} value={dailyLimit} onChange={e => setDailyLimit(parseInt(e.target.value, 10) || 1)} className="w-24" />
               <Button size="sm" onClick={() => saveSetting('group_daily_create_limit', dailyLimit)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Max members allowed per group</Label>
+              <Input type="number" min={2} max={50} value={groupMax} onChange={e => setGroupMax(parseInt(e.target.value, 10) || 2)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('group_max_members', groupMax)}>Save</Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Global feature toggles</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <Label>Presence status feature enabled</Label>
+              <Switch checked={presenceEnabled} onCheckedChange={(v) => { setPresenceEnabled(v); saveSetting('presence_feature_enabled', v); }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Auto-translate feature enabled</Label>
+              <Switch checked={autoTrEnabled} onCheckedChange={(v) => { setAutoTrEnabled(v); saveSetting('auto_translate_feature_enabled', v); }} />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Free-tier (no subscription) defaults</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily chats</Label>
+              <Input type="number" min={0} max={50} value={freeChat} onChange={e => setFreeChat(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_chat_limit', freeChat)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily group creations</Label>
+              <Input type="number" min={0} max={20} value={freeGroup} onChange={e => setFreeGroup(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_group_limit', freeGroup)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Daily scene generations</Label>
+              <Input type="number" min={0} max={50} value={freeScene} onChange={e => setFreeScene(parseInt(e.target.value, 10) || 0)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('free_daily_scene_limit', freeScene)}>Save</Button>
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Presence settings allowed</Label>
+              <Switch checked={freePresence} onCheckedChange={(v) => { setFreePresence(v); saveSetting('free_presence_access', v); }} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label>Auto-translation allowed</Label>
+              <Switch checked={freeAutoTr} onCheckedChange={(v) => { setFreeAutoTr(v); saveSetting('free_auto_translate_access', v); }} />
             </div>
           </CardContent>
         </Card>

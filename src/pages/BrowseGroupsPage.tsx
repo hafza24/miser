@@ -42,8 +42,8 @@ const BrowseGroupsPage = () => {
       <AppLayout>
         <div className="p-6 text-center space-y-4">
           <Crown className="h-12 w-12 mx-auto text-primary" />
-          <h2 className="font-heading text-2xl font-bold">Premium feature</h2>
-          <p className="text-muted-foreground">Group requests are available on premium plans.</p>
+          <h2 className="font-heading text-2xl font-bold">Daily group limit reached</h2>
+          <p className="text-muted-foreground">Upgrade your plan to create or join more groups today.</p>
           <Button onClick={() => navigate('/subscription')}>View plans</Button>
         </div>
       </AppLayout>

@@ -889,8 +889,10 @@ export type Database = {
       }
       subscription_plans: {
         Row: {
+          auto_translate_access: boolean
           created_at: string
           daily_chat_limit: number
+          daily_group_limit: number
           daily_scene_limit: number
           dark_mode_access: boolean
           description: string | null
@@ -898,14 +900,17 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          presence_access: boolean
           price_monthly: number
           price_yearly: number
           sort_order: number
           updated_at: string
         }
         Insert: {
+          auto_translate_access?: boolean
           created_at?: string
           daily_chat_limit?: number
+          daily_group_limit?: number
           daily_scene_limit?: number
           dark_mode_access?: boolean
           description?: string | null
@@ -913,14 +918,17 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          presence_access?: boolean
           price_monthly?: number
           price_yearly?: number
           sort_order?: number
           updated_at?: string
         }
         Update: {
+          auto_translate_access?: boolean
           created_at?: string
           daily_chat_limit?: number
+          daily_group_limit?: number
           daily_scene_limit?: number
           dark_mode_access?: boolean
           description?: string | null
@@ -928,6 +936,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          presence_access?: boolean
           price_monthly?: number
           price_yearly?: number
           sort_order?: number
@@ -1082,6 +1091,7 @@ export type Database = {
         Returns: string
       }
       check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
+      check_daily_group_limit: { Args: { _uid: string }; Returns: boolean }
       create_group_request: {
         Args: {
           p_gender_requirements: Json
@@ -1092,6 +1102,9 @@ export type Database = {
         }
         Returns: string
       }
+      effective_daily_chat_limit: { Args: { _uid: string }; Returns: number }
+      effective_daily_group_limit: { Args: { _uid: string }; Returns: number }
+      effective_daily_scene_limit: { Args: { _uid: string }; Returns: number }
       find_random_user: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
@@ -1244,8 +1257,13 @@ export type Database = {
         Args: { p_chat_id: string; p_name: string }
         Returns: undefined
       }
+      user_has_auto_translate_access: {
+        Args: { _uid: string }
+        Returns: boolean
+      }
       user_has_dark_access: { Args: { _user_id: string }; Returns: boolean }
       user_has_group_access: { Args: { _user_id: string }; Returns: boolean }
+      user_has_presence_access: { Args: { _uid: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

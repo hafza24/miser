@@ -31,9 +31,13 @@ import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminPages from "./pages/admin/AdminPages";
 import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
+import AdminGroups from "./pages/admin/AdminGroups";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SitePage from "./pages/SitePage";
 import DownloadPage from "./pages/DownloadPage";
+import BrowseGroupsPage from "./pages/BrowseGroupsPage";
+import CreateGroupRequestPage from "./pages/CreateGroupRequestPage";
+import GroupRequestDetailPage from "./pages/GroupRequestDetailPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
@@ -81,6 +85,9 @@ const AppRoutes = () => (
       <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+      <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
+      <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
+      <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
       {/* Public pages */}
       <Route path="/page/:slug" element={<SitePage />} />
       <Route path="/download" element={<DownloadPage />} />
@@ -96,6 +103,7 @@ const AppRoutes = () => (
       <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
       <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
       <Route path="/admin/payment-info" element={<AdminRoute><AdminPaymentInfo /></AdminRoute>} />
+      <Route path="/admin/groups" element={<AdminRoute><AdminGroups /></AdminRoute>} />
       {/* Legacy redirect */}
       <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />

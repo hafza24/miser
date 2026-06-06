@@ -150,6 +150,14 @@ const ChatPage = () => {
         loadMessages();
         markAsRead();
       })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, (payload) => {
+        const updated = payload.new as any;
+        if (updated?.deleted_for_all) {
+          setMessages(prev => prev.filter(m => m.id !== updated.id));
+        } else {
+          setMessages(prev => prev.map(m => (m.id === updated.id ? { ...m, ...updated } : m)));
+        }
+      })
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages', filter: `chat_id=eq.${chatId}` }, (payload) => {
         const deletedId = (payload.old as any)?.id;
         if (deletedId) setMessages(prev => prev.filter(m => m.id !== deletedId));
@@ -309,7 +317,7 @@ const ChatPage = () => {
 
   const loadMessages = async () => {
     if (!chatId) return;
-    const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+    const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).eq('deleted_for_all', false).order('created_at', { ascending: true });
     if (data) setMessages(data as Message[]);
   };
 
