@@ -31,9 +31,13 @@ import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
 import AdminReports from "./pages/admin/AdminReports";
 import AdminPages from "./pages/admin/AdminPages";
 import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
+import AdminGroups from "./pages/admin/AdminGroups";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SitePage from "./pages/SitePage";
 import DownloadPage from "./pages/DownloadPage";
+import BrowseGroupsPage from "./pages/BrowseGroupsPage";
+import CreateGroupRequestPage from "./pages/CreateGroupRequestPage";
+import GroupRequestDetailPage from "./pages/GroupRequestDetailPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
