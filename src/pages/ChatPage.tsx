@@ -317,7 +317,7 @@ const ChatPage = () => {
 
   const loadMessages = async () => {
     if (!chatId) return;
-    const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+    const { data } = await supabase.from('messages').select('*').eq('chat_id', chatId).eq('deleted_for_all', false).order('created_at', { ascending: true });
     if (data) setMessages(data as Message[]);
   };
 
