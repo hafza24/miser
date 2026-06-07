@@ -1,121 +1,62 @@
-## M2 — Groups, 1:1 → Group upgrade, Ephemeral media
+# Full App Structure & Navigation Audit
 
-Builds on the existing `chats.is_group` schema. No new "free group request" flow — any user can convert a 1:1 chat into a group and add members, and the premium curated request flow already handles group creation from scratch.
+This is a very large scope (essentially an IA + navigation + design-system rebuild on top of dozens of existing pages). Shipping it as one change would break the live app, blow past the context window, and burn many credits with high regression risk. I'll plan it as **phases you can approve one at a time**. Each phase is independently shippable and verifiable.
 
----
+Before phase 1, I need a few decisions from you.
 
-### 1. Database (single migration)
+## Decisions needed
 
-**`chats`** — add metadata
-- `name text` (null for 1:1)
-- `image_url text`
-- `created_by uuid` (null for legacy rows; set on new groups)
-- `member_limit int default 10`
+1. **Scope of "Media" hub** — Today, media lives inside chats only (view-once images via `chat-media` bucket + `mark_media_viewed`). A standalone Media page (Shared / Saved / Temporary) means storing message_id references per user and a new "saved media" table. Do you want this new feature built, or should "Media" just be a filter inside each chat?
+2. **Requests split** — You list Friend / Group / Three-person / Match as separate request types. Today only `chat_requests`, `chat_invites`, and `group_requests` exist. Are "friend requests", "three-person requests", and "match requests" new features to design, or aliases for existing flows?
+3. **Feed / Recommendations on Dashboard** — There is no social feed today. Should Dashboard stay as today's activity hub (pending requests, recent chats, quotas), or do you want a real content feed designed and built?
+4. **Admin "Logs" module** — User/admin/security/error logs don't exist as tables yet. Build full audit-log infra (new tables + triggers + UI), or stub the module and wire it later?
 
-**`chat_participants`** — add role
-- `role text default 'member'` check in ('owner','admin','member')
-- `removed_at timestamptz` (soft kick)
+Your answers determine whether this is **3 phases (~reorg only)** or **6+ phases (~reorg + new features)**.
 
-**`messages`** — add ephemeral fields
-- `media_type text` check in ('image','video','audio','file') null
-- `media_path text` (storage object key, not URL)
-- `media_size int`
-- `view_once boolean default false`
-- `expires_at timestamptz` (timed expiry, distinct from `self_destruct_minutes` which already exists for text)
-- `viewed_by uuid[] default '{}'` (for view-once tracking in groups)
-- `deleted_for_all boolean default false` (set when media expires/viewed)
+## Phased plan
 
-**New table: `chat_invites`**
-- id, chat_id, inviter_id, invitee_id, status ('pending'|'accepted'|'declined'|'cancelled'), created_at, responded_at
-- unique(chat_id, invitee_id) where status='pending'
+### Phase 1 — IA map + route cleanup (no UI feature changes)
+- Inventory every file in `src/pages/**` and `src/pages/admin/**`, every route in `App.tsx`, every nav entry in `AppLayout.tsx` / `AdminLayout.tsx`.
+- Produce a single `docs/ia-map.md` with: current page → purpose → target section → action (keep / move / merge / delete).
+- Delete dead routes, fix broken links, add redirects from old URLs to new ones (so bookmarks / native deep links keep working).
+- Standardize URL scheme: `/app/...` for user, `/admin/...` for admin (already partly the case).
+- Output: routing PR, no visual changes.
 
-**New table: `media_views`** (per-user view tracking)
-- id, message_id, viewer_id, viewed_at, unique(message_id, viewer_id)
+### Phase 2 — User navigation shell
+- Replace `AppLayout` with a responsive shell:
+  - Desktop: collapsible left sidebar (shadcn `Sidebar`, `collapsible="icon"`) + top header with breadcrumbs.
+  - Mobile: bottom nav (Home / Chats / Groups / Notifications / Profile) + drawer for the rest.
+- Move existing pages under their new sections (Dashboard, Chats, Groups, Requests, Notifications, Profile, Settings, Premium, Help). No page contents change yet — just where they hang.
+- Add a single `EmptyState`, `PageHeader`, and `SectionCard` primitive so subsequent phases can reuse them.
 
-**RPCs (security definer)**
-- `upgrade_chat_to_group(p_chat_id, p_name)` — owner = caller, both existing participants become members, sets `is_group=true`, preserves message history, stops timer.
-- `invite_to_chat(p_chat_id, p_user_id)` — only owner/admin, validates not blocked/restricted, not already member, under member_limit; creates `chat_invites` row.
-- `respond_chat_invite(p_invite_id, p_accept)` — invitee accepts → adds to `chat_participants`.
-- `remove_chat_member(p_chat_id, p_user_id)` — owner/admin only, can't remove owner; sets `removed_at`.
-- `leave_chat(p_chat_id)` — soft-removes self; if owner leaves, promote oldest admin or close chat.
-- `update_group_meta(p_chat_id, p_name, p_image_url)` — owner/admin only.
-- `mark_media_viewed(p_message_id)` — appends to `viewed_by`, inserts `media_views`; if `view_once` and all non-sender participants viewed → set `deleted_for_all=true`, schedule storage deletion via cleanup function.
+### Phase 3 — User settings consolidation
+- Split today's monolithic `SettingsPage` into tabbed sub-pages: Account, Privacy, Notifications, Security, Theme, Language, Group preferences, Premium preferences.
+- One route `/settings` with nested tabs; deep links like `/settings/privacy` work directly.
 
-**RLS updates**
-- `chat_participants` insert: relax to also allow inserts from `chat_invites.status='accepted'` (via security definer RPC, so RLS just blocks raw client inserts outside the invite/request flow).
-- `messages` select: also hide rows where `deleted_for_all=true` from non-senders.
-- New tables: standard auth-scoped policies; service_role full access.
+### Phase 4 — Admin panel restructure
+- Reorganize `/admin` into the 11 modules you listed, using a sidebar identical in style to the user shell.
+- Group existing admin pages (`AdminUsers`, `AdminChats`, `AdminGroups`, `AdminPayments`, `AdminSubscriptions`, `AdminPaymentInfo`, `AdminModeration`, `AdminReports`, `AdminPages`, `AdminTickets`, AI/translation settings) into Dashboard / Users / Chats / Groups / Premium / AI / Moderation / Content / System.
+- Stub the modules that have no backing data yet (Media, Logs, Coupons, Maintenance mode) with "Coming soon" cards behind `has_role('admin')`, so navigation is complete without fake data.
+- Enforce `has_role('admin')` at the `AdminLayout` boundary (already partially done) + per-route guard.
 
-**Realtime**: add `chat_invites`, `chat_participants` UPDATE events already covered.
+### Phase 5 — Design system pass
+- Audit and unify: button variants, card padding, modal sizes, table styling, form field spacing, loader, empty state, error page.
+- Pull all ad-hoc Tailwind colors back into semantic tokens from `index.css` (memory rule).
+- Add a single `<DataTable>`, `<Modal>`, `<SearchBar>`, `<Pagination>` and migrate existing usages.
 
-### 2. Storage
+### Phase 6 — Responsive + QA sweep
+- Walk every page at 360 / 768 / 1280 / 1920 widths in the preview, screenshot, fix overflow / cropping / horizontal scroll.
+- Run typecheck + build, fix all errors.
 
-- New private bucket `chat-media` (signed URLs, 60s TTL).
-- RLS on `storage.objects`:
-  - INSERT: authenticated user uploading under `{chat_id}/{message_id}/...` where they are a participant.
-  - SELECT: participants of the chat referenced in the path.
-  - DELETE: service_role only (cleanup function).
+### Optional Phase 7 — New features (only if you say yes in the decisions above)
+- Media hub, feed, request-type expansion, full audit logs.
 
-### 3. Edge function
+## Why phased
 
-`cleanup-ephemeral-media` — cron every 5 min:
-- Find `messages` rows where (`expires_at < now()` OR `deleted_for_all=true`) AND `media_path IS NOT NULL`.
-- Delete storage objects, null out `media_path`, set `content='[expired]'`.
+- Each phase is reviewable in one preview session.
+- Each phase keeps the app shippable — nothing is half-migrated.
+- You can stop after any phase and the app is still better than before.
 
-Schedule via `supabase--insert` (pg_cron + pg_net), per the scheduled-jobs guide.
+## What I need from you
 
-### 4. Frontend
-
-**`ChatPage.tsx`** (edits)
-- Group-aware header: shows group name + image when `is_group`, otherwise existing 1:1 alias.
-- "Convert to group" action in chat menu when 1:1 → opens dialog (name + first invitee).
-- "Group info" sheet: members list with roles, invite, rename, change image, leave, remove member (owner/admin).
-- Message composer: paperclip → media picker with toggles "View once" and "Expires in" (1h/24h/7d/never).
-- Render media messages with view-once gating (blur until tapped, then mark viewed, single-show).
-- Filter out `deleted_for_all` messages.
-
-**New: `src/components/chat/GroupInfoSheet.tsx`** — members, roles, invite, rename, image.
-**New: `src/components/chat/MediaUploader.tsx`** — file pick, preview, view-once + expiry options, signed upload.
-**New: `src/components/chat/MediaMessage.tsx`** — view-once / countdown rendering, signed-URL fetch.
-**New: `src/components/chat/InviteUserDialog.tsx`** — search by alias, send invite.
-
-**`DashboardPage.tsx`** — show pending `chat_invites` in a new "Group Invites" list with Accept/Decline.
-
-**Notifications** — `NotificationContext.tsx`: new event type `group_invite` honoring `notify_group_invites_pref`.
-
-### 5. Admin
-
-`AdminChats.tsx` — add columns: members count, group/1:1 badge, view-once message count. Action: force-close group, remove member, purge media.
-
-### 6. Files
-
-**New**
-- `supabase/migrations/<ts>_m2_groups_media.sql`
-- `supabase/functions/cleanup-ephemeral-media/index.ts`
-- `src/components/chat/GroupInfoSheet.tsx`
-- `src/components/chat/MediaUploader.tsx`
-- `src/components/chat/MediaMessage.tsx`
-- `src/components/chat/InviteUserDialog.tsx`
-- `src/hooks/useSignedMediaUrl.ts`
-
-**Edited**
-- `src/pages/ChatPage.tsx`
-- `src/pages/DashboardPage.tsx`
-- `src/contexts/NotificationContext.tsx`
-- `src/pages/admin/AdminChats.tsx`
-- `src/integrations/supabase/types.ts` (regenerated)
-
-### 7. Out of scope (deferred to M3/M4)
-
-- End-to-end encryption of media bytes (M4).
-- Voice/video calls.
-- Message reactions / threads beyond existing `reply_to`.
-- Per-member read receipts in groups beyond existing `last_read_at`.
-
-### Order of execution
-
-1. Migration (waits for approval).
-2. Storage bucket + storage RLS migration.
-3. Edge function + cron schedule.
-4. Frontend components + page edits.
-5. Verify build, test invite/upgrade/media flow in preview.
+Answer the 4 decisions above, and tell me which phase to start with (default: Phase 1). I will not start implementation until you confirm — this is too large to "just do".
