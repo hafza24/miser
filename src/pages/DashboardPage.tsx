@@ -172,6 +172,7 @@ const DashboardPage = () => {
           id: chat.id,
           mode: chat.mode,
           is_group: chat.is_group,
+          name: chat.name ?? null,
           created_at: chat.created_at,
           expires_at: chat.expires_at,
           timer_stopped: chat.timer_stopped,
