@@ -187,254 +187,294 @@ const ProfilePage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 space-y-6 animate-fade-in">
-        {/* Avatar + Alias */}
-        <div className="text-center py-8">
-          <div className="text-7xl mb-3 relative inline-block">
-            {emojiAvatar}
-            <OnlineIndicator
-              isOnline={profile.is_online ?? true} 
-              size="lg" 
-              className="absolute -bottom-1 -right-1" 
-            />
-          </div>
-          <div className="flex items-center justify-center gap-2 mt-2">
-            {editingAlias ? (
-              <div className="flex items-center gap-2">
-                <Input
-                  value={newAlias}
-                  onChange={(e) => setNewAlias(e.target.value)}
-                  className="w-40 h-8 text-center text-sm"
-                  maxLength={30}
-                  autoFocus
-                />
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleAliasSave} disabled={aliasSaving}>
-                  <Check className="h-4 w-4 text-green-500" />
-                </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setEditingAlias(false)}>
-                  <X className="h-4 w-4 text-destructive" />
-                </Button>
+      <div className="p-4 sm:p-6 space-y-5 animate-fade-in pb-24">
+        <PageHeader title="Your Profile" description="Curate how others see you" />
+
+        {/* Hero identity tile */}
+        <section className="bento-tile p-6 sm:p-8 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-surface)' }} />
+          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl opacity-30" style={{ background: 'var(--gradient-hero)' }} />
+
+          <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+            <div className="relative shrink-0 mx-auto sm:mx-0">
+              <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/40 flex items-center justify-center text-6xl shadow-elevated">
+                {emojiAvatar}
               </div>
-            ) : (
-              <>
-                <h2 className="font-heading text-2xl font-bold text-foreground">{profile.alias}</h2>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleAliasEdit}>
-                  <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-                </Button>
-              </>
-            )}
-            <OnlineIndicator isOnline={profile.is_online ?? true} size="md" showLabel lastSeenAt={profile.last_seen_at} />
-          </div>
-          {!editingAlias && !canChangeAlias() && (
-            <p className="text-xs text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
-          )}
-          {gender && <p className="text-sm text-muted-foreground mt-1">{GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}</p>}
-          <p className="text-xs text-muted-foreground mt-0.5">Anonymous identity</p>
-          <span className="inline-block mt-3 px-4 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-            {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
-          </span>
-          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/50 text-accent-foreground">
-            <MessageCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">
-              {DAILY_CHAT_LIMIT - chatsUsedToday > 0
-                ? `${DAILY_CHAT_LIMIT - chatsUsedToday} chat${DAILY_CHAT_LIMIT - chatsUsedToday !== 1 ? 's' : ''} remaining today`
-                : 'No chats remaining today'}
-            </span>
-          </div>
-        </div>
+              <OnlineIndicator
+                isOnline={profile.is_online ?? true}
+                size="lg"
+                className="absolute -bottom-1 -right-1"
+              />
+            </div>
 
-        {/* Emoji Picker */}
-        <div className="bg-card rounded-2xl p-6 shadow-card">
-          <Label className="mb-2 block">Choose Your Emoji Avatar</Label>
-          <div className="flex flex-wrap gap-2">
-            {EMOJI_OPTIONS.map((emoji) => (
-              <button
-                key={emoji}
-                type="button"
-                onClick={() => setEmojiAvatar(emoji)}
-                className={`text-2xl p-2 rounded-xl transition-all ${
-                  emojiAvatar === emoji
-                    ? 'bg-primary/20 ring-2 ring-primary scale-110'
-                    : 'hover:bg-accent'
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                {editingAlias ? (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      value={newAlias}
+                      onChange={(e) => setNewAlias(e.target.value)}
+                      className="w-44 h-9 text-sm"
+                      maxLength={30}
+                      autoFocus
+                    />
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleAliasSave} disabled={aliasSaving} aria-label="Save name">
+                      <Check className="h-4 w-4 text-success" />
+                    </Button>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingAlias(false)} aria-label="Cancel">
+                      <X className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{profile.alias}</h2>
+                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleAliasEdit} aria-label="Edit name">
+                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                    </Button>
+                  </>
+                )}
+              </div>
+              <div className="mt-1 flex items-center justify-center sm:justify-start gap-2 flex-wrap text-xs text-muted-foreground">
+                <OnlineIndicator isOnline={profile.is_online ?? true} size="sm" showLabel lastSeenAt={profile.last_seen_at} />
+                <span>•</span>
+                <span>Anonymous identity</span>
+                {gender && <><span>•</span><span>{GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}</span></>}
+              </div>
+              {!editingAlias && !canChangeAlias() && (
+                <p className="text-[11px] text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
+              )}
 
-        {/* Gender */}
-        <div className="bg-card rounded-2xl p-6 shadow-card">
-          <Label>Gender</Label>
-          <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select gender" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">— None —</SelectItem>
-              {GENDER_OPTIONS.map((g) => (
-                <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Interest */}
-        <div className="bg-card rounded-2xl p-6 shadow-card">
-          <Label className="mb-3 block">What are you looking for?</Label>
-          <div className="flex flex-wrap gap-2">
-            {INTEREST_OPTIONS.map((interest) => (
-              <button
-                key={interest}
-                type="button"
-                onClick={() => setSelectedInterest(selectedInterest === interest ? '' : interest)}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
-                  selectedInterest === interest
-                    ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                    : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
-                }`}
-              >
-                {interest}
-              </button>
-            ))}
+              <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
+                  {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-accent/60 text-accent-foreground">
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  {DAILY_CHAT_LIMIT - chatsUsedToday > 0
+                    ? `${DAILY_CHAT_LIMIT - chatsUsedToday} chat${DAILY_CHAT_LIMIT - chatsUsedToday !== 1 ? 's' : ''} left today`
+                    : 'No chats left today'}
+                </span>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Select one interest</p>
-        </div>
-        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            <h3 className="font-heading text-lg font-bold text-foreground">My Character</h3>
-          </div>
+        </section>
 
-          <div>
-            <Label>Title</Label>
-            <Input
-              value={charTitle}
-              onChange={(e) => setCharTitle(e.target.value)}
-              placeholder="e.g. The Wandering Poet"
-              maxLength={100}
-            />
-          </div>
-
-          <div>
-            <Label>Description</Label>
-            <Textarea
-              value={charDescription}
-              onChange={(e) => setCharDescription(e.target.value)}
-              placeholder="Describe your character..."
-              maxLength={500}
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <Label className="mb-2 block">Personality</Label>
+        {/* Bento grid — identity essentials */}
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
+          {/* Emoji picker */}
+          <section className="bento-tile p-5 lg:col-span-4">
+            <div className="flex items-center gap-1.5 mb-3">
+              <User className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emoji avatar</span>
+            </div>
             <div className="flex flex-wrap gap-2">
-              {PERSONALITY_OPTIONS.map((trait) => (
-                <Badge
-                  key={trait}
-                  variant={charPersonality.includes(trait) ? 'default' : 'outline'}
-                  className="cursor-pointer select-none transition-colors"
-                  onClick={() => togglePersonality(trait)}
+              {EMOJI_OPTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => setEmojiAvatar(emoji)}
+                  aria-pressed={emojiAvatar === emoji}
+                  aria-label={`Choose ${emoji}`}
+                  className={`text-2xl p-2 rounded-xl transition-all ${
+                    emojiAvatar === emoji
+                      ? 'bg-primary/15 ring-2 ring-primary scale-110'
+                      : 'hover:bg-accent'
+                  }`}
                 >
-                  {trait}
-                </Badge>
+                  {emoji}
+                </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          <div>
-            <Label>Life Story</Label>
-            <Textarea
-              value={charLifeStory}
-              onChange={(e) => setCharLifeStory(e.target.value)}
-              placeholder="Share your character's backstory..."
-              maxLength={1000}
-              rows={4}
-            />
-          </div>
-        </div>
-
-        {/* Languages */}
-        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
-          <h3 className="font-heading text-lg font-bold text-foreground">Languages</h3>
-          <p className="text-xs text-muted-foreground -mt-2">Incoming messages auto-translate into your primary language. Messages already in your secondary language won't be translated.</p>
-          <div>
-            <Label>Primary Language</Label>
-            <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {LANGUAGES.map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Secondary Language</Label>
-            <Select value={secondaryLanguage || 'none'} onValueChange={(v) => setSecondaryLanguage(v === 'none' ? '' : v)}>
-              <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {LANGUAGES.filter(l => l.code !== primaryLanguage).map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center justify-between pt-2">
-            <div>
-              <Label>Auto-translate recent messages</Label>
-              <p className="text-xs text-muted-foreground">Older messages translate on double-tap.</p>
+          {/* Gender */}
+          <section className="bento-tile p-5 lg:col-span-2">
+            <div className="flex items-center gap-1.5 mb-3">
+              <User className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gender</span>
             </div>
-            <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
-          </div>
+            <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
+              <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— None —</SelectItem>
+                {GENDER_OPTIONS.map((g) => (
+                  <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </section>
+
+          {/* Interest */}
+          <section className="bento-tile p-5 lg:col-span-6">
+            <div className="flex items-center gap-1.5 mb-3">
+              <Heart className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Looking for</span>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {INTEREST_OPTIONS.map((interest) => (
+                <button
+                  key={interest}
+                  type="button"
+                  onClick={() => setSelectedInterest(selectedInterest === interest ? '' : interest)}
+                  aria-pressed={selectedInterest === interest}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+                    selectedInterest === interest
+                      ? 'bg-primary text-primary-foreground border-primary shadow-soft'
+                      : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
+                  }`}
+                >
+                  {interest}
+                </button>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">Select one interest</p>
+          </section>
+
+          {/* Character — wide tile */}
+          <section className="bento-tile p-5 lg:col-span-4 space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              <h3 className="font-heading text-base font-bold text-foreground">My Character</h3>
+            </div>
+
+            <div>
+              <Label>Title</Label>
+              <Input
+                value={charTitle}
+                onChange={(e) => setCharTitle(e.target.value)}
+                placeholder="e.g. The Wandering Poet"
+                maxLength={100}
+              />
+            </div>
+
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                value={charDescription}
+                onChange={(e) => setCharDescription(e.target.value)}
+                placeholder="Describe your character..."
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <Label className="mb-2 block">Personality</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {PERSONALITY_OPTIONS.map((trait) => (
+                  <Badge
+                    key={trait}
+                    variant={charPersonality.includes(trait) ? 'default' : 'outline'}
+                    className="cursor-pointer select-none transition-colors"
+                    onClick={() => togglePersonality(trait)}
+                  >
+                    {trait}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label>Life Story</Label>
+              <Textarea
+                value={charLifeStory}
+                onChange={(e) => setCharLifeStory(e.target.value)}
+                placeholder="Share your character's backstory..."
+                maxLength={1000}
+                rows={4}
+              />
+            </div>
+          </section>
+
+          {/* Languages */}
+          <section className="bento-tile p-5 lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-2">
+              <LangIcon className="w-4 h-4 text-primary" />
+              <h3 className="font-heading text-base font-bold text-foreground">Languages</h3>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Incoming messages auto-translate into your primary language.</p>
+            <div>
+              <Label>Primary</Label>
+              <Select value={primaryLanguage} onValueChange={setPrimaryLanguage}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Secondary</Label>
+              <Select value={secondaryLanguage || 'none'} onValueChange={(v) => setSecondaryLanguage(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {LANGUAGES.filter(l => l.code !== primaryLanguage).map((l) => (<SelectItem key={l.code} value={l.code}>{l.label}</SelectItem>))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center justify-between pt-1 gap-3">
+              <div className="min-w-0">
+                <Label className="cursor-pointer">Auto-translate</Label>
+                <p className="text-[11px] text-muted-foreground">Older messages translate on double-tap.</p>
+              </div>
+              <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
+            </div>
+          </section>
+
+          {/* Basics — bio/country/availability */}
+          <section className="bento-tile p-5 lg:col-span-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-primary" />
+              <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
+            </div>
+            <div>
+              <Label>Bio</Label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell others about yourself (anonymously)..."
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Country</Label>
+                <Select value={region || 'none'} onValueChange={(v) => setRegion(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Select your country" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {COUNTRIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Availability</Label>
+                <Select value={availability || 'none'} onValueChange={(v) => setAvailability(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="When are you available?" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {AVAILABILITY_OPTIONS.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
         </div>
 
-        {/* Edit form */}
-        <div className="space-y-4 bg-card rounded-2xl p-6 shadow-card">
-          <div>
-            <Label>Bio</Label>
-            <Textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Tell others about yourself (anonymously)..."
-              maxLength={500}
-              rows={3}
-            />
+        {/* Sticky save bar */}
+        <div className="sticky bottom-4 z-10 flex justify-end">
+          <div className="bento-tile px-3 py-2 flex items-center gap-3 shadow-elevated">
+            <span className="text-xs text-muted-foreground hidden sm:inline">Changes are saved to your profile</span>
+            <Button onClick={handleSave} disabled={saving} className="gap-2">
+              {saving ? 'Saving...' : 'Save Profile'}
+            </Button>
           </div>
-          <div>
-            <Label>Country</Label>
-          <Select value={region || 'none'} onValueChange={(v) => setRegion(v === 'none' ? '' : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your country" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {COUNTRIES.map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Label>Availability</Label>
-            <Select value={availability || 'none'} onValueChange={(v) => setAvailability(v === 'none' ? '' : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="When are you available?" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {AVAILABILITY_OPTIONS.map((a) => (
-                  <SelectItem key={a} value={a}>{a}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={handleSave} className="w-full" disabled={saving}>
-            {saving ? 'Saving...' : 'Save Profile'}
-          </Button>
         </div>
       </div>
     </AppLayout>
   );
 };
+
 
 export default ProfilePage;
