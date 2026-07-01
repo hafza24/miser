@@ -164,10 +164,3 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default AppLayout;
-
-      </div>
-    </SidebarProvider>
-  );
-};
-
-export default AppLayout;
