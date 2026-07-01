@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,13 +21,35 @@ import { EmptyState } from '@/components/layout/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Bell, CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox,
+  Bell, CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck,
 } from 'lucide-react';
 
 type Source = 'subscriptions' | 'payment_requests';
 type Status = 'pending' | 'active' | 'expired' | 'cancelled' | 'approved' | 'rejected' | 'all';
 
 const PAGE_SIZE = 10;
+
+// Per-admin persistent read state for inbox rows
+const readStorageKey = (adminId: string, source: Source) =>
+  `admin_inbox_read_${source}_${adminId}`;
+
+const loadReadSet = (adminId: string, source: Source): Set<string> => {
+  try {
+    const raw = localStorage.getItem(readStorageKey(adminId, source));
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+};
+
+const persistReadSet = (adminId: string, source: Source, ids: Set<string>) => {
+  try {
+    localStorage.setItem(readStorageKey(adminId, source), JSON.stringify([...ids]));
+  } catch {
+    /* ignore */
+  }
+};
 
 const AdminNotifications = () => {
   const navigate = useNavigate();
