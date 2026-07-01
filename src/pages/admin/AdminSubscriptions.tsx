@@ -26,6 +26,7 @@ const PlansTab = () => {
   const defaultForm = {
     name: '', description: '', price_monthly: 0, price_yearly: 0,
     daily_chat_limit: 3, daily_scene_limit: 10, daily_group_limit: 1,
+    max_group_members: 8,
     dark_mode_access: false, group_requests_access: false,
     presence_access: false, auto_translate_access: false,
     is_active: true, sort_order: 0,
