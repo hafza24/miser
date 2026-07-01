@@ -661,12 +661,15 @@ const DashboardPage = () => {
                   ) : (
                     <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </div>
+
     </AppLayout>
   );
 };
