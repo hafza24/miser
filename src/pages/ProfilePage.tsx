@@ -9,11 +9,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { MessageCircle, Sparkles, Pencil, Check, X } from 'lucide-react';
+import { MessageCircle, Sparkles, Pencil, Check, X, User, Heart, Languages as LangIcon, Info } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { LANGUAGES } from '@/lib/languages';
 import { Switch } from '@/components/ui/switch';
+import { PageHeader } from '@/components/layout/PageHeader';
+
 
 const GENDER_OPTIONS: { value: string; label: string }[] = [
   { value: 'male', label: 'Male' },
