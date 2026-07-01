@@ -395,7 +395,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     setNotifications(merged);
-  }, [user, prefMessages, prefRequests, prefExpiry, prefGroupInvites, mutedIds]);
+  }, [user, prefMessages, prefRequests, prefExpiry, prefGroupInvites, mutedIds, isAdmin]);
 
   // Debounced refresh to coalesce bursts of realtime events
   const scheduleRefresh = useCallback(() => {
