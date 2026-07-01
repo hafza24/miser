@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import {
   Plus, Users, MessageCircle, Check, X,
   Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus, MoreVertical, ArrowUpRight,
@@ -68,6 +69,7 @@ const DashboardPage = () => {
   const [actionId, setActionId] = useState<string | null>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
   const [convertChat, setConvertChat] = useState<ChatItem | null>(null);
+  const [confirmChat, setConfirmChat] = useState<ChatItem | null>(null);
   const [convertName, setConvertName] = useState('');
   const [converting, setConverting] = useState(false);
 
@@ -714,7 +716,7 @@ const DashboardPage = () => {
                                 <MessageCircle className="h-4 w-4 mr-2" /> Open chat
                               </DropdownMenuItem>
                               {!chat.is_group && (
-                                <DropdownMenuItem onClick={() => { setConvertName(''); setConvertChat(chat); }}>
+                                <DropdownMenuItem onClick={() => setConfirmChat(chat)}>
                                   <ArrowUpRight className="h-4 w-4 mr-2" /> Convert to group
                                 </DropdownMenuItem>
                               )}
@@ -729,6 +731,39 @@ const DashboardPage = () => {
             })}
           </>
         )}
+
+        {/* Confirm before opening naming dialog */}
+        <AlertDialog open={!!confirmChat} onOpenChange={(o) => { if (!o) setConfirmChat(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Convert this chat to a group?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmChat && (
+                  <>
+                    You're about to turn your chat with{' '}
+                    <span className="font-medium text-foreground">
+                      {confirmChat.participants.map(p => p.alias).join(', ') || 'Anonymous'}
+                    </span>{' '}
+                    into a group chat. This will move it to Group chats, stop the expiry timer, and let you invite more people. This can't be undone.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const c = confirmChat;
+                  setConfirmChat(null);
+                  setConvertName('');
+                  setConvertChat(c);
+                }}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* Convert to group dialog */}
         <Dialog open={!!convertChat} onOpenChange={(o) => { if (!o) { setConvertChat(null); setConvertName(''); } }}>
