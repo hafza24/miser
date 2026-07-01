@@ -184,13 +184,53 @@
   .shadow-card {
     box-shadow: var(--shadow-card);
   }
+  .shadow-elevated {
+    box-shadow: var(--shadow-elevated);
+  }
+  .gradient-surface {
+    background: var(--gradient-surface);
+  }
   .neon-glow {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.4), 0 0 60px hsl(var(--primary) / 0.15);
   }
   .text-glow {
     text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
   }
+  .text-balance { text-wrap: balance; }
+  .text-pretty { text-wrap: pretty; }
+
+  /* Bento tile — reusable modern card */
+  .bento-tile {
+    position: relative;
+    border-radius: var(--radius);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+  .bento-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-elevated);
+    border-color: hsl(var(--primary) / 0.3);
+  }
+
+  /* Accessible skip link */
+  .skip-link {
+    position: absolute;
+    left: 0.5rem;
+    top: -3rem;
+    z-index: 100;
+    padding: 0.5rem 0.75rem;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: top 150ms ease;
+  }
+  .skip-link:focus { top: 0.5rem; }
 }
+
 
 /* Capacitor — keyboard open adjustments */
 body.keyboard-open {
