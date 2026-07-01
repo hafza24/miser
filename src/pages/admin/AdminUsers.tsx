@@ -215,10 +215,18 @@ const AdminUsers = () => {
                           {user.is_online && <Badge variant="default" className="text-[10px] px-1.5 py-0">Online</Badge>}
                           {user.is_suspended && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Suspended</Badge>}
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{user.mode_preference}</Badge>
+                          <Badge
+                            variant={user.plan_status === 'active' ? 'default' : 'outline'}
+                            className="text-[10px] px-1.5 py-0"
+                            title={user.plan_expiry ? `Expires ${new Date(user.plan_expiry).toLocaleDateString()}` : 'No active subscription'}
+                          >
+                            💎 {user.plan_name || 'Free'}{user.plan_status && user.plan_status !== 'active' ? ` (${user.plan_status})` : ''}
+                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{user.email || 'No email'}</p>
                         <p className="text-xs text-muted-foreground">
                           {user.gender || 'No gender'} · Violations: {user.violation_count} · Joined: {new Date(user.created_at).toLocaleDateString()}
+                          {user.plan_expiry && user.plan_status === 'active' && ` · Plan expires: ${new Date(user.plan_expiry).toLocaleDateString()}`}
                         </p>
                       </div>
                     </div>
