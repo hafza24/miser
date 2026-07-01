@@ -72,6 +72,7 @@ const DashboardPage = () => {
   const [confirmChat, setConfirmChat] = useState<ChatItem | null>(null);
   const [convertName, setConvertName] = useState('');
   const [converting, setConverting] = useState(false);
+  const [chatFilter, setChatFilter] = useState<'all' | 'direct' | 'group'>('all');
 
   const handleConvertToGroup = async () => {
     if (!convertChat) return;
