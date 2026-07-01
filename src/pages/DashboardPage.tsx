@@ -5,9 +5,12 @@ import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import {
   Plus, Users, MessageCircle, Check, X,
-  Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus,
+  Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus, MoreVertical, ArrowUpRight,
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { toast } from 'sonner';
@@ -16,6 +19,7 @@ interface ChatItem {
   id: string;
   mode: string;
   is_group: boolean;
+  name: string | null;
   created_at: string;
   expires_at: string | null;
   timer_stopped: boolean;
