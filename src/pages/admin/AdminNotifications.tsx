@@ -92,12 +92,75 @@ const AdminNotifications = () => {
 
   useEffect(() => { refreshPendingCounts(); }, [refreshPendingCounts, readIds]);
 
+  // Realtime: react to any change on subscriptions / payment_requests
+  useEffect(() => {
+    if (!user) return;
+    let debounce: ReturnType<typeof setTimeout> | null = null;
+    const bump = () => {
+      if (debounce) clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        load();
+        refreshPendingCounts();
+        refreshNotifications();
+      }, 300);
+    };
+    const channel = supabase
+      .channel(`admin-inbox-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, bump)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, bump)
+      // Read-state sync across this admin's devices via broadcast
+      .on('broadcast', { event: 'read-state' }, (msg) => {
+        const p = msg.payload as { source: Source; ids: string[]; adminId: string };
+        if (!p || p.adminId !== user.id) return;
+        const next = new Set(p.ids);
+        persistReadSet(user.id, p.source, next);
+        if (p.source === source) setReadIds(next);
+        refreshPendingCounts();
+      })
+      .subscribe();
+    return () => {
+      if (debounce) clearTimeout(debounce);
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, source]);
+
+  // Cross-tab sync via storage event (same device, other tabs)
+  useEffect(() => {
+    if (!user) return;
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key === readStorageKey(user.id, source)) {
+        setReadIds(loadReadSet(user.id, source));
+      }
+      if (
+        e.key === readStorageKey(user.id, 'subscriptions') ||
+        e.key === readStorageKey(user.id, 'payment_requests')
+      ) {
+        refreshPendingCounts();
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [user?.id, source, refreshPendingCounts]);
+
+
   const persistRead = (next: Set<string>) => {
     if (!user) return;
     setReadIds(new Set(next));
     persistReadSet(user.id, source, next);
     refreshNotifications();
+    // Broadcast to this admin's other devices
+    supabase
+      .channel(`admin-inbox-${user.id}`)
+      .send({
+        type: 'broadcast',
+        event: 'read-state',
+        payload: { adminId: user.id, source, ids: Array.from(next) },
+      })
+      .catch(() => {});
   };
+
 
   const markRowRead = (rowId: string) => {
     const next = new Set(readIds);
