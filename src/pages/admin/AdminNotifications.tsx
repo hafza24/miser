@@ -53,6 +53,8 @@ const persistReadSet = (adminId: string, source: Source, ids: Set<string>) => {
 
 const AdminNotifications = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { markRead, refreshNotifications } = useNotifications();
   const [source, setSource] = useState<Source>('subscriptions');
   const [status, setStatus] = useState<Status>('pending');
   const [search, setSearch] = useState('');
@@ -61,6 +63,62 @@ const AdminNotifications = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [profilesById, setProfilesById] = useState<Record<string, any>>({});
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [pendingUnread, setPendingUnread] = useState<{ subscriptions: number; payment_requests: number }>({
+    subscriptions: 0,
+    payment_requests: 0,
+  });
+
+  // Hydrate read-set when admin or source changes
+  useEffect(() => {
+    if (!user) return;
+    setReadIds(loadReadSet(user.id, source));
+  }, [user?.id, source]);
+
+  // Fetch pending unread counts across both sources for tab badges
+  const refreshPendingCounts = useCallback(async () => {
+    if (!user) return;
+    const [subs, pays] = await Promise.all([
+      supabase.from('subscriptions').select('id').eq('status', 'pending'),
+      supabase.from('payment_requests').select('id').eq('status', 'pending'),
+    ]);
+    const subRead = loadReadSet(user.id, 'subscriptions');
+    const payRead = loadReadSet(user.id, 'payment_requests');
+    setPendingUnread({
+      subscriptions: (subs.data || []).filter((r: any) => !subRead.has(r.id)).length,
+      payment_requests: (pays.data || []).filter((r: any) => !payRead.has(r.id)).length,
+    });
+  }, [user?.id]);
+
+  useEffect(() => { refreshPendingCounts(); }, [refreshPendingCounts, readIds]);
+
+  const persistRead = (next: Set<string>) => {
+    if (!user) return;
+    setReadIds(new Set(next));
+    persistReadSet(user.id, source, next);
+    refreshNotifications();
+  };
+
+  const markRowRead = (rowId: string) => {
+    const next = new Set(readIds);
+    next.add(rowId);
+    persistRead(next);
+    const prefix = source === 'subscriptions' ? 'admin-sub-pending-' : 'admin-payreq-pending-';
+    markRead(`${prefix}${rowId}`);
+  };
+
+  const markRowUnread = (rowId: string) => {
+    const next = new Set(readIds);
+    next.delete(rowId);
+    persistRead(next);
+  };
+
+  const markAllVisibleRead = () => {
+    const next = new Set(readIds);
+    rows.forEach((r) => next.add(r.id));
+    persistRead(next);
+  };
+
 
   const statusOptions = useMemo<Status[]>(
     () =>
