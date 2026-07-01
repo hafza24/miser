@@ -56,6 +56,7 @@ const PlansTab = () => {
       daily_chat_limit: plan.daily_chat_limit ?? 3,
       daily_scene_limit: plan.daily_scene_limit ?? 0,
       daily_group_limit: plan.daily_group_limit ?? 0,
+      max_group_members: plan.max_group_members ?? 8,
       dark_mode_access: !!plan.dark_mode_access,
       group_requests_access: !!plan.group_requests_access,
       presence_access: !!plan.presence_access,
