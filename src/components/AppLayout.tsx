@@ -99,8 +99,12 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           {/* Mobile top bar */}
           <header className="md:hidden sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-lg px-4 py-2.5">
             <div className="max-w-2xl mx-auto flex items-center justify-between">
-              <button onClick={() => navigate('/dashboard')} className="flex items-center gap-2 min-w-0">
-                <span className="text-2xl flex-shrink-0">{profile?.emoji_avatar || '💫'}</span>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 min-w-0 rounded-lg"
+                aria-label="Go to dashboard"
+              >
+                <span className="text-2xl flex-shrink-0" aria-hidden="true">{profile?.emoji_avatar || '💫'}</span>
                 <div className="min-w-0 text-left">
                   <span className="font-heading text-lg font-bold text-foreground leading-none block">Fur&amp;Fir</span>
                   <span className="text-xs text-muted-foreground truncate block">{profile?.alias}</span>
@@ -110,13 +114,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </header>
 
+          <a href="#main-content" className="skip-link">Skip to content</a>
+
           {/* Content */}
-          <main className="flex-1 w-full">
+          <main id="main-content" role="main" className="flex-1 w-full">
             <div className="max-w-5xl mx-auto w-full px-0 md:px-6 md:py-6">{children}</div>
           </main>
 
           {/* Mobile bottom nav */}
-          <nav className="md:hidden sticky bottom-0 z-40 border-t border-border bg-card/90 backdrop-blur-lg safe-area-bottom">
+          <nav
+            aria-label="Primary"
+            className="md:hidden sticky bottom-0 z-40 border-t border-border bg-card/90 backdrop-blur-lg safe-area-bottom"
+          >
             <div className="max-w-2xl mx-auto flex justify-around py-1.5 sm:py-2">
               {mobileNav.map((item) => {
                 const active = location.pathname === item.path;
@@ -124,14 +133,19 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    className={`flex flex-col items-center gap-0.5 px-3 sm:px-4 py-1.5 rounded-lg transition-colors relative ${
+                    aria-label={item.label}
+                    aria-current={active ? 'page' : undefined}
+                    className={`flex flex-col items-center gap-0.5 px-3 sm:px-4 py-1.5 min-h-11 rounded-lg transition-colors relative ${
                       active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     <div className="relative">
-                      <item.icon className="h-5 w-5" />
+                      <item.icon className="h-5 w-5" aria-hidden="true" />
                       {item.path === '/dashboard' && totalUnread > 0 && (
-                        <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+                        <span
+                          className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
+                          aria-label={`${totalUnread} unread`}
+                        >
                           {totalUnread > 99 ? '99+' : totalUnread}
                         </span>
                       )}
@@ -144,6 +158,13 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           </nav>
         </div>
+      </div>
+    </SidebarProvider>
+  );
+};
+
+export default AppLayout;
+
       </div>
     </SidebarProvider>
   );
