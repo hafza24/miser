@@ -280,12 +280,21 @@ const AdminNotifications = () => {
           <div className="space-y-3">
             {rows.map((r) => {
               const p = profilesById[r.user_id];
+              const isRead = readIds.has(r.id);
               return (
-                <Card key={r.id} className="shadow-sm">
+                <Card
+                  key={r.id}
+                  className={`shadow-sm transition-colors ${!isRead ? 'border-primary/40 bg-primary/[0.03]' : ''}`}
+                >
                   <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">
-                        {p?.emoji_avatar || '💫'}
+                      <div className="relative shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg">
+                          {p?.emoji_avatar || '💫'}
+                        </div>
+                        {!isRead && (
+                          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+                        )}
                       </div>
                       <div className="min-w-0 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -293,6 +302,11 @@ const AdminNotifications = () => {
                             {p?.alias || 'Unknown user'}
                           </span>
                           {statusBadge(r.status)}
+                          {!isRead && (
+                            <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">
+                              Unread
+                            </Badge>
+                          )}
                           <span className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                           </span>
@@ -312,12 +326,22 @@ const AdminNotifications = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex gap-2 shrink-0 flex-wrap">
+                      {isRead ? (
+                        <Button size="sm" variant="ghost" onClick={() => markRowUnread(r.id)} className="gap-1">
+                          Mark unread
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => markRowRead(r.id)} className="gap-1">
+                          <Check className="h-3.5 w-3.5" /> Mark read
+                        </Button>
+                      )}
                       <Button
                         size="sm"
-                        onClick={() =>
-                          navigate(source === 'subscriptions' ? '/admin/subscriptions' : '/admin/payments')
-                        }
+                        onClick={() => {
+                          markRowRead(r.id);
+                          navigate(source === 'subscriptions' ? '/admin/subscriptions' : '/admin/payments');
+                        }}
                         className="gap-1"
                       >
                         Review <ExternalLink className="h-3.5 w-3.5" />
@@ -328,6 +352,7 @@ const AdminNotifications = () => {
               );
             })}
           </div>
+
         )}
 
         {totalPages > 1 && (
