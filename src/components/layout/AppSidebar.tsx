@@ -20,7 +20,6 @@ const mainItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/dashboard', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
   { path: '/browse', icon: Search, label: 'Browse' },
-  { path: '/groups', icon: UsersRound, label: 'Groups' },
 ];
 
 const accountItems = [
