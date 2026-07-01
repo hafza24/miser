@@ -94,14 +94,30 @@
     --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
 
+    --success: 152 70% 50%;
+    --success-foreground: 240 15% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 240 15% 8%;
+
     --border: 240 15% 20%;
     --input: 240 15% 20%;
     --ring: 330 100% 65%;
 
+    --sidebar-background: 240 15% 10%;
+    --sidebar-foreground: 0 0% 88%;
+    --sidebar-primary: 330 100% 65%;
+    --sidebar-primary-foreground: 240 15% 8%;
+    --sidebar-accent: 240 15% 16%;
+    --sidebar-accent-foreground: 0 0% 93%;
+    --sidebar-border: 240 15% 18%;
+    --sidebar-ring: 330 100% 65%;
+
     --gradient-light: linear-gradient(135deg, hsl(330 100% 65% / 0.1), hsl(270 100% 70% / 0.1));
     --gradient-hero: linear-gradient(135deg, hsl(330 100% 65%), hsl(270 100% 70%));
+    --gradient-surface: linear-gradient(180deg, hsl(240 15% 14% / 0.6), hsl(240 15% 10% / 0.3));
     --shadow-soft: 0 4px 24px -4px hsl(330 100% 65% / 0.3);
-    --shadow-card: 0 2px 12px -2px hsl(330 100% 65% / 0.1);
+    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.2), 0 4px 16px -6px hsl(0 0% 0% / 0.35);
+    --shadow-elevated: 0 8px 32px -8px hsl(330 100% 65% / 0.35);
   }
 }
 
@@ -110,15 +126,50 @@
     @apply border-border;
   }
 
+  html {
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    text-rendering: optimizeLegibility;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background rounded-md;
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.25);
+    color: hsl(var(--foreground));
+  }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground) / 0.4); background-clip: padding-box; border: 2px solid transparent; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
+
 
 @layer utilities {
   .gradient-light {
