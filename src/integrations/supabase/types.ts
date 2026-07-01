@@ -699,6 +699,7 @@ export type Database = {
           country: string | null
           created_at: string
           daily_chat_limit: number
+          daily_group_limit: number
           daily_scene_limit: number
           dark_mode_blocked: boolean
           desktop_notifications_enabled: boolean
@@ -715,6 +716,7 @@ export type Database = {
           light_mode_blocked: boolean
           location_preference: string
           looking_for: string[]
+          max_group_members: number
           mode_preference: Database["public"]["Enums"]["mode_preference"]
           mood_preference: string | null
           muted_until: string | null
@@ -757,6 +759,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           daily_chat_limit?: number
+          daily_group_limit?: number
           daily_scene_limit?: number
           dark_mode_blocked?: boolean
           desktop_notifications_enabled?: boolean
@@ -773,6 +776,7 @@ export type Database = {
           light_mode_blocked?: boolean
           location_preference?: string
           looking_for?: string[]
+          max_group_members?: number
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           muted_until?: string | null
@@ -815,6 +819,7 @@ export type Database = {
           country?: string | null
           created_at?: string
           daily_chat_limit?: number
+          daily_group_limit?: number
           daily_scene_limit?: number
           dark_mode_blocked?: boolean
           desktop_notifications_enabled?: boolean
@@ -831,6 +836,7 @@ export type Database = {
           light_mode_blocked?: boolean
           location_preference?: string
           looking_for?: string[]
+          max_group_members?: number
           mode_preference?: Database["public"]["Enums"]["mode_preference"]
           mood_preference?: string | null
           muted_until?: string | null
@@ -917,6 +923,7 @@ export type Database = {
           group_requests_access: boolean
           id: string
           is_active: boolean
+          max_group_members: number
           name: string
           presence_access: boolean
           price_monthly: number
@@ -935,6 +942,7 @@ export type Database = {
           group_requests_access?: boolean
           id?: string
           is_active?: boolean
+          max_group_members?: number
           name: string
           presence_access?: boolean
           price_monthly?: number
@@ -953,6 +961,7 @@ export type Database = {
           group_requests_access?: boolean
           id?: string
           is_active?: boolean
+          max_group_members?: number
           name?: string
           presence_access?: boolean
           price_monthly?: number
