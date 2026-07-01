@@ -68,6 +68,7 @@ const DashboardPage = () => {
   const [actionId, setActionId] = useState<string | null>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
   const [convertChat, setConvertChat] = useState<ChatItem | null>(null);
+  const [confirmChat, setConfirmChat] = useState<ChatItem | null>(null);
   const [convertName, setConvertName] = useState('');
   const [converting, setConverting] = useState(false);
 
