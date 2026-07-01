@@ -77,24 +77,28 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   });
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [mutedIds, setMutedIds] = useState<Set<string>>(new Set());
+  const [isAdmin, setIsAdmin] = useState(false);
   const readIdsRef = useRef<Set<string>>(new Set());
   const lastEventKeyRef = useRef<Set<string>>(new Set()); // dedup realtime events
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load persisted read state when user changes
+  // Load persisted read state + admin role when user changes
   useEffect(() => {
     if (!user) {
       readIdsRef.current = new Set();
       setNotifications([]);
       setMutedIds(new Set());
+      setIsAdmin(false);
       return;
     }
     readIdsRef.current = loadReadIds(user.id);
-    // Load mute list
     supabase.from('muted_users').select('muted_id').eq('muter_id', user.id).then(({ data }) => {
       setMutedIds(new Set((data ?? []).map((r: any) => r.muted_id)));
     });
+    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle()
+      .then(({ data }) => setIsAdmin(!!data));
   }, [user?.id]);
+
 
   // Pref flags (default true if profile not yet loaded)
   const prefMessages = profile?.notify_messages ?? true;
