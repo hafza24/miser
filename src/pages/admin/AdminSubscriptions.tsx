@@ -26,6 +26,7 @@ const PlansTab = () => {
   const defaultForm = {
     name: '', description: '', price_monthly: 0, price_yearly: 0,
     daily_chat_limit: 3, daily_scene_limit: 10, daily_group_limit: 1,
+    max_group_members: 8,
     dark_mode_access: false, group_requests_access: false,
     presence_access: false, auto_translate_access: false,
     is_active: true, sort_order: 0,
@@ -55,6 +56,7 @@ const PlansTab = () => {
       daily_chat_limit: plan.daily_chat_limit ?? 3,
       daily_scene_limit: plan.daily_scene_limit ?? 0,
       daily_group_limit: plan.daily_group_limit ?? 0,
+      max_group_members: plan.max_group_members ?? 8,
       dark_mode_access: !!plan.dark_mode_access,
       group_requests_access: !!plan.group_requests_access,
       presence_access: !!plan.presence_access,
@@ -139,6 +141,7 @@ const PlansTab = () => {
               <div><Label>Scenes/day</Label><Input type="number" min={0} value={form.daily_scene_limit} onChange={e => setForm({...form, daily_scene_limit: +e.target.value})} /></div>
               <div><Label>Groups/day</Label><Input type="number" min={0} value={form.daily_group_limit} onChange={e => setForm({...form, daily_group_limit: +e.target.value})} /></div>
             </div>
+            <div><Label>Max members per group</Label><Input type="number" min={2} max={50} value={form.max_group_members} onChange={e => setForm({...form, max_group_members: +e.target.value})} /></div>
             <div className="pt-2 border-t space-y-2">
               <p className="text-xs text-muted-foreground">Feature access</p>
               <div className="flex items-center justify-between">

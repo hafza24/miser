@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
-import { Search, Ban, CheckCircle, Minus, Plus, Sun, Moon, Trash2 } from 'lucide-react';
+import { Search, Ban, CheckCircle, Minus, Plus, Sun, Moon, Trash2, Settings2 } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,11 +32,15 @@ interface UserProfile {
   violation_count: number;
   daily_scene_limit: number;
   daily_chat_limit: number;
+  daily_group_limit: number;
+  max_group_members: number;
   created_at: string;
   mode_preference: string;
   light_mode_blocked: boolean;
   dark_mode_blocked: boolean;
 }
+
+type LimitField = 'daily_scene_limit' | 'daily_chat_limit' | 'daily_group_limit' | 'max_group_members';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -47,7 +52,7 @@ const AdminUsers = () => {
     setLoading(true);
     let query = supabase
       .from('profiles')
-      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, created_at, mode_preference, light_mode_blocked, dark_mode_blocked')
+      .select('id, user_id, alias, emoji_avatar, email, gender, is_online, is_suspended, violation_count, daily_scene_limit, daily_chat_limit, daily_group_limit, max_group_members, created_at, mode_preference, light_mode_blocked, dark_mode_blocked')
       .order('created_at', { ascending: false })
       .limit(100);
 
@@ -85,10 +90,12 @@ const AdminUsers = () => {
     setUpdating(null);
   };
 
-  const updateLimit = async (userId: string, field: 'daily_scene_limit' | 'daily_chat_limit', delta: number) => {
+  const updateLimit = async (userId: string, field: LimitField, delta: number) => {
     const user = users.find(u => u.id === userId);
     if (!user) return;
-    const newValue = Math.max(0, Math.min(100, user[field] + delta));
+    const max = field === 'max_group_members' ? 50 : 100;
+    const min = field === 'max_group_members' ? 2 : 0;
+    const newValue = Math.max(min, Math.min(max, (user[field] ?? 0) + delta));
     setUpdating(userId);
     const { error } = await supabase
       .from('profiles')
@@ -102,9 +109,18 @@ const AdminUsers = () => {
     setUpdating(null);
   };
 
+  const toggleMode = async (user: UserProfile, field: 'light_mode_blocked' | 'dark_mode_blocked') => {
+    setUpdating(user.id);
+    const { error } = await supabase.from('profiles').update({ [field]: !user[field] } as any).eq('id', user.id);
+    if (error) { toast.error('Failed to update'); } else {
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, [field]: !u[field] } : u));
+      toast.success('Updated');
+    }
+    setUpdating(null);
+  };
+
   const handleAdminDelete = async (user: UserProfile) => {
     setUpdating(user.id);
-    // Schedule immediate deletion
     const { error } = await supabase
       .from('profiles')
       .update({ scheduled_deletion_at: new Date().toISOString() } as any)
@@ -117,6 +133,17 @@ const AdminUsers = () => {
     }
     setUpdating(null);
   };
+
+  const CounterRow = ({ label, value, onDec, onInc, disabled }: { label: string; value: number; onDec: () => void; onInc: () => void; disabled?: boolean }) => (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm text-foreground">{label}</span>
+      <div className="flex items-center gap-1">
+        <Button size="icon" variant="outline" className="h-7 w-7" onClick={onDec} disabled={disabled}><Minus className="h-3 w-3" /></Button>
+        <span className="text-sm font-medium w-8 text-center text-foreground">{value ?? 0}</span>
+        <Button size="icon" variant="outline" className="h-7 w-7" onClick={onInc} disabled={disabled}><Plus className="h-3 w-3" /></Button>
+      </div>
+    </div>
+  );
 
   return (
     <AdminLayout>
@@ -163,75 +190,53 @@ const AdminUsers = () => {
                       </div>
                     </div>
 
-                    {/* Limits */}
-                    <div className="flex items-center gap-4 flex-shrink-0">
-                      <div className="text-center">
-                        <p className="text-[10px] text-muted-foreground mb-1">Scenes/day</p>
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => updateLimit(user.id, 'daily_scene_limit', -1)} disabled={updating === user.id}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-6 text-center text-foreground">{user.daily_scene_limit}</span>
-                          <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => updateLimit(user.id, 'daily_scene_limit', 1)} disabled={updating === user.id}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                    {/* Limits dropdown */}
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm" className="flex-shrink-0 gap-1">
+                          <Settings2 className="h-4 w-4" /> Limits & Access
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" className="w-72 space-y-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Daily Limits</p>
+                        <CounterRow label="Chats/day" value={user.daily_chat_limit}
+                          onDec={() => updateLimit(user.id, 'daily_chat_limit', -1)}
+                          onInc={() => updateLimit(user.id, 'daily_chat_limit', 1)}
+                          disabled={updating === user.id} />
+                        <CounterRow label="Scenes/day" value={user.daily_scene_limit}
+                          onDec={() => updateLimit(user.id, 'daily_scene_limit', -1)}
+                          onInc={() => updateLimit(user.id, 'daily_scene_limit', 1)}
+                          disabled={updating === user.id} />
+                        <CounterRow label="Groups/day" value={user.daily_group_limit}
+                          onDec={() => updateLimit(user.id, 'daily_group_limit', -1)}
+                          onInc={() => updateLimit(user.id, 'daily_group_limit', 1)}
+                          disabled={updating === user.id} />
+                        <div className="pt-2 border-t">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Members Restriction</p>
+                          <CounterRow label="Max members / group" value={user.max_group_members}
+                            onDec={() => updateLimit(user.id, 'max_group_members', -1)}
+                            onInc={() => updateLimit(user.id, 'max_group_members', 1)}
+                            disabled={updating === user.id} />
                         </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-[10px] text-muted-foreground mb-1">Chats/day</p>
-                        <div className="flex items-center gap-1">
-                          <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => updateLimit(user.id, 'daily_chat_limit', -1)} disabled={updating === user.id}>
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-6 text-center text-foreground">{user.daily_chat_limit}</span>
-                          <Button size="icon" variant="outline" className="h-6 w-6" onClick={() => updateLimit(user.id, 'daily_chat_limit', 1)} disabled={updating === user.id}>
-                            <Plus className="h-3 w-3" />
-                          </Button>
+                        <div className="pt-2 border-t">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Mode Access</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-foreground">Light mode</span>
+                            <Button size="sm" variant={user.light_mode_blocked ? 'destructive' : 'outline'} className="gap-1" disabled={updating === user.id}
+                              onClick={() => toggleMode(user, 'light_mode_blocked')}>
+                              <Sun className="h-3.5 w-3.5" /> {user.light_mode_blocked ? 'Blocked' : 'Allowed'}
+                            </Button>
+                          </div>
+                          <div className="flex items-center justify-between mt-2">
+                            <span className="text-sm text-foreground">Dark mode</span>
+                            <Button size="sm" variant={user.dark_mode_blocked ? 'destructive' : 'outline'} className="gap-1" disabled={updating === user.id}
+                              onClick={() => toggleMode(user, 'dark_mode_blocked')}>
+                              <Moon className="h-3.5 w-3.5" /> {user.dark_mode_blocked ? 'Blocked' : 'Allowed'}
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      {/* Mode Access */}
-                      <div className="text-center">
-                        <p className="text-[10px] text-muted-foreground mb-1">Mode Access</p>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            size="icon"
-                            variant={user.light_mode_blocked ? 'destructive' : 'outline'}
-                            className="h-7 w-7"
-                            disabled={updating === user.id}
-                            title={user.light_mode_blocked ? 'Light mode blocked - click to unblock' : 'Click to block light mode'}
-                            onClick={async () => {
-                              setUpdating(user.id);
-                              const { error } = await supabase.from('profiles').update({ light_mode_blocked: !user.light_mode_blocked } as any).eq('id', user.id);
-                              if (error) { toast.error('Failed to update'); } else {
-                                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, light_mode_blocked: !u.light_mode_blocked } : u));
-                                toast.success(user.light_mode_blocked ? 'Light mode unblocked' : 'Light mode blocked');
-                              }
-                              setUpdating(null);
-                            }}
-                          >
-                            <Sun className={`h-3.5 w-3.5 ${user.light_mode_blocked ? '' : 'text-amber-500'}`} />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant={user.dark_mode_blocked ? 'destructive' : 'outline'}
-                            className="h-7 w-7"
-                            disabled={updating === user.id}
-                            title={user.dark_mode_blocked ? 'Dark mode blocked - click to unblock' : 'Click to block dark mode'}
-                            onClick={async () => {
-                              setUpdating(user.id);
-                              const { error } = await supabase.from('profiles').update({ dark_mode_blocked: !user.dark_mode_blocked } as any).eq('id', user.id);
-                              if (error) { toast.error('Failed to update'); } else {
-                                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, dark_mode_blocked: !u.dark_mode_blocked } : u));
-                                toast.success(user.dark_mode_blocked ? 'Dark mode unblocked' : 'Dark mode blocked');
-                              }
-                              setUpdating(null);
-                            }}
-                          >
-                            <Moon className={`h-3.5 w-3.5 ${user.dark_mode_blocked ? '' : 'text-indigo-400'}`} />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                      </PopoverContent>
+                    </Popover>
 
                     {/* Suspend toggle */}
                     <Button
