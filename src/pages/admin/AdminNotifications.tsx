@@ -1,7 +1,9 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '@/components/AdminLayout';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,7 +21,7 @@ import { EmptyState } from '@/components/layout/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Bell, CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox,
+  Bell, CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck,
 } from 'lucide-react';
 
 type Source = 'subscriptions' | 'payment_requests';
@@ -27,8 +29,32 @@ type Status = 'pending' | 'active' | 'expired' | 'cancelled' | 'approved' | 'rej
 
 const PAGE_SIZE = 10;
 
+// Per-admin persistent read state for inbox rows
+const readStorageKey = (adminId: string, source: Source) =>
+  `admin_inbox_read_${source}_${adminId}`;
+
+const loadReadSet = (adminId: string, source: Source): Set<string> => {
+  try {
+    const raw = localStorage.getItem(readStorageKey(adminId, source));
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw) as string[]);
+  } catch {
+    return new Set();
+  }
+};
+
+const persistReadSet = (adminId: string, source: Source, ids: Set<string>) => {
+  try {
+    localStorage.setItem(readStorageKey(adminId, source), JSON.stringify([...ids]));
+  } catch {
+    /* ignore */
+  }
+};
+
 const AdminNotifications = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { markRead, refreshNotifications } = useNotifications();
   const [source, setSource] = useState<Source>('subscriptions');
   const [status, setStatus] = useState<Status>('pending');
   const [search, setSearch] = useState('');
@@ -37,6 +63,62 @@ const AdminNotifications = () => {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [profilesById, setProfilesById] = useState<Record<string, any>>({});
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [pendingUnread, setPendingUnread] = useState<{ subscriptions: number; payment_requests: number }>({
+    subscriptions: 0,
+    payment_requests: 0,
+  });
+
+  // Hydrate read-set when admin or source changes
+  useEffect(() => {
+    if (!user) return;
+    setReadIds(loadReadSet(user.id, source));
+  }, [user?.id, source]);
+
+  // Fetch pending unread counts across both sources for tab badges
+  const refreshPendingCounts = useCallback(async () => {
+    if (!user) return;
+    const [subs, pays] = await Promise.all([
+      supabase.from('subscriptions').select('id').eq('status', 'pending'),
+      supabase.from('payment_requests').select('id').eq('status', 'pending'),
+    ]);
+    const subRead = loadReadSet(user.id, 'subscriptions');
+    const payRead = loadReadSet(user.id, 'payment_requests');
+    setPendingUnread({
+      subscriptions: (subs.data || []).filter((r: any) => !subRead.has(r.id)).length,
+      payment_requests: (pays.data || []).filter((r: any) => !payRead.has(r.id)).length,
+    });
+  }, [user?.id]);
+
+  useEffect(() => { refreshPendingCounts(); }, [refreshPendingCounts, readIds]);
+
+  const persistRead = (next: Set<string>) => {
+    if (!user) return;
+    setReadIds(new Set(next));
+    persistReadSet(user.id, source, next);
+    refreshNotifications();
+  };
+
+  const markRowRead = (rowId: string) => {
+    const next = new Set(readIds);
+    next.add(rowId);
+    persistRead(next);
+    const prefix = source === 'subscriptions' ? 'admin-sub-pending-' : 'admin-payreq-pending-';
+    markRead(`${prefix}${rowId}`);
+  };
+
+  const markRowUnread = (rowId: string) => {
+    const next = new Set(readIds);
+    next.delete(rowId);
+    persistRead(next);
+  };
+
+  const markAllVisibleRead = () => {
+    const next = new Set(readIds);
+    rows.forEach((r) => next.add(r.id));
+    persistRead(next);
+  };
+
 
   const statusOptions = useMemo<Status[]>(
     () =>
@@ -121,9 +203,20 @@ const AdminNotifications = () => {
           title="Notifications Inbox"
           description="Pending subscriptions and payment requests awaiting review."
           actions={
-            <Button variant="outline" size="sm" onClick={load} className="gap-1">
-              <RefreshCw className="h-4 w-4" /> Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markAllVisibleRead}
+                disabled={rows.length === 0 || rows.every((r) => readIds.has(r.id))}
+                className="gap-1"
+              >
+                <CheckCheck className="h-4 w-4" /> Mark all read
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { load(); refreshPendingCounts(); }} className="gap-1">
+                <RefreshCw className="h-4 w-4" /> Refresh
+              </Button>
+            </div>
           }
         />
 
@@ -131,12 +224,23 @@ const AdminNotifications = () => {
           <TabsList>
             <TabsTrigger value="subscriptions" className="gap-2">
               <CreditCard className="h-4 w-4" /> Subscriptions
+              {pendingUnread.subscriptions > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 bg-destructive text-destructive-foreground">
+                  {pendingUnread.subscriptions}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="payment_requests" className="gap-2">
               <Wallet className="h-4 w-4" /> Payment Requests
+              {pendingUnread.payment_requests > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 bg-destructive text-destructive-foreground">
+                  {pendingUnread.payment_requests}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
 
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
@@ -176,12 +280,21 @@ const AdminNotifications = () => {
           <div className="space-y-3">
             {rows.map((r) => {
               const p = profilesById[r.user_id];
+              const isRead = readIds.has(r.id);
               return (
-                <Card key={r.id} className="shadow-sm">
+                <Card
+                  key={r.id}
+                  className={`shadow-sm transition-colors ${!isRead ? 'border-primary/40 bg-primary/[0.03]' : ''}`}
+                >
                   <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex items-start gap-3 flex-1 min-w-0">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg shrink-0">
-                        {p?.emoji_avatar || '💫'}
+                      <div className="relative shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-lg">
+                          {p?.emoji_avatar || '💫'}
+                        </div>
+                        {!isRead && (
+                          <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
+                        )}
                       </div>
                       <div className="min-w-0 space-y-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -189,6 +302,11 @@ const AdminNotifications = () => {
                             {p?.alias || 'Unknown user'}
                           </span>
                           {statusBadge(r.status)}
+                          {!isRead && (
+                            <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">
+                              Unread
+                            </Badge>
+                          )}
                           <span className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
                           </span>
@@ -208,12 +326,22 @@ const AdminNotifications = () => {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2 shrink-0">
+                    <div className="flex gap-2 shrink-0 flex-wrap">
+                      {isRead ? (
+                        <Button size="sm" variant="ghost" onClick={() => markRowUnread(r.id)} className="gap-1">
+                          Mark unread
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={() => markRowRead(r.id)} className="gap-1">
+                          <Check className="h-3.5 w-3.5" /> Mark read
+                        </Button>
+                      )}
                       <Button
                         size="sm"
-                        onClick={() =>
-                          navigate(source === 'subscriptions' ? '/admin/subscriptions' : '/admin/payments')
-                        }
+                        onClick={() => {
+                          markRowRead(r.id);
+                          navigate(source === 'subscriptions' ? '/admin/subscriptions' : '/admin/payments');
+                        }}
                         className="gap-1"
                       >
                         Review <ExternalLink className="h-3.5 w-3.5" />
@@ -224,6 +352,7 @@ const AdminNotifications = () => {
               );
             })}
           </div>
+
         )}
 
         {totalPages > 1 && (
