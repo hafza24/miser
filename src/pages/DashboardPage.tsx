@@ -732,6 +732,39 @@ const DashboardPage = () => {
           </>
         )}
 
+        {/* Confirm before opening naming dialog */}
+        <AlertDialog open={!!confirmChat} onOpenChange={(o) => { if (!o) setConfirmChat(null); }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Convert this chat to a group?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmChat && (
+                  <>
+                    You're about to turn your chat with{' '}
+                    <span className="font-medium text-foreground">
+                      {confirmChat.participants.map(p => p.alias).join(', ') || 'Anonymous'}
+                    </span>{' '}
+                    into a group chat. This will move it to Group chats, stop the expiry timer, and let you invite more people. This can't be undone.
+                  </>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  const c = confirmChat;
+                  setConfirmChat(null);
+                  setConvertName('');
+                  setConvertChat(c);
+                }}
+              >
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* Convert to group dialog */}
         <Dialog open={!!convertChat} onOpenChange={(o) => { if (!o) { setConvertChat(null); setConvertName(''); } }}>
           <DialogContent>
