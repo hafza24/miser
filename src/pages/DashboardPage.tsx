@@ -625,74 +625,140 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Chat list */}
-        <section aria-labelledby="chats-heading">
-          <h2 id="chats-heading" className="sr-only">Your chats</h2>
-          {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
-              ))}
-            </div>
-          ) : activeChats.length === 0 ? (
-            <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/40">
-              <div className="text-6xl mb-4" aria-hidden="true">{mode === 'light' ? '🌸' : '🌙'}</div>
-              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-                No conversations yet
-              </h3>
-              <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
-                Browse profiles and send chat requests to connect
-              </p>
-              <Button onClick={() => navigate('/browse')} className="gap-2 min-h-11">
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Find People
-              </Button>
-            </div>
-          ) : (
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {activeChats.map((chat) => {
-                const hasTimer = !chat.timer_stopped && chat.expires_at;
-                const unread = unreadCounts[chat.id] || 0;
-                return (
-                  <li key={chat.id}>
-                    <button
-                      onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
-                      className="w-full flex items-center gap-3 p-4 bento-tile text-left"
-                      aria-label={`Open chat with ${chat.participants.map(p => p.alias).join(', ') || 'Anonymous'}${unread > 0 ? `, ${unread} unread` : ''}`}
-                    >
+        {/* Chat lists */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
+            ))}
+          </div>
+        ) : activeChats.length === 0 ? (
+          <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/40">
+            <div className="text-6xl mb-4" aria-hidden="true">{mode === 'light' ? '🌸' : '🌙'}</div>
+            <h3 className="font-heading text-xl font-semibold text-foreground mb-2">No conversations yet</h3>
+            <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
+              Browse profiles and send chat requests to connect
+            </p>
+            <Button onClick={() => navigate('/browse')} className="gap-2 min-h-11">
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Find People
+            </Button>
+          </div>
+        ) : (
+          <>
+            {(['direct','group'] as const).map((kind) => {
+              const list = kind === 'direct' ? directChats : groupChats;
+              if (list.length === 0) return null;
+              return (
+                <section key={kind} aria-labelledby={`${kind}-heading`} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h2 id={`${kind}-heading`} className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      {kind === 'direct' ? <><MessageCircle className="h-3.5 w-3.5" /> Direct chats</> : <><Users className="h-3.5 w-3.5" /> Group chats</>}
+                      <span className="text-muted-foreground/70 normal-case font-normal">({list.length})</span>
+                    </h2>
+                    {kind === 'group' && (
+                      <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => navigate('/groups')}>Browse groups</Button>
+                    )}
+                  </div>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {list.map((chat) => {
+                      const hasTimer = !chat.timer_stopped && chat.expires_at;
+                      const unread = unreadCounts[chat.id] || 0;
+                      const title = chat.is_group
+                        ? (chat.name || 'Group chat')
+                        : (chat.participants.map(p => p.alias).join(', ') || 'Anonymous');
+                      return (
+                        <li key={chat.id} className="relative">
+                          <button
+                            onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
+                            className="w-full flex items-center gap-3 p-4 pr-10 bento-tile text-left"
+                            aria-label={`Open ${chat.is_group ? 'group' : 'chat'} ${title}${unread > 0 ? `, ${unread} unread` : ''}`}
+                          >
+                            <div className="text-2xl">
+                              {chat.is_group ? '👥' : (chat.participants[0]?.emoji_avatar || '💬')}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className={`font-medium truncate ${unread > 0 ? 'text-foreground font-semibold' : 'text-foreground'}`}>
+                                  {title}
+                                </span>
+                                {chat.is_group && <Users className="h-3 w-3 text-muted-foreground" />}
+                                {hasTimer && <Clock className="h-3 w-3 text-muted-foreground" />}
+                                {chat.timer_stopped && <span className="text-[10px] text-primary font-medium">∞</span>}
+                              </div>
+                              <p className={`text-sm truncate ${unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                                {chat.last_message || 'No messages yet'}
+                              </p>
+                            </div>
+                            {unread > 0 ? (
+                              <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
+                                {unread > 99 ? '99+' : unread}
+                              </span>
+                            ) : (
+                              <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            )}
+                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button
+                                type="button"
+                                className="absolute top-2 right-2 h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground"
+                                aria-label="Chat actions"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48">
+                              <DropdownMenuItem onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}>
+                                <MessageCircle className="h-4 w-4 mr-2" /> Open chat
+                              </DropdownMenuItem>
+                              {!chat.is_group && (
+                                <DropdownMenuItem onClick={() => { setConvertName(''); setConvertChat(chat); }}>
+                                  <ArrowUpRight className="h-4 w-4 mr-2" /> Convert to group
+                                </DropdownMenuItem>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </section>
+              );
+            })}
+          </>
+        )}
 
-                  <div className="text-2xl">
-                    {chat.participants[0]?.emoji_avatar || '💬'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className={`font-medium truncate ${unread > 0 ? 'text-foreground font-semibold' : 'text-foreground'}`}>
-                        {chat.participants.map(p => p.alias).join(', ') || 'Anonymous'}
-                      </span>
-                      {chat.is_group && <Users className="h-3 w-3 text-muted-foreground" />}
-                      {hasTimer && <Clock className="h-3 w-3 text-muted-foreground" />}
-                      {chat.timer_stopped && (
-                        <span className="text-[10px] text-primary font-medium">∞</span>
-                      )}
-                    </div>
-                    <p className={`text-sm truncate ${unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                      {chat.last_message || 'No messages yet'}
-                    </p>
-                  </div>
-                  {unread > 0 ? (
-                    <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                      {unread > 99 ? '99+' : unread}
-                    </span>
-                  ) : (
-                    <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  )}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
+        {/* Convert to group dialog */}
+        <Dialog open={!!convertChat} onOpenChange={(o) => { if (!o) { setConvertChat(null); setConvertName(''); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Convert to group chat</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                This chat will move to your Group chats. You can invite more people once it's a group.
+              </p>
+              <div>
+                <label className="text-xs text-muted-foreground">Group name</label>
+                <Input
+                  value={convertName}
+                  onChange={(e) => setConvertName(e.target.value)}
+                  placeholder="e.g. Weekend crew"
+                  maxLength={60}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => { setConvertChat(null); setConvertName(''); }} disabled={converting}>Cancel</Button>
+              <Button onClick={handleConvertToGroup} disabled={converting}>
+                {converting ? 'Converting…' : 'Convert to group'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
     </AppLayout>
