@@ -40,9 +40,10 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           size="icon"
           onClick={() => navigate('/admin')}
           className="rounded-full h-9 w-9 md:hidden"
+          aria-label="Open admin panel"
           title="Admin Panel"
         >
-          <Shield className="h-4 w-4 text-primary" />
+          <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
         </Button>
       )}
       <NotificationDropdown />
@@ -57,15 +58,26 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           toggleMode();
         }}
         className="rounded-full h-9 w-9"
+        aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
         title={mode === 'light' ? 'Switch to dark' : 'Switch to light'}
       >
-        {mode === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        {mode === 'light'
+          ? <Moon className="h-4 w-4" aria-hidden="true" />
+          : <Sun className="h-4 w-4" aria-hidden="true" />}
       </Button>
-      <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-full h-9 w-9" title="Sign out">
-        <LogOut className="h-4 w-4" />
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleSignOut}
+        className="rounded-full h-9 w-9"
+        aria-label="Sign out"
+        title="Sign out"
+      >
+        <LogOut className="h-4 w-4" aria-hidden="true" />
       </Button>
     </div>
   );
+
 
   return (
     <SidebarProvider>
