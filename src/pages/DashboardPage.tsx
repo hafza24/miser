@@ -67,6 +67,24 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [actionId, setActionId] = useState<string | null>(null);
   const [surpriseLoading, setSurpriseLoading] = useState(false);
+  const [convertChat, setConvertChat] = useState<ChatItem | null>(null);
+  const [convertName, setConvertName] = useState('');
+  const [converting, setConverting] = useState(false);
+
+  const handleConvertToGroup = async () => {
+    if (!convertChat) return;
+    setConverting(true);
+    const { error } = await supabase.rpc('upgrade_chat_to_group' as any, {
+      p_chat_id: convertChat.id,
+      p_name: convertName.trim() || 'Group chat',
+    });
+    setConverting(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success('Chat converted to a group');
+    setConvertChat(null);
+    setConvertName('');
+    reload();
+  };
 
   const reload = useCallback(async () => {
     if (!user) return;
