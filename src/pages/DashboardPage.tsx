@@ -557,8 +557,12 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
+          </section>
+        )}
           </div>
         )}
+
+
 
         {/* Mood / Category chips */}
         {mode === 'light' && (
