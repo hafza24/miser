@@ -23,11 +23,14 @@ const PlansTab = () => {
   const [loading, setLoading] = useState(true);
   const [editPlan, setEditPlan] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
+  const defaultForm = {
     name: '', description: '', price_monthly: 0, price_yearly: 0,
-    daily_chat_limit: 3, daily_scene_limit: 10, dark_mode_access: false,
+    daily_chat_limit: 3, daily_scene_limit: 10, daily_group_limit: 1,
+    dark_mode_access: false, group_requests_access: false,
+    presence_access: false, auto_translate_access: false,
     is_active: true, sort_order: 0,
-  });
+  };
+  const [form, setForm] = useState<typeof defaultForm>(defaultForm);
 
   const load = async () => {
     setLoading(true);
@@ -40,16 +43,22 @@ const PlansTab = () => {
 
   const openCreate = () => {
     setEditPlan(null);
-    setForm({ name: '', description: '', price_monthly: 0, price_yearly: 0, daily_chat_limit: 3, daily_scene_limit: 10, dark_mode_access: false, is_active: true, sort_order: plans.length });
+    setForm({ ...defaultForm, sort_order: plans.length });
     setShowForm(true);
   };
 
   const openEdit = (plan: any) => {
     setEditPlan(plan);
     setForm({
-      name: plan.name, description: plan.description || '', price_monthly: plan.price_monthly,
-      price_yearly: plan.price_yearly, daily_chat_limit: plan.daily_chat_limit,
-      daily_scene_limit: plan.daily_scene_limit, dark_mode_access: plan.dark_mode_access,
+      name: plan.name, description: plan.description || '',
+      price_monthly: plan.price_monthly, price_yearly: plan.price_yearly,
+      daily_chat_limit: plan.daily_chat_limit ?? 3,
+      daily_scene_limit: plan.daily_scene_limit ?? 0,
+      daily_group_limit: plan.daily_group_limit ?? 0,
+      dark_mode_access: !!plan.dark_mode_access,
+      group_requests_access: !!plan.group_requests_access,
+      presence_access: !!plan.presence_access,
+      auto_translate_access: !!plan.auto_translate_access,
       is_active: plan.is_active, sort_order: plan.sort_order,
     });
     setShowForm(true);
@@ -95,10 +104,13 @@ const PlansTab = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-foreground">{plan.name}</span>
                     <Badge variant={plan.is_active ? 'default' : 'outline'}>{plan.is_active ? 'Active' : 'Disabled'}</Badge>
+                    {plan.daily_chat_limit > 0 && <Badge variant="outline">💬 Chats</Badge>}
+                    {plan.daily_scene_limit > 0 && <Badge variant="outline">🎨 Scenes</Badge>}
+                    {plan.group_requests_access && <Badge variant="outline">👥 Groups</Badge>}
                     {plan.dark_mode_access && <Badge variant="outline">🌑 Dark</Badge>}
                   </div>
                   <p className="text-sm text-muted-foreground mt-1">
-                    ${plan.price_monthly}/mo · ${plan.price_yearly}/yr · {plan.daily_chat_limit} chats · {plan.daily_scene_limit} scenes
+                    ${plan.price_monthly}/mo · ${plan.price_yearly}/yr · {plan.daily_chat_limit} chats · {plan.daily_scene_limit} scenes · {plan.daily_group_limit ?? 0} groups
                   </p>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => openEdit(plan)}><Edit className="h-4 w-4" /></Button>
@@ -110,7 +122,7 @@ const PlansTab = () => {
       )}
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editPlan ? 'Edit Plan' : 'Create Plan'}</DialogTitle>
           </DialogHeader>
@@ -121,19 +133,39 @@ const PlansTab = () => {
               <div><Label>Monthly Price ($)</Label><Input type="number" step="0.01" value={form.price_monthly} onChange={e => setForm({...form, price_monthly: +e.target.value})} /></div>
               <div><Label>Yearly Price ($)</Label><Input type="number" step="0.01" value={form.price_yearly} onChange={e => setForm({...form, price_yearly: +e.target.value})} /></div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div><Label>Daily Chat Limit</Label><Input type="number" value={form.daily_chat_limit} onChange={e => setForm({...form, daily_chat_limit: +e.target.value})} /></div>
-              <div><Label>Daily Scene Limit</Label><Input type="number" value={form.daily_scene_limit} onChange={e => setForm({...form, daily_scene_limit: +e.target.value})} /></div>
+            <p className="text-xs text-muted-foreground pt-2 border-t">Daily limits — set to 0 to disable that feature entirely for this plan.</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div><Label>Chats/day</Label><Input type="number" min={0} value={form.daily_chat_limit} onChange={e => setForm({...form, daily_chat_limit: +e.target.value})} /></div>
+              <div><Label>Scenes/day</Label><Input type="number" min={0} value={form.daily_scene_limit} onChange={e => setForm({...form, daily_scene_limit: +e.target.value})} /></div>
+              <div><Label>Groups/day</Label><Input type="number" min={0} value={form.daily_group_limit} onChange={e => setForm({...form, daily_group_limit: +e.target.value})} /></div>
             </div>
-            <div><Label>Sort Order</Label><Input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: +e.target.value})} /></div>
-            <div className="flex items-center justify-between">
-              <Label>Dark Mode Access</Label>
-              <Switch checked={form.dark_mode_access} onCheckedChange={v => setForm({...form, dark_mode_access: v})} />
+            <div className="pt-2 border-t space-y-2">
+              <p className="text-xs text-muted-foreground">Feature access</p>
+              <div className="flex items-center justify-between">
+                <Label>Group Chat Access</Label>
+                <Switch checked={form.group_requests_access} onCheckedChange={v => setForm({...form, group_requests_access: v})} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Dark Mode Access</Label>
+                <Switch checked={form.dark_mode_access} onCheckedChange={v => setForm({...form, dark_mode_access: v})} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Presence / Online Status</Label>
+                <Switch checked={form.presence_access} onCheckedChange={v => setForm({...form, presence_access: v})} />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label>Auto Translate</Label>
+                <Switch checked={form.auto_translate_access} onCheckedChange={v => setForm({...form, auto_translate_access: v})} />
+              </div>
             </div>
-            <div className="flex items-center justify-between">
-              <Label>Active</Label>
-              <Switch checked={form.is_active} onCheckedChange={v => setForm({...form, is_active: v})} />
+            <div className="pt-2 border-t grid grid-cols-2 gap-3 items-end">
+              <div><Label>Sort Order</Label><Input type="number" value={form.sort_order} onChange={e => setForm({...form, sort_order: +e.target.value})} /></div>
+              <div className="flex items-center justify-between">
+                <Label>Active</Label>
+                <Switch checked={form.is_active} onCheckedChange={v => setForm({...form, is_active: v})} />
+              </div>
             </div>
+            <p className="text-xs text-muted-foreground pt-2 border-t">When a user's subscription expires or is not renewed, they automatically revert to the free plan defaults — no manual action needed.</p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
