@@ -150,7 +150,17 @@ const AdminNotifications = () => {
     setReadIds(new Set(next));
     persistReadSet(user.id, source, next);
     refreshNotifications();
+    // Broadcast to this admin's other devices
+    supabase
+      .channel(`admin-inbox-${user.id}`)
+      .send({
+        type: 'broadcast',
+        event: 'read-state',
+        payload: { adminId: user.id, source, ids: Array.from(next) },
+      })
+      .catch(() => {});
   };
+
 
   const markRowRead = (rowId: string) => {
     const next = new Set(readIds);
