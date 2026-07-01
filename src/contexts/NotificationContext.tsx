@@ -5,13 +5,23 @@ import { playNotificationSound, showDesktopNotification } from '@/hooks/useUnrea
 
 export interface NotificationItem {
   id: string;
-  type: 'chat_request' | 'new_message' | 'expiry_alert' | 'subscription_expiring' | 'subscription_expired' | 'payment_pending' | 'group_invite';
+  type:
+    | 'chat_request'
+    | 'new_message'
+    | 'expiry_alert'
+    | 'subscription_expiring'
+    | 'subscription_expired'
+    | 'payment_pending'
+    | 'group_invite'
+    | 'admin_pending_subscription'
+    | 'admin_pending_payment_request';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
-  meta?: { chatId?: string; requestId?: string; inviteId?: string };
+  meta?: { chatId?: string; requestId?: string; inviteId?: string; adminRoute?: string };
 }
+
 
 interface NotificationContextType {
   soundEnabled: boolean;
