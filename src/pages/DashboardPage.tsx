@@ -716,7 +716,7 @@ const DashboardPage = () => {
                                 <MessageCircle className="h-4 w-4 mr-2" /> Open chat
                               </DropdownMenuItem>
                               {!chat.is_group && (
-                                <DropdownMenuItem onClick={() => { setConvertName(''); setConvertChat(chat); }}>
+                                <DropdownMenuItem onClick={() => setConfirmChat(chat)}>
                                   <ArrowUpRight className="h-4 w-4 mr-2" /> Convert to group
                                 </DropdownMenuItem>
                               )}
