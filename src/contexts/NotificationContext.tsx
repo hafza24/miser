@@ -482,6 +482,24 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites]);
 
+  // Admin-only realtime: pending subscriptions & payment requests
+  useEffect(() => {
+    if (!user || !isAdmin) return;
+    const channel = supabase
+      .channel(`notif-admin-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'subscriptions' }, () => scheduleRefresh())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          if (soundEnabled) playNotificationSound();
+          if (desktopEnabled) showDesktopNotification('New payment request', 'A user submitted payment proof for review.');
+        }
+        scheduleRefresh();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user?.id, isAdmin, scheduleRefresh, soundEnabled, desktopEnabled]);
+
+
   // Refresh expiry alerts every 5 min
   useEffect(() => {
     const interval = setInterval(refreshNotifications, 5 * 60 * 1000);
