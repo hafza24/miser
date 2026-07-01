@@ -512,14 +512,15 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Sent Requests */}
         {sent.length > 0 && (
-          <div className="mb-6">
-            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <SendHorizontal className="h-4 w-4" />
+          <section className="bento-tile p-5" aria-labelledby="sent-heading">
+            <h3 id="sent-heading" className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <SendHorizontal className="h-4 w-4" aria-hidden="true" />
+
               Sent ({sent.length})
             </h3>
             <div className="space-y-2">
