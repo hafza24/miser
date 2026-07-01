@@ -38,6 +38,9 @@ interface UserProfile {
   mode_preference: string;
   light_mode_blocked: boolean;
   dark_mode_blocked: boolean;
+  plan_name?: string | null;
+  plan_status?: string | null;
+  plan_expiry?: string | null;
 }
 
 type LimitField = 'daily_scene_limit' | 'daily_chat_limit' | 'daily_group_limit' | 'max_group_members';
@@ -62,7 +65,37 @@ const AdminUsers = () => {
 
     const { data, error } = await query;
     if (error) toast.error('Failed to load users');
-    setUsers((data as UserProfile[]) ?? []);
+    const profiles = (data as UserProfile[]) ?? [];
+
+    if (profiles.length > 0) {
+      const userIds = profiles.map(p => p.user_id);
+      const { data: subs } = await supabase
+        .from('subscriptions')
+        .select('user_id, status, expiry_date, plan_id, created_at')
+        .in('user_id', userIds)
+        .order('created_at', { ascending: false });
+      const planIds = [...new Set((subs || []).map((s: any) => s.plan_id))];
+      const { data: plans } = planIds.length
+        ? await supabase.from('subscription_plans').select('id, name').in('id', planIds)
+        : { data: [] as any[] };
+      const latestByUser = new Map<string, any>();
+      (subs || []).forEach((s: any) => { if (!latestByUser.has(s.user_id)) latestByUser.set(s.user_id, s); });
+      profiles.forEach(p => {
+        const s = latestByUser.get(p.user_id);
+        if (s) {
+          const plan = (plans as any[])?.find(pl => pl.id === s.plan_id);
+          p.plan_name = plan?.name || 'Unknown';
+          p.plan_status = s.status;
+          p.plan_expiry = s.expiry_date;
+        } else {
+          p.plan_name = 'Free';
+          p.plan_status = null;
+          p.plan_expiry = null;
+        }
+      });
+    }
+
+    setUsers(profiles);
     setLoading(false);
   };
 
@@ -182,10 +215,18 @@ const AdminUsers = () => {
                           {user.is_online && <Badge variant="default" className="text-[10px] px-1.5 py-0">Online</Badge>}
                           {user.is_suspended && <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Suspended</Badge>}
                           <Badge variant="outline" className="text-[10px] px-1.5 py-0">{user.mode_preference}</Badge>
+                          <Badge
+                            variant={user.plan_status === 'active' ? 'default' : 'outline'}
+                            className="text-[10px] px-1.5 py-0"
+                            title={user.plan_expiry ? `Expires ${new Date(user.plan_expiry).toLocaleDateString()}` : 'No active subscription'}
+                          >
+                            💎 {user.plan_name || 'Free'}{user.plan_status && user.plan_status !== 'active' ? ` (${user.plan_status})` : ''}
+                          </Badge>
                         </div>
                         <p className="text-xs text-muted-foreground truncate">{user.email || 'No email'}</p>
                         <p className="text-xs text-muted-foreground">
                           {user.gender || 'No gender'} · Violations: {user.violation_count} · Joined: {new Date(user.created_at).toLocaleDateString()}
+                          {user.plan_expiry && user.plan_status === 'active' && ` · Plan expires: ${new Date(user.plan_expiry).toLocaleDateString()}`}
                         </p>
                       </div>
                     </div>
