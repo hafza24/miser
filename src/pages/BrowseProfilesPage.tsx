@@ -2,13 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw, Heart } from 'lucide-react';
+import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw, Heart, Plus } from 'lucide-react';
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
@@ -74,6 +74,7 @@ interface RequestInfo {
 const BrowseProfilesPage = () => {
   const { user, profile: myProfile } = useAuth();
   const { mode } = useMode();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
   const [search, setSearch] = useState('');
@@ -271,18 +272,29 @@ const BrowseProfilesPage = () => {
           title={mode === 'light' ? '🌸 Discover People' : '🔮 Discover People'}
           description="Find someone who understands you"
           actions={
-            <Button
-              variant={hasActiveFilters ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="relative gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {hasActiveFilters && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => navigate('/groups/new')}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New group
+              </Button>
+              <Button
+                variant={hasActiveFilters ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="relative gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+                )}
+              </Button>
+            </div>
           }
         />
 
