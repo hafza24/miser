@@ -368,40 +368,65 @@ const DashboardPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <div>
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">
-              {mode === 'light' ? '🌞 Light Space' : '🌑 Dark Space'}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {mode === 'light' ? 'Emotional connections' : '18+ connections'}
-            </p>
+      <div className="p-4 md:p-0 space-y-6">
+        {/* Hero header */}
+        <section
+          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
+          aria-labelledby="dashboard-title"
+        >
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40 gradient-hero pointer-events-none"
+          />
+          <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {mode === 'light' ? 'Light Space' : 'Dark Space'}
+              </div>
+              <h1 id="dashboard-title" className="mt-1 font-heading text-2xl sm:text-3xl font-bold text-foreground text-balance">
+                {mode === 'light' ? '🌞 Emotional connections' : '🌑 18+ connections'}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your chats, invites, and requests — all in one place.
+              </p>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleSurpriseMe}
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
+                disabled={surpriseLoading}
+                aria-label="Match with a random person"
+              >
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                {surpriseLoading ? 'Searching…' : 'Surprise Me'}
+              </Button>
+              <Button
+                onClick={() => navigate('/browse')}
+                size="sm"
+                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
+                aria-label="Browse people"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Find People
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button
-              onClick={handleSurpriseMe}
-              variant="outline"
-              size="sm"
-              className="gap-2 flex-1 sm:flex-initial"
-              disabled={surpriseLoading}
-            >
-              <Sparkles className="h-4 w-4" />
-              {surpriseLoading ? 'Searching...' : 'Surprise Me'}
-            </Button>
-            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2 flex-1 sm:flex-initial">
-              <Plus className="h-4 w-4" />
-              Find People
-            </Button>
-          </div>
-        </div>
+        </section>
+
+        {/* Bento requests grid */}
+        {(invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
 
         {/* Group Invites */}
         {invites.length > 0 && (
-          <div className="mb-6">
-            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
+          <section className="bento-tile p-5" aria-labelledby="invites-heading">
+
+            <h3 id="invites-heading" className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
+
               Group Invites ({invites.length})
             </h3>
             <div className="space-y-2">
@@ -442,14 +467,15 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Incoming Requests */}
         {incoming.length > 0 && (
-          <div className="mb-6">
-            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <Inbox className="h-4 w-4" />
+          <section className="bento-tile p-5" aria-labelledby="incoming-heading">
+            <h3 id="incoming-heading" className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <Inbox className="h-4 w-4" aria-hidden="true" />
+
               Received ({incoming.length})
             </h3>
             <div className="space-y-2">
@@ -486,14 +512,15 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
         {/* Sent Requests */}
         {sent.length > 0 && (
-          <div className="mb-6">
-            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <SendHorizontal className="h-4 w-4" />
+          <section className="bento-tile p-5" aria-labelledby="sent-heading">
+            <h3 id="sent-heading" className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <SendHorizontal className="h-4 w-4" aria-hidden="true" />
+
               Sent ({sent.length})
             </h3>
             <div className="space-y-2">
@@ -530,8 +557,12 @@ const DashboardPage = () => {
                 </div>
               ))}
             </div>
+          </section>
+        )}
           </div>
         )}
+
+
 
         {/* Mood / Category chips */}
         {mode === 'light' && (
@@ -570,35 +601,41 @@ const DashboardPage = () => {
         )}
 
         {/* Chat list */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            Loading chats...
-          </div>
-        ) : activeChats.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">{mode === 'light' ? '🌸' : '🌙'}</div>
-            <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-              No conversations yet
-            </h3>
-            <p className="text-muted-foreground text-sm mb-6">
-              Browse profiles and send chat requests to connect
-            </p>
-            <Button onClick={() => navigate('/browse')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Find People
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {activeChats.map((chat) => {
-              const hasTimer = !chat.timer_stopped && chat.expires_at;
-              const unread = unreadCounts[chat.id] || 0;
-              return (
-                <button
-                  key={chat.id}
-                  onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-card hover:bg-muted transition-colors text-left shadow-card"
-                >
+        <section aria-labelledby="chats-heading">
+          <h2 id="chats-heading" className="sr-only">Your chats</h2>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
+              ))}
+            </div>
+          ) : activeChats.length === 0 ? (
+            <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/40">
+              <div className="text-6xl mb-4" aria-hidden="true">{mode === 'light' ? '🌸' : '🌙'}</div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
+                No conversations yet
+              </h3>
+              <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
+                Browse profiles and send chat requests to connect
+              </p>
+              <Button onClick={() => navigate('/browse')} className="gap-2 min-h-11">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Find People
+              </Button>
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {activeChats.map((chat) => {
+                const hasTimer = !chat.timer_stopped && chat.expires_at;
+                const unread = unreadCounts[chat.id] || 0;
+                return (
+                  <li key={chat.id}>
+                    <button
+                      onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
+                      className="w-full flex items-center gap-3 p-4 bento-tile text-left"
+                      aria-label={`Open chat with ${chat.participants.map(p => p.alias).join(', ') || 'Anonymous'}${unread > 0 ? `, ${unread} unread` : ''}`}
+                    >
+
                   <div className="text-2xl">
                     {chat.participants[0]?.emoji_avatar || '💬'}
                   </div>
@@ -624,12 +661,15 @@ const DashboardPage = () => {
                   ) : (
                     <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   )}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
       </div>
+
     </AppLayout>
   );
 };
