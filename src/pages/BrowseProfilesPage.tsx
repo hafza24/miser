@@ -74,6 +74,7 @@ interface RequestInfo {
 const BrowseProfilesPage = () => {
   const { user, profile: myProfile } = useAuth();
   const { mode } = useMode();
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [profiles, setProfiles] = useState<BrowseProfile[]>([]);
   const [search, setSearch] = useState('');
