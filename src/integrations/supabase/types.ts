@@ -245,6 +245,7 @@ export type Database = {
           member_limit: number
           mode: Database["public"]["Enums"]["mode_preference"]
           mood_tags: string[] | null
+          source_chat_id: string | null
           status: Database["public"]["Enums"]["group_request_status"]
           topic: string
           type: Database["public"]["Enums"]["group_request_type"]
@@ -263,6 +264,7 @@ export type Database = {
           member_limit: number
           mode?: Database["public"]["Enums"]["mode_preference"]
           mood_tags?: string[] | null
+          source_chat_id?: string | null
           status?: Database["public"]["Enums"]["group_request_status"]
           topic: string
           type: Database["public"]["Enums"]["group_request_type"]
@@ -281,11 +283,27 @@ export type Database = {
           member_limit?: number
           mode?: Database["public"]["Enums"]["mode_preference"]
           mood_tags?: string[] | null
+          source_chat_id?: string | null
           status?: Database["public"]["Enums"]["group_request_status"]
           topic?: string
           type?: Database["public"]["Enums"]["group_request_type"]
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "group_requests_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_requests_source_chat_id_fkey"
+            columns: ["source_chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       media_views: {
         Row: {
@@ -1102,15 +1120,38 @@ export type Database = {
         }
         Returns: string
       }
+      create_group_request_from_chat: {
+        Args: {
+          p_chat_id: string
+          p_gender_requirements: Json
+          p_member_limit: number
+          p_mode?: Database["public"]["Enums"]["mode_preference"]
+          p_topic: string
+          p_type: Database["public"]["Enums"]["group_request_type"]
+        }
+        Returns: string
+      }
       effective_daily_chat_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_group_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_scene_limit: { Args: { _uid: string }; Returns: number }
+      ensure_group_request_chat: {
+        Args: { p_request_id: string }
+        Returns: string
+      }
+      finalize_group_request_chat: {
+        Args: { p_request_id: string }
+        Returns: string
+      }
       find_random_user: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
         Returns: string
       }
       generate_alias: { Args: never; Returns: string }
       generate_emoji_avatar: { Args: never; Returns: string }
+      get_group_request_detail: {
+        Args: { p_request_id: string }
+        Returns: Json
+      }
       get_public_profile_by_ids: {
         Args: { user_ids: string[] }
         Returns: {
@@ -1176,6 +1217,10 @@ export type Database = {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
       }
+      is_group_request_participant: {
+        Args: { _request_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_muted: { Args: { _muter: string; _other: string }; Returns: boolean }
       is_restricted: {
         Args: { _other: string; _restrictor: string }
@@ -1203,6 +1248,7 @@ export type Database = {
           member_limit: number
           mode: Database["public"]["Enums"]["mode_preference"]
           mood_tags: string[] | null
+          source_chat_id: string | null
           status: Database["public"]["Enums"]["group_request_status"]
           topic: string
           type: Database["public"]["Enums"]["group_request_type"]
@@ -1243,7 +1289,7 @@ export type Database = {
       }
       respond_group_join: {
         Args: { p_approve: boolean; p_participant_id: string }
-        Returns: undefined
+        Returns: string
       }
       start_random_chat: {
         Args: { p_mode: Database["public"]["Enums"]["mode_preference"] }
