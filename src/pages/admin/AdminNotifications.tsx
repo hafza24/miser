@@ -203,9 +203,20 @@ const AdminNotifications = () => {
           title="Notifications Inbox"
           description="Pending subscriptions and payment requests awaiting review."
           actions={
-            <Button variant="outline" size="sm" onClick={load} className="gap-1">
-              <RefreshCw className="h-4 w-4" /> Refresh
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={markAllVisibleRead}
+                disabled={rows.length === 0 || rows.every((r) => readIds.has(r.id))}
+                className="gap-1"
+              >
+                <CheckCheck className="h-4 w-4" /> Mark all read
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { load(); refreshPendingCounts(); }} className="gap-1">
+                <RefreshCw className="h-4 w-4" /> Refresh
+              </Button>
+            </div>
           }
         />
 
@@ -213,12 +224,23 @@ const AdminNotifications = () => {
           <TabsList>
             <TabsTrigger value="subscriptions" className="gap-2">
               <CreditCard className="h-4 w-4" /> Subscriptions
+              {pendingUnread.subscriptions > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 bg-destructive text-destructive-foreground">
+                  {pendingUnread.subscriptions}
+                </Badge>
+              )}
             </TabsTrigger>
             <TabsTrigger value="payment_requests" className="gap-2">
               <Wallet className="h-4 w-4" /> Payment Requests
+              {pendingUnread.payment_requests > 0 && (
+                <Badge className="ml-1 h-5 px-1.5 bg-destructive text-destructive-foreground">
+                  {pendingUnread.payment_requests}
+                </Badge>
+              )}
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
 
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-1">
