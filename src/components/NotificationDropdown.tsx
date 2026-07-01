@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, MessageCircle, Clock, CheckCheck, MessageSquare, CreditCard, UserPlus } from 'lucide-react';
+import { Bell, MessageCircle, Clock, CheckCheck, MessageSquare, CreditCard, UserPlus, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -13,6 +13,7 @@ const NotificationDropdown = () => {
 
   const handleClick = (n: typeof notifications[0]) => {
     markRead(n.id);
+    if (n.meta?.adminRoute) { navigate(n.meta.adminRoute); return; }
     if (n.type === 'group_invite') { navigate('/dashboard'); return; }
     if (n.meta?.chatId) navigate(`/chat/${n.meta.chatId}`);
     else if (n.type === 'chat_request') navigate('/dashboard');
@@ -24,8 +25,11 @@ const NotificationDropdown = () => {
     if (type === 'group_invite') return <UserPlus className="h-4 w-4 text-primary" />;
     if (type === 'new_message') return <MessageSquare className="h-4 w-4 text-primary" />;
     if (type === 'expiry_alert') return <Clock className="h-4 w-4 text-destructive" />;
+    if (type === 'admin_pending_subscription' || type === 'admin_pending_payment_request')
+      return <ShieldAlert className="h-4 w-4 text-warning" />;
     return <CreditCard className="h-4 w-4 text-primary" />;
   };
+
 
   return (
     <Popover>
