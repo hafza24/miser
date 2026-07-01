@@ -272,18 +272,29 @@ const BrowseProfilesPage = () => {
           title={mode === 'light' ? '🌸 Discover People' : '🔮 Discover People'}
           description="Find someone who understands you"
           actions={
-            <Button
-              variant={hasActiveFilters ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="relative gap-2"
-            >
-              <SlidersHorizontal className="h-4 w-4" />
-              Filters
-              {hasActiveFilters && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
-              )}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => navigate('/groups/new')}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                New group
+              </Button>
+              <Button
+                variant={hasActiveFilters ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="relative gap-2"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                Filters
+                {hasActiveFilters && (
+                  <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive ring-2 ring-background" />
+                )}
+              </Button>
+            </div>
           }
         />
 
