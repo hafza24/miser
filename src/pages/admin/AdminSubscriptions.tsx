@@ -23,11 +23,14 @@ const PlansTab = () => {
   const [loading, setLoading] = useState(true);
   const [editPlan, setEditPlan] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
+  const defaultForm = {
     name: '', description: '', price_monthly: 0, price_yearly: 0,
-    daily_chat_limit: 3, daily_scene_limit: 10, dark_mode_access: false,
+    daily_chat_limit: 3, daily_scene_limit: 10, daily_group_limit: 1,
+    dark_mode_access: false, group_requests_access: false,
+    presence_access: false, auto_translate_access: false,
     is_active: true, sort_order: 0,
-  });
+  };
+  const [form, setForm] = useState<typeof defaultForm>(defaultForm);
 
   const load = async () => {
     setLoading(true);
@@ -40,16 +43,22 @@ const PlansTab = () => {
 
   const openCreate = () => {
     setEditPlan(null);
-    setForm({ name: '', description: '', price_monthly: 0, price_yearly: 0, daily_chat_limit: 3, daily_scene_limit: 10, dark_mode_access: false, is_active: true, sort_order: plans.length });
+    setForm({ ...defaultForm, sort_order: plans.length });
     setShowForm(true);
   };
 
   const openEdit = (plan: any) => {
     setEditPlan(plan);
     setForm({
-      name: plan.name, description: plan.description || '', price_monthly: plan.price_monthly,
-      price_yearly: plan.price_yearly, daily_chat_limit: plan.daily_chat_limit,
-      daily_scene_limit: plan.daily_scene_limit, dark_mode_access: plan.dark_mode_access,
+      name: plan.name, description: plan.description || '',
+      price_monthly: plan.price_monthly, price_yearly: plan.price_yearly,
+      daily_chat_limit: plan.daily_chat_limit ?? 3,
+      daily_scene_limit: plan.daily_scene_limit ?? 0,
+      daily_group_limit: plan.daily_group_limit ?? 0,
+      dark_mode_access: !!plan.dark_mode_access,
+      group_requests_access: !!plan.group_requests_access,
+      presence_access: !!plan.presence_access,
+      auto_translate_access: !!plan.auto_translate_access,
       is_active: plan.is_active, sort_order: plan.sort_order,
     });
     setShowForm(true);
