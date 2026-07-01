@@ -368,34 +368,57 @@ const DashboardPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-          <div>
-            <h2 className="font-heading text-xl sm:text-2xl font-bold text-foreground">
-              {mode === 'light' ? '🌞 Light Space' : '🌑 Dark Space'}
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              {mode === 'light' ? 'Emotional connections' : '18+ connections'}
-            </p>
+      <div className="p-4 md:p-0 space-y-6">
+        {/* Hero header */}
+        <section
+          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
+          aria-labelledby="dashboard-title"
+        >
+          <div
+            aria-hidden="true"
+            className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40 gradient-hero pointer-events-none"
+          />
+          <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+            <div className="min-w-0">
+              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {mode === 'light' ? 'Light Space' : 'Dark Space'}
+              </div>
+              <h1 id="dashboard-title" className="mt-1 font-heading text-2xl sm:text-3xl font-bold text-foreground text-balance">
+                {mode === 'light' ? '🌞 Emotional connections' : '🌑 18+ connections'}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Your chats, invites, and requests — all in one place.
+              </p>
+            </div>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleSurpriseMe}
+                variant="outline"
+                size="sm"
+                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
+                disabled={surpriseLoading}
+                aria-label="Match with a random person"
+              >
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                {surpriseLoading ? 'Searching…' : 'Surprise Me'}
+              </Button>
+              <Button
+                onClick={() => navigate('/browse')}
+                size="sm"
+                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
+                aria-label="Browse people"
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Find People
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2 w-full sm:w-auto">
-            <Button
-              onClick={handleSurpriseMe}
-              variant="outline"
-              size="sm"
-              className="gap-2 flex-1 sm:flex-initial"
-              disabled={surpriseLoading}
-            >
-              <Sparkles className="h-4 w-4" />
-              {surpriseLoading ? 'Searching...' : 'Surprise Me'}
-            </Button>
-            <Button onClick={() => navigate('/browse')} size="sm" className="gap-2 flex-1 sm:flex-initial">
-              <Plus className="h-4 w-4" />
-              Find People
-            </Button>
-          </div>
-        </div>
+        </section>
+
+        {/* Bento requests grid */}
+        {(invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+
 
         {/* Group Invites */}
         {invites.length > 0 && (
