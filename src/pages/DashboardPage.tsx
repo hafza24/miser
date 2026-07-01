@@ -388,6 +388,8 @@ const DashboardPage = () => {
   };
 
   const activeChats = chats.filter(c => c.mode === mode && !isChatExpired(c));
+  const directChats = activeChats.filter(c => !c.is_group);
+  const groupChats = activeChats.filter(c => c.is_group);
 
   return (
     <AppLayout>
