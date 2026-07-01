@@ -601,35 +601,41 @@ const DashboardPage = () => {
         )}
 
         {/* Chat list */}
-        {loading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            Loading chats...
-          </div>
-        ) : activeChats.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="text-6xl mb-4">{mode === 'light' ? '🌸' : '🌙'}</div>
-            <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
-              No conversations yet
-            </h3>
-            <p className="text-muted-foreground text-sm mb-6">
-              Browse profiles and send chat requests to connect
-            </p>
-            <Button onClick={() => navigate('/browse')} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Find People
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {activeChats.map((chat) => {
-              const hasTimer = !chat.timer_stopped && chat.expires_at;
-              const unread = unreadCounts[chat.id] || 0;
-              return (
-                <button
-                  key={chat.id}
-                  onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl bg-card hover:bg-muted transition-colors text-left shadow-card"
-                >
+        <section aria-labelledby="chats-heading">
+          <h2 id="chats-heading" className="sr-only">Your chats</h2>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
+              ))}
+            </div>
+          ) : activeChats.length === 0 ? (
+            <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/40">
+              <div className="text-6xl mb-4" aria-hidden="true">{mode === 'light' ? '🌸' : '🌙'}</div>
+              <h3 className="font-heading text-xl font-semibold text-foreground mb-2">
+                No conversations yet
+              </h3>
+              <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
+                Browse profiles and send chat requests to connect
+              </p>
+              <Button onClick={() => navigate('/browse')} className="gap-2 min-h-11">
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Find People
+              </Button>
+            </div>
+          ) : (
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {activeChats.map((chat) => {
+                const hasTimer = !chat.timer_stopped && chat.expires_at;
+                const unread = unreadCounts[chat.id] || 0;
+                return (
+                  <li key={chat.id}>
+                    <button
+                      onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
+                      className="w-full flex items-center gap-3 p-4 bento-tile text-left"
+                      aria-label={`Open chat with ${chat.participants.map(p => p.alias).join(', ') || 'Anonymous'}${unread > 0 ? `, ${unread} unread` : ''}`}
+                    >
+
                   <div className="text-2xl">
                     {chat.participants[0]?.emoji_avatar || '💬'}
                   </div>
