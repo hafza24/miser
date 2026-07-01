@@ -295,10 +295,10 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     }
 
 
-    // 4) Subscription notifications
+    // 4) Subscription notifications (own account)
     const { data: subs } = await supabase
       .from('subscriptions')
-      .select('id, status, expiry_date, plan_id')
+      .select('id, status, expiry_date, plan_id, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
       .limit(1);
@@ -309,16 +309,18 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         items.push({
           id: `sub-pending-${sub.id}`,
           type: 'payment_pending',
-          title: 'Payment Pending',
-          message: 'Your payment is being reviewed. Features unlock once approved.',
-          timestamp: new Date().toISOString(),
+          title: 'Payment Pending Review',
+          message: 'Your payment is being reviewed by our team. Features unlock once approved.',
+          // Stable timestamp so this doesn't jump to the top on every refresh
+          timestamp: sub.created_at || new Date().toISOString(),
           read: false,
         });
       } else if (sub.status === 'active' && sub.expiry_date) {
         const daysLeft = Math.ceil((new Date(sub.expiry_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
         if (daysLeft <= 3 && daysLeft > 0) {
           items.push({
-            id: `sub-expiring-${sub.id}`,
+            // Include daysLeft so the reminder re-appears once the countdown drops
+            id: `sub-expiring-${sub.id}-${daysLeft}`,
             type: 'subscription_expiring',
             title: 'Subscription Expiring Soon',
             message: `Your subscription expires in ${daysLeft} day${daysLeft > 1 ? 's' : ''}. Renew to keep access.`,
@@ -337,6 +339,53 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     }
+
+    // 5) Admin queue notifications — pending subscriptions & payment requests
+    if (isAdmin) {
+      const [pendingSubsRes, pendingPayReqRes] = await Promise.all([
+        supabase
+          .from('subscriptions')
+          .select('id, created_at', { count: 'exact' })
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1),
+        supabase
+          .from('payment_requests')
+          .select('id, created_at', { count: 'exact' })
+          .eq('status', 'pending')
+          .order('created_at', { ascending: false })
+          .limit(1),
+      ]);
+
+      const subCount = pendingSubsRes.count ?? 0;
+      if (subCount > 0) {
+        const latest = pendingSubsRes.data?.[0] as any;
+        items.push({
+          id: `admin-sub-pending-${latest?.id ?? 'q'}`,
+          type: 'admin_pending_subscription',
+          title: `${subCount} Subscription${subCount > 1 ? 's' : ''} Awaiting Review`,
+          message: 'Tap to review pending subscription payments.',
+          timestamp: latest?.created_at || new Date().toISOString(),
+          read: false,
+          meta: { adminRoute: '/admin/subscriptions' },
+        });
+      }
+
+      const payCount = pendingPayReqRes.count ?? 0;
+      if (payCount > 0) {
+        const latest = pendingPayReqRes.data?.[0] as any;
+        items.push({
+          id: `admin-payreq-pending-${latest?.id ?? 'q'}`,
+          type: 'admin_pending_payment_request',
+          title: `${payCount} Payment Request${payCount > 1 ? 's' : ''} Awaiting Review`,
+          message: 'Users have submitted payment proof for unlock. Tap to review.',
+          timestamp: latest?.created_at || new Date().toISOString(),
+          read: false,
+          meta: { adminRoute: '/admin/payments' },
+        });
+      }
+    }
+
 
     // Apply persisted read state + dedupe by id, newest first
     const seen = new Set<string>();
