@@ -424,8 +424,9 @@ const DashboardPage = () => {
         {invites.length > 0 && (
           <section className="bento-tile p-5" aria-labelledby="invites-heading">
 
-            <h3 className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-              <UserPlus className="h-4 w-4" />
+            <h3 id="invites-heading" className="font-heading text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
+              <UserPlus className="h-4 w-4" aria-hidden="true" />
+
               Group Invites ({invites.length})
             </h3>
             <div className="space-y-2">
