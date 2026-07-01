@@ -12,6 +12,9 @@ import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, Slid
 import OnlineIndicator from '@/components/OnlineIndicator';
 import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { EmptyState } from '@/components/layout/EmptyState';
+
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
 
