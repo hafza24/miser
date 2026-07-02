@@ -80,6 +80,8 @@ const ChatPage = () => {
   const [otherUser, setOtherUser] = useState<{ alias: string; emoji_avatar: string } | null>(null);
   const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
+  const chatInfoRef = useRef<ChatInfo | null>(null);
+  useEffect(() => { chatInfoRef.current = chatInfo; }, [chatInfo]);
   const [expired, setExpired] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [loadingChat, setLoadingChat] = useState(true);
