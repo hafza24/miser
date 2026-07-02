@@ -225,7 +225,27 @@ const SubscriptionsTab = () => {
   const handleAction = async (sub: any, action: 'active' | 'expired' | 'cancelled') => {
     setUpdating(sub.id);
     try {
-      const { error } = await supabase.from('subscriptions').update({ status: action } as any).eq('id', sub.id);
+      const updates: any = { status: action };
+
+      if (action === 'active') {
+        // Deactivate any other active subscriptions for this user (e.g. the default Free plan)
+        await supabase
+          .from('subscriptions')
+          .update({ status: 'cancelled' } as any)
+          .eq('user_id', sub.user_id)
+          .eq('status', 'active')
+          .neq('id', sub.id);
+
+        // Set start now, expiry based on billing_period
+        const start = new Date();
+        const expiry = new Date(start);
+        if (sub.billing_period === 'yearly') expiry.setFullYear(expiry.getFullYear() + 1);
+        else expiry.setMonth(expiry.getMonth() + 1);
+        updates.start_date = start.toISOString();
+        updates.expiry_date = expiry.toISOString();
+      }
+
+      const { error } = await supabase.from('subscriptions').update(updates as any).eq('id', sub.id);
       if (error) throw error;
 
       if (sub.payment) {
@@ -235,11 +255,13 @@ const SubscriptionsTab = () => {
         } as any).eq('id', sub.payment.id);
       }
 
-      if (action === 'active' && sub.plan?.dark_mode_access) {
-        await supabase.from('profiles').update({ dark_mode_blocked: false, payment_status: 'approved' } as any).eq('user_id', sub.user_id);
+      if (action === 'active') {
+        const profileUpdate: any = { payment_status: 'approved' };
+        if (sub.plan?.dark_mode_access) profileUpdate.dark_mode_blocked = false;
+        await supabase.from('profiles').update(profileUpdate).eq('user_id', sub.user_id);
       }
 
-      toast.success(`Subscription ${action}`);
+      toast.success(action === 'active' ? `${sub.plan?.name || 'Plan'} activated for ${sub.profile?.alias || 'user'}` : `Subscription ${action}`);
       load();
     } catch (err: any) {
       toast.error('Failed: ' + err.message);
