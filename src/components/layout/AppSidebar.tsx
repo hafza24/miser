@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
-import { MessageCircle, Search, UsersRound, User, Settings, Crown, Shield, LayoutDashboard } from 'lucide-react';
+import { MessageCircle, Search, UsersRound, User, Settings, Crown, Shield, LayoutDashboard, Sparkles } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -20,6 +20,7 @@ const mainItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/dashboard', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
   { path: '/browse', icon: Search, label: 'Browse' },
+  { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
 ];
 
 const accountItems = [
