@@ -16,8 +16,9 @@ import { EmptyState } from '@/components/layout/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck,
+  CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck, ThumbsUp, ThumbsDown, Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Source = 'subscriptions' | 'payment_requests';
 type FilterStatus = 'pending' | 'all';
