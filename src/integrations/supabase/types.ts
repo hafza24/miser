@@ -537,6 +537,56 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_rooms: {
+        Row: {
+          chat_expires_at: string | null
+          chat_id: string | null
+          created_at: string
+          description: string | null
+          emoji: string
+          id: string
+          is_active: boolean
+          mode: Database["public"]["Enums"]["mode_preference"]
+          mood_key: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          chat_expires_at?: string | null
+          chat_id?: string | null
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          mode?: Database["public"]["Enums"]["mode_preference"]
+          mood_key: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          chat_expires_at?: string | null
+          chat_id?: string | null
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          is_active?: boolean
+          mode?: Database["public"]["Enums"]["mode_preference"]
+          mood_key?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mood_rooms_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       muted_users: {
         Row: {
           created_at: string
@@ -1236,6 +1286,7 @@ export type Database = {
         Returns: boolean
       }
       join_group_request: { Args: { p_request_id: string }; Returns: string }
+      join_mood_room: { Args: { p_room_id: string }; Returns: string }
       leave_chat: { Args: { p_chat_id: string }; Returns: undefined }
       leave_group_request: {
         Args: { p_request_id: string }
@@ -1268,6 +1319,22 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      list_mood_rooms: {
+        Args: never
+        Returns: {
+          chat_expires_at: string
+          chat_id: string
+          description: string
+          emoji: string
+          id: string
+          joined: boolean
+          mode: Database["public"]["Enums"]["mode_preference"]
+          mood_key: string
+          name: string
+          participant_count: number
+          sort_order: number
+        }[]
       }
       mark_media_viewed: { Args: { p_message_id: string }; Returns: undefined }
       process_violation: {
