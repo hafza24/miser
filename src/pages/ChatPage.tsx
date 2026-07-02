@@ -80,6 +80,8 @@ const ChatPage = () => {
   const [otherUser, setOtherUser] = useState<{ alias: string; emoji_avatar: string } | null>(null);
   const [otherUserId, setOtherUserId] = useState<string | null>(null);
   const [chatInfo, setChatInfo] = useState<ChatInfo | null>(null);
+  const chatInfoRef = useRef<ChatInfo | null>(null);
+  useEffect(() => { chatInfoRef.current = chatInfo; }, [chatInfo]);
   const [expired, setExpired] = useState(false);
   const [chatEnded, setChatEnded] = useState(false);
   const [loadingChat, setLoadingChat] = useState(true);
@@ -177,7 +179,20 @@ const ChatPage = () => {
       .channel(`chat-participants-${chatId}`)
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         const deleted = payload.old as any;
-        if (deleted.user_id !== userId && !chatInfo?.is_group) setChatEnded(true);
+        const currentChat = chatInfoRef.current;
+        if (deleted.user_id !== userId) {
+          // In group/mood rooms, other participants leaving is normal — keep loading messages.
+          if (currentChat?.is_group) {
+            loadOtherUser();
+            loadMessages();
+          } else {
+            setChatEnded(true);
+          }
+        }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, () => {
+        loadOtherUser();
+        loadMessages();
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         const updated = payload.new as any;
