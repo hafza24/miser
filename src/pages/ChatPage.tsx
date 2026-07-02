@@ -37,6 +37,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  handleParticipantInsert,
+  handleParticipantUpdate,
+  handleParticipantDelete,
+} from '@/lib/participantHandlers';
 
 interface Message {
   id: string;
@@ -175,30 +180,24 @@ const ChatPage = () => {
       })
       .subscribe();
 
+    const participantDeps = {
+      userId: userId!,
+      getChatInfo: () => chatInfoRef.current,
+      loadOtherUser,
+      loadMessages,
+      setChatEnded,
+      setOtherLastReadAt,
+    };
     const participantChannel = supabase
       .channel(`chat-participants-${chatId}`)
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
-        const deleted = payload.old as any;
-        const currentChat = chatInfoRef.current;
-        if (deleted.user_id !== userId) {
-          // In group/mood rooms, other participants leaving is normal — keep loading messages.
-          if (currentChat?.is_group) {
-            loadOtherUser();
-            loadMessages();
-          } else {
-            setChatEnded(true);
-          }
-        }
+        handleParticipantDelete(payload.old as any, participantDeps);
       })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, () => {
-        loadOtherUser();
-        loadMessages();
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
+        handleParticipantInsert(payload.new as any, participantDeps);
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
-        const updated = payload.new as any;
-        if (updated.user_id !== userId && updated.last_read_at) setOtherLastReadAt(updated.last_read_at);
-        loadOtherUser();
-        loadMessages();
+        handleParticipantUpdate(payload.new as any, participantDeps);
       })
       .subscribe();
 
