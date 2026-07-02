@@ -159,7 +159,18 @@ const DashboardPage = () => {
       return;
     }
 
-    const chatIds = participations.map(p => p.chat_id);
+    let chatIds = participations.map(p => p.chat_id);
+
+    // Exclude Mood Room chats — they live in the dedicated Mood Rooms page.
+    const { data: moodRoomChats } = await supabase
+      .from('mood_rooms')
+      .select('chat_id')
+      .not('chat_id', 'is', null);
+    const moodChatIds = new Set((moodRoomChats || []).map((r: any) => r.chat_id));
+    chatIds = chatIds.filter(id => !moodChatIds.has(id));
+
+    if (chatIds.length === 0) { setChats([]); return; }
+
     const { data: chatData } = await supabase
       .from('chats')
       .select('*')
