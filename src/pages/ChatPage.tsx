@@ -197,6 +197,8 @@ const ChatPage = () => {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         const updated = payload.new as any;
         if (updated.user_id !== userId && updated.last_read_at) setOtherLastReadAt(updated.last_read_at);
+        loadOtherUser();
+        loadMessages();
       })
       .subscribe();
 
