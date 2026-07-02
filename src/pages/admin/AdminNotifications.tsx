@@ -64,6 +64,35 @@ const AdminNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [profilesById, setProfilesById] = useState<Record<string, any>>({});
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [actionId, setActionId] = useState<string | null>(null);
+
+  const handlePaymentAction = async (r: InboxRow, action: 'approved' | 'rejected') => {
+    setActionId(r.id);
+    try {
+      const { error: reqError } = await supabase
+        .from('payment_requests')
+        .update({ status: action, reviewed_at: new Date().toISOString() })
+        .eq('id', r.id);
+      if (reqError) throw reqError;
+
+      const profileUpdate = action === 'approved'
+        ? { dark_mode_blocked: false, payment_status: 'approved' }
+        : { payment_status: 'rejected' };
+      const { error: profError } = await supabase
+        .from('profiles')
+        .update(profileUpdate as any)
+        .eq('user_id', r.user_id);
+      if (profError) throw profError;
+
+      toast.success(action === 'approved' ? 'Payment approved' : 'Payment rejected');
+      setRows(prev => prev.map(x => x.id === r.id && x.source === 'payment_requests' ? { ...x, status: action } : x));
+      markRowRead(r);
+    } catch (err: any) {
+      toast.error('Action failed: ' + (err.message || 'Unknown'));
+    } finally {
+      setActionId(null);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
