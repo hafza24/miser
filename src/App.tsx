@@ -39,6 +39,7 @@ import DownloadPage from "./pages/DownloadPage";
 import BrowseGroupsPage from "./pages/BrowseGroupsPage";
 import CreateGroupRequestPage from "./pages/CreateGroupRequestPage";
 import GroupRequestDetailPage from "./pages/GroupRequestDetailPage";
+import MoodRoomsPage from "./pages/MoodRoomsPage";
 import HelpWidget from "./components/HelpWidget";
 
 const queryClient = new QueryClient();
@@ -89,6 +90,7 @@ const AppRoutes = () => (
       <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
       <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
       <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
+      <Route path="/mood-rooms" element={<ProtectedRoute><MoodRoomsPage /></ProtectedRoute>} />
       {/* Public pages */}
       <Route path="/page/:slug" element={<SitePage />} />
       <Route path="/download" element={<DownloadPage />} />
