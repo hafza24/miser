@@ -16,8 +16,9 @@ import { EmptyState } from '@/components/layout/EmptyState';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck,
+  CreditCard, Wallet, RefreshCw, ExternalLink, Search, Inbox, Check, CheckCheck, ThumbsUp, ThumbsDown, Loader2,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 type Source = 'subscriptions' | 'payment_requests';
 type FilterStatus = 'pending' | 'all';
@@ -63,6 +64,35 @@ const AdminNotifications = () => {
   const [loading, setLoading] = useState(true);
   const [profilesById, setProfilesById] = useState<Record<string, any>>({});
   const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const [actionId, setActionId] = useState<string | null>(null);
+
+  const handlePaymentAction = async (r: InboxRow, action: 'approved' | 'rejected') => {
+    setActionId(r.id);
+    try {
+      const { error: reqError } = await supabase
+        .from('payment_requests')
+        .update({ status: action, reviewed_at: new Date().toISOString() })
+        .eq('id', r.id);
+      if (reqError) throw reqError;
+
+      const profileUpdate = action === 'approved'
+        ? { dark_mode_blocked: false, payment_status: 'approved' }
+        : { payment_status: 'rejected' };
+      const { error: profError } = await supabase
+        .from('profiles')
+        .update(profileUpdate as any)
+        .eq('user_id', r.user_id);
+      if (profError) throw profError;
+
+      toast.success(action === 'approved' ? 'Payment approved' : 'Payment rejected');
+      setRows(prev => prev.map(x => x.id === r.id && x.source === 'payment_requests' ? { ...x, status: action } : x));
+      markRowRead(r);
+    } catch (err: any) {
+      toast.error('Action failed: ' + (err.message || 'Unknown'));
+    } finally {
+      setActionId(null);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -298,6 +328,29 @@ const AdminNotifications = () => {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0 flex-wrap">
+                      {r.source === 'payment_requests' && r.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={actionId === r.id}
+                            onClick={() => handlePaymentAction(r, 'approved')}
+                            className="gap-1 border-green-600/40 text-green-600 hover:bg-green-600/10"
+                          >
+                            {actionId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ThumbsUp className="h-3.5 w-3.5" />}
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={actionId === r.id}
+                            onClick={() => handlePaymentAction(r, 'rejected')}
+                            className="gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
+                          >
+                            <ThumbsDown className="h-3.5 w-3.5" /> Deny
+                          </Button>
+                        </>
+                      )}
                       {isRead ? (
                         <Button size="sm" variant="ghost" onClick={() => markRowUnread(r)} className="gap-1">
                           Mark unread
