@@ -33,6 +33,7 @@ import AdminPages from "./pages/admin/AdminPages";
 import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
 import AdminGroups from "./pages/admin/AdminGroups";
 import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminMoodRooms from "./pages/admin/AdminMoodRooms";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SitePage from "./pages/SitePage";
 import DownloadPage from "./pages/DownloadPage";
