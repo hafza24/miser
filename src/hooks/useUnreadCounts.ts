@@ -65,6 +65,18 @@ export const useUnreadCounts = () => {
       return;
     }
 
+    // Exclude Mood Room chats from unread badge
+    const { data: moodRoomChats } = await supabase
+      .from('mood_rooms')
+      .select('chat_id')
+      .not('chat_id', 'is', null);
+    const moodChatIds = new Set((moodRoomChats || []).map((r: any) => r.chat_id));
+    const filtered = participations.filter(p => !moodChatIds.has(p.chat_id));
+    if (!filtered.length) {
+      setCounts({});
+      return;
+    }
+
     const newCounts: UnreadCounts = {};
 
     await Promise.all(
