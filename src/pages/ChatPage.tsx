@@ -325,7 +325,12 @@ const ChatPage = () => {
     if (!chatId || !userId) return;
     const { data: parts } = await supabase.from('chat_participants').select('user_id, last_read_at').eq('chat_id', chatId);
     const otherParticipants = parts?.filter(p => p.user_id !== userId) || [];
-    if (otherParticipants.length === 0) { setOtherUserId(null); setChatEnded(true); return; }
+    if (otherParticipants.length === 0) {
+      setOtherUserId(null);
+      // Group/mood rooms can legitimately have only the current user present
+      if (!chatInfo?.is_group) setChatEnded(true);
+      return;
+    }
     const other = otherParticipants[0];
     if (other.last_read_at) setOtherLastReadAt(other.last_read_at);
     if (other.user_id) {
