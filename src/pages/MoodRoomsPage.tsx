@@ -23,14 +23,7 @@ interface MoodRoom {
   joined: boolean;
 }
 
-const fmtCountdown = (iso: string | null) => {
-  if (!iso) return 'Fresh room';
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return 'Rotating…';
-  const h = Math.floor(ms / 3_600_000);
-  const m = Math.floor((ms % 3_600_000) / 60_000);
-  return `${h}h ${m}m left`;
-};
+const fmtCountdown = (_iso: string | null) => 'Always open';
 
 export default function MoodRoomsPage() {
   const { mode } = useMode();
