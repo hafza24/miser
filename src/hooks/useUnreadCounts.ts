@@ -80,7 +80,7 @@ export const useUnreadCounts = () => {
     const newCounts: UnreadCounts = {};
 
     await Promise.all(
-      participations.map(async (p) => {
+      filtered.map(async (p) => {
         let query = supabase
           .from('messages')
           .select('id', { count: 'exact', head: true })
