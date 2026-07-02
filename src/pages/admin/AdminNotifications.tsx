@@ -328,6 +328,29 @@ const AdminNotifications = () => {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0 flex-wrap">
+                      {r.source === 'payment_requests' && r.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={actionId === r.id}
+                            onClick={() => handlePaymentAction(r, 'approved')}
+                            className="gap-1 border-green-600/40 text-green-600 hover:bg-green-600/10"
+                          >
+                            {actionId === r.id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ThumbsUp className="h-3.5 w-3.5" />}
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={actionId === r.id}
+                            onClick={() => handlePaymentAction(r, 'rejected')}
+                            className="gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
+                          >
+                            <ThumbsDown className="h-3.5 w-3.5" /> Deny
+                          </Button>
+                        </>
+                      )}
                       {isRead ? (
                         <Button size="sm" variant="ghost" onClick={() => markRowUnread(r)} className="gap-1">
                           Mark unread
