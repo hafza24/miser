@@ -473,20 +473,6 @@ const DashboardPage = () => {
 
           const tiles = [
             {
-              label: 'Active chats',
-              value: directCount,
-              icon: MessageCircle,
-              hint: `${totalUnread} unread`,
-              onClick: () => setChatFilter('direct'),
-            },
-            {
-              label: 'Groups',
-              value: groupCount,
-              icon: UsersRound,
-              hint: groupCount === 0 ? 'None yet' : 'Tap to view',
-              onClick: () => setChatFilter('group'),
-            },
-            {
               label: 'Notifications',
               value: notifCount,
               icon: Bell,
@@ -498,7 +484,7 @@ const DashboardPage = () => {
           return (
             <section aria-labelledby="stats-heading" className="space-y-3">
               <h2 id="stats-heading" className="sr-only">Overview</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3">
                 {tiles.map((t) => (
                   <button
                     key={t.label}
@@ -514,6 +500,7 @@ const DashboardPage = () => {
                   </button>
                 ))}
               </div>
+
 
               {/* Plan card with all features */}
               {(() => {
