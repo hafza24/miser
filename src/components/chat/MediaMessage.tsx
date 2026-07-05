@@ -68,15 +68,43 @@ const SecureImageViewer: React.FC<{ url: string; onClose: () => void }> = ({ url
   };
 
   useEffect(() => {
-    const onKey = () => close();
+    const onKey = (e: KeyboardEvent) => {
+      // Common screenshot shortcuts → warn & close
+      const isPrintScreen = e.key === 'PrintScreen';
+      const isMacShot = e.metaKey && e.shiftKey && ['3', '4', '5'].includes(e.key);
+      const isWinShot = e.getModifierState?.('Meta') && e.shiftKey && e.key.toLowerCase() === 's';
+      if (isPrintScreen || isMacShot || isWinShot) {
+        toast.warning('Screenshot detected — the sender may be notified');
+      }
+      close();
+    };
     const onBlur = () => close();
     const onVis = () => { if (document.visibilityState !== 'visible') close(); };
     const onCtx = (e: Event) => { e.preventDefault(); close(); };
+
+    // Native screenshot listener (Capacitor privacy-screen / screenshot plugins)
+    let nativeCleanup: (() => void) | null = null;
+    (async () => {
+      try {
+        const cap = (window as any).Capacitor;
+        if (!cap?.isNativePlatform?.()) return;
+        const plugin =
+          cap.Plugins?.PrivacyScreen ||
+          cap.Plugins?.ScreenshotDetector ||
+          cap.Plugins?.ScreenCaptureDetector;
+        if (!plugin?.addListener) return;
+        const handle = await plugin.addListener('screenshotTaken', () => {
+          toast.warning('Screenshot detected — the sender has been notified');
+          close();
+        });
+        nativeCleanup = () => handle?.remove?.();
+      } catch { /* ignore */ }
+    })();
+
     window.addEventListener('keydown', onKey, true);
     window.addEventListener('blur', onBlur);
     document.addEventListener('visibilitychange', onVis);
     window.addEventListener('contextmenu', onCtx);
-    // Auto-close after 10s as extra safety
     const t = window.setTimeout(close, 10000);
     return () => {
       window.removeEventListener('keydown', onKey, true);
@@ -84,6 +112,7 @@ const SecureImageViewer: React.FC<{ url: string; onClose: () => void }> = ({ url
       document.removeEventListener('visibilitychange', onVis);
       window.removeEventListener('contextmenu', onCtx);
       clearTimeout(t);
+      nativeCleanup?.();
     };
   }, []);
 
