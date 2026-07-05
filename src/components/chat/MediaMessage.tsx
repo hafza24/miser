@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSignedMediaUrl } from '@/hooks/useSignedMediaUrl';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff, Download, Clock } from 'lucide-react';
+import { Eye, EyeOff, Download, Clock, ShieldAlert } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Props {
   messageId: string;
@@ -36,29 +37,142 @@ const formatLeft = (ms: number) => {
   return `${Math.floor(h / 24)}d`;
 };
 
+// Best-effort screen-recording / capture detection.
+// - Native (Capacitor iOS): UIScreen.isCaptured via a plugin if present.
+// - Web: heuristic — detect if a display-capture MediaStream is active by
+//   watching for extended screens + document visibility. This is not perfect
+//   on the web (browsers don't expose whether *this* tab is being recorded).
+const detectScreenCapture = async (): Promise<boolean> => {
+  try {
+    // Native check (if @capacitor-community/screen-capture-detector or similar is installed)
+    const cap = (window as any).Capacitor;
+    if (cap?.isNativePlatform?.()) {
+      const plugin = cap.Plugins?.ScreenCaptureDetector || cap.Plugins?.PrivacyScreen;
+      if (plugin?.isBeingCaptured) {
+        const res = await plugin.isBeingCaptured();
+        if (res?.value === true || res === true) return true;
+      }
+    }
+  } catch { /* ignore */ }
+  // Web heuristic: if the page is currently backgrounded or a getDisplayMedia
+  // stream is running in another tab we can't reliably know. Return false.
+  return false;
+};
+
+const SecureImageViewer: React.FC<{ url: string; onClose: () => void }> = ({ url, onClose }) => {
+  const closedRef = useRef(false);
+  const close = () => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    onClose();
+  };
+
+  useEffect(() => {
+    const onKey = () => close();
+    const onBlur = () => close();
+    const onVis = () => { if (document.visibilityState !== 'visible') close(); };
+    const onCtx = (e: Event) => { e.preventDefault(); close(); };
+    window.addEventListener('keydown', onKey, true);
+    window.addEventListener('blur', onBlur);
+    document.addEventListener('visibilitychange', onVis);
+    window.addEventListener('contextmenu', onCtx);
+    // Auto-close after 10s as extra safety
+    const t = window.setTimeout(close, 10000);
+    return () => {
+      window.removeEventListener('keydown', onKey, true);
+      window.removeEventListener('blur', onBlur);
+      document.removeEventListener('visibilitychange', onVis);
+      window.removeEventListener('contextmenu', onCtx);
+      clearTimeout(t);
+    };
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black flex items-center justify-center select-none"
+      onClick={close}
+      onTouchStart={close}
+      onPointerDown={close}
+      onWheel={close}
+      onContextMenu={(e) => { e.preventDefault(); close(); }}
+      style={{ WebkitUserSelect: 'none', userSelect: 'none', WebkitTouchCallout: 'none' as any }}
+    >
+      <img
+        src={url}
+        alt=""
+        draggable={false}
+        onContextMenu={(e) => e.preventDefault()}
+        className="max-w-full max-h-full object-contain pointer-events-none"
+      />
+      <div className="absolute top-4 left-0 right-0 text-center text-xs text-white/70">
+        Tap anywhere to close • view once
+      </div>
+    </div>
+  );
+};
+
 const MediaMessage: React.FC<Props> = ({
   messageId, mediaPath, mediaType, viewOnce, expiresAt, isMine, viewedBy, currentUserId,
 }) => {
   const alreadyViewed = viewedBy?.includes(currentUserId) ?? false;
+  const secureImage = viewOnce && mediaType === 'image' && !isMine && !alreadyViewed;
+
   const [revealed, setRevealed] = useState(isMine || !viewOnce || alreadyViewed);
-  const { url } = useSignedMediaUrl(mediaPath, revealed);
+  const [secureOpen, setSecureOpen] = useState(false);
+  const { url } = useSignedMediaUrl(mediaPath, revealed || secureOpen);
   const left = useCountdown(expiresAt);
 
-  const onReveal = async () => {
-    if (revealed) return;
-    setRevealed(true);
+  const markViewed = async () => {
     await supabase.rpc('mark_media_viewed' as any, { p_message_id: messageId });
   };
 
-  if (!revealed) {
+  const onReveal = async () => {
+    if (revealed || secureOpen) return;
+    // Screen-recording gate for secure images
+    if (secureImage) {
+      const capturing = await detectScreenCapture();
+      if (capturing) {
+        toast.error('Screen recording detected — image blocked');
+        return;
+      }
+      setSecureOpen(true);
+      await markViewed();
+      return;
+    }
+    setRevealed(true);
+    await markViewed();
+  };
+
+  const closeSecure = () => {
+    setSecureOpen(false);
+    setRevealed(true); // subsequent renders show the "viewed" state (URL may already be revoked server-side)
+  };
+
+  if (!revealed && !secureOpen) {
     return (
       <button
         onClick={onReveal}
         className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-dashed border-border hover:bg-muted/70 transition"
       >
-        <EyeOff className="h-8 w-8 text-muted-foreground" />
-        <span className="text-xs text-muted-foreground">View once — tap to reveal</span>
+        {secureImage ? <ShieldAlert className="h-8 w-8 text-primary" /> : <EyeOff className="h-8 w-8 text-muted-foreground" />}
+        <span className="text-xs text-muted-foreground">
+          {secureImage ? 'Secure view once — tap & hold to view' : 'View once — tap to reveal'}
+        </span>
       </button>
+    );
+  }
+
+  if (secureOpen && url) {
+    return <SecureImageViewer url={url} onClose={closeSecure} />;
+  }
+
+  // Post-view / non-secure rendering
+  if (secureImage && !secureOpen) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-border">
+        <EyeOff className="h-8 w-8 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground">Image already viewed</span>
+      </div>
     );
   }
 
