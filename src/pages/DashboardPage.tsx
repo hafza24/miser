@@ -710,8 +710,9 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Chat lists */}
-        {loading ? (
+        {/* Chat lists — only on /chats route */}
+        {chatsOnly && (loading ? (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
