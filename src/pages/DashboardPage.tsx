@@ -830,7 +830,8 @@ const DashboardPage = () => {
               );
             })()}
           </section>
-        )}
+        ))}
+
 
 
         {/* Confirm before opening naming dialog */}
