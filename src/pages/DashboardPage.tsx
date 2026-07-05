@@ -460,6 +460,87 @@ const DashboardPage = () => {
           </div>
         </section>
 
+        {/* Stats overview */}
+        {(() => {
+          const activeInMode = chats.filter(c => c.mode === mode && !isChatExpired(c));
+          const directCount = activeInMode.filter(c => !c.is_group).length;
+          const groupCount = activeInMode.filter(c => c.is_group).length;
+          const notifCount = unreadNotifCount + invites.length + incoming.length;
+          const planName = subscription?.plan?.name || 'Free';
+          const dailyLimit = subscription?.plan?.daily_chat_limit ?? 3;
+          const todayCount = chats.filter(c => new Date(c.created_at).toDateString() === new Date().toDateString()).length;
+          const usagePct = dailyLimit > 0 ? Math.min(100, Math.round((todayCount / dailyLimit) * 100)) : 0;
+
+          const tiles = [
+            {
+              label: 'Active chats',
+              value: directCount,
+              icon: MessageCircle,
+              hint: `${totalUnread} unread`,
+              onClick: () => setChatFilter('direct'),
+            },
+            {
+              label: 'Groups',
+              value: groupCount,
+              icon: UsersRound,
+              hint: groupCount === 0 ? 'None yet' : 'Tap to view',
+              onClick: () => setChatFilter('group'),
+            },
+            {
+              label: 'Notifications',
+              value: notifCount,
+              icon: Bell,
+              hint: notifCount === 0 ? "You're all caught up" : 'Pending items',
+              onClick: () => { /* dropdown lives in header */ },
+            },
+          ];
+
+          return (
+            <section aria-labelledby="stats-heading" className="space-y-3">
+              <h2 id="stats-heading" className="sr-only">Overview</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {tiles.map((t) => (
+                  <button
+                    key={t.label}
+                    onClick={t.onClick}
+                    className="bento-tile p-4 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.label}</span>
+                      <t.icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                    </div>
+                    <div className="mt-2 font-heading text-2xl font-bold text-foreground">{t.value}</div>
+                    <div className="mt-0.5 text-xs text-muted-foreground truncate">{t.hint}</div>
+                  </button>
+                ))}
+                <button
+                  onClick={() => navigate('/subscription')}
+                  className="bento-tile p-4 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                  aria-label="View subscription plan"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Plan</span>
+                    <Crown className="h-4 w-4 text-primary" aria-hidden="true" />
+                  </div>
+                  <div className="mt-2 font-heading text-lg font-bold text-foreground truncate">{planName}</div>
+                  <div className="mt-1 space-y-1">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                      <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Today</span>
+                      <span>{todayCount}/{dailyLimit}</span>
+                    </div>
+                    <Progress value={usagePct} className="h-1.5" />
+                    {isActive && daysLeft > 0 && daysLeft < 3650 && (
+                      <div className="text-[11px] text-muted-foreground">{daysLeft}d left</div>
+                    )}
+                  </div>
+                </button>
+              </div>
+            </section>
+          );
+        })()}
+
+
+
         {/* Merged requests panel */}
         {(invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
