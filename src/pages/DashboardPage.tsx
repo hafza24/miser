@@ -498,7 +498,7 @@ const DashboardPage = () => {
           return (
             <section aria-labelledby="stats-heading" className="space-y-3">
               <h2 id="stats-heading" className="sr-only">Overview</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {tiles.map((t) => (
                   <button
                     key={t.label}
@@ -513,29 +513,80 @@ const DashboardPage = () => {
                     <div className="mt-0.5 text-xs text-muted-foreground truncate">{t.hint}</div>
                   </button>
                 ))}
-                <button
-                  onClick={() => navigate('/subscription')}
-                  className="bento-tile p-4 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
-                  aria-label="View subscription plan"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Plan</span>
-                    <Crown className="h-4 w-4 text-primary" aria-hidden="true" />
-                  </div>
-                  <div className="mt-2 font-heading text-lg font-bold text-foreground truncate">{planName}</div>
-                  <div className="mt-1 space-y-1">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Today</span>
-                      <span>{todayCount}/{dailyLimit}</span>
-                    </div>
-                    <Progress value={usagePct} className="h-1.5" />
-                    {isActive && daysLeft > 0 && daysLeft < 3650 && (
-                      <div className="text-[11px] text-muted-foreground">{daysLeft}d left</div>
-                    )}
-                  </div>
-                </button>
               </div>
+
+              {/* Plan card with all features */}
+              {(() => {
+                const plan = (subscription?.plan ?? {}) as any;
+                const sceneLimit = plan.daily_scene_limit ?? 0;
+                const groupLimit = plan.daily_group_limit ?? 0;
+                const features = [
+                  { label: 'Daily chats', value: `${todayCount}/${dailyLimit}` },
+                  { label: 'Scene generations / day', value: sceneLimit > 0 ? String(sceneLimit) : '—' },
+                  { label: 'Group requests / day', value: groupLimit > 0 ? String(groupLimit) : '—' },
+                  { label: 'Dark Mode access', value: plan.dark_mode_access },
+                  { label: 'Group requests', value: plan.group_requests_access },
+                  { label: 'Auto-translate', value: plan.auto_translate_access },
+                  { label: 'Presence (online status)', value: plan.presence_access },
+                ];
+                return (
+                  <button
+                    onClick={() => navigate('/subscription')}
+                    className="bento-tile w-full p-5 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                    aria-label="View subscription plan"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your Plan</div>
+                        <div className="mt-1 font-heading text-xl font-bold text-foreground flex items-center gap-2">
+                          <Crown className="h-5 w-5 text-primary" aria-hidden="true" />
+                          {planName}
+                        </div>
+                        {isActive && daysLeft > 0 && daysLeft < 3650 && (
+                          <div className="mt-0.5 text-xs text-muted-foreground">{daysLeft} days left</div>
+                        )}
+                      </div>
+                      <span className="text-xs font-medium text-primary whitespace-nowrap">Manage →</span>
+                    </div>
+
+                    <div className="mt-3">
+                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Today's chat usage</span>
+                        <span>{todayCount}/{dailyLimit}</span>
+                      </div>
+                      <Progress value={usagePct} className="h-1.5" />
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {features.map((f) => {
+                        const isBool = typeof f.value === 'boolean';
+                        const enabled = isBool ? f.value : true;
+                        return (
+                          <div
+                            key={f.label}
+                            className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border"
+                          >
+                            {isBool ? (
+                              enabled ? (
+                                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                              ) : (
+                                <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                              )
+                            ) : (
+                              <span className="text-xs font-semibold text-foreground w-10 flex-shrink-0">{f.value as string}</span>
+                            )}
+                            <span className={`text-xs truncate ${isBool && !enabled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                              {f.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </button>
+                );
+              })()}
             </section>
+
           );
         })()}
 
