@@ -587,7 +587,8 @@ const DashboardPage = () => {
 
 
         {/* Merged requests panel */}
-        {(invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+        {!chatsOnly && (invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(invites.length > 0 || incoming.length > 0) && (
               <section className="bento-tile p-5" aria-labelledby="requests-heading">
