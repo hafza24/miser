@@ -12,8 +12,12 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Plus, Users, MessageCircle, Check, X,
   Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus, MoreVertical, ArrowUpRight,
+  Bell, Crown, UsersRound, TrendingUp,
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import { useSubscription } from '@/hooks/useSubscription';
+import { useNotifications } from '@/contexts/NotificationContext';
+import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 
 interface ChatItem {
