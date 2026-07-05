@@ -418,7 +418,12 @@ const DashboardPage = () => {
     <AppLayout>
       <div className="p-4 md:p-0 space-y-6">
         {/* Hero header */}
+        {!chatsOnly && (
         <section
+          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
+          aria-labelledby="dashboard-title"
+        >
+
           className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
           aria-labelledby="dashboard-title"
         >
