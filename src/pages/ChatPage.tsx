@@ -185,7 +185,12 @@ const ChatPage = () => {
       getChatInfo: () => chatInfoRef.current,
       loadOtherUser,
       loadMessages,
-      setChatEnded,
+      setChatEnded: (v: boolean) => {
+        setChatEnded(v);
+        if (v && chatId) {
+          supabase.rpc('delete_ended_chat' as any, { p_chat_id: chatId });
+        }
+      },
       setOtherLastReadAt,
     };
     const participantChannel = supabase
