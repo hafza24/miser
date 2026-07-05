@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,6 +67,9 @@ const DashboardPage = () => {
   const { subscription, isActive, daysLeft } = useSubscription();
   const { unreadNotifCount } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
+  const chatsOnly = location.pathname.startsWith('/chats');
+
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
@@ -415,10 +418,12 @@ const DashboardPage = () => {
     <AppLayout>
       <div className="p-4 md:p-0 space-y-6">
         {/* Hero header */}
+        {!chatsOnly && (
         <section
           className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
           aria-labelledby="dashboard-title"
         >
+
           <div
             aria-hidden="true"
             className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40 gradient-hero pointer-events-none"
@@ -459,9 +464,11 @@ const DashboardPage = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Stats overview */}
-        {(() => {
+        {!chatsOnly && (() => {
+
           const activeInMode = chats.filter(c => c.mode === mode && !isChatExpired(c));
           const directCount = activeInMode.filter(c => !c.is_group).length;
           const groupCount = activeInMode.filter(c => c.is_group).length;
@@ -580,7 +587,8 @@ const DashboardPage = () => {
 
 
         {/* Merged requests panel */}
-        {(invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+        {!chatsOnly && (invites.length > 0 || incoming.length > 0 || sent.length > 0) && (
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(invites.length > 0 || incoming.length > 0) && (
               <section className="bento-tile p-5" aria-labelledby="requests-heading">
@@ -666,7 +674,8 @@ const DashboardPage = () => {
 
 
         {/* Mood / Category chips */}
-        {mode === 'light' && (
+        {!chatsOnly && mode === 'light' && (
+
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {[
               { label: '💛 Emotional Support', interest: 'Emotional Support' },
@@ -683,7 +692,7 @@ const DashboardPage = () => {
             ))}
           </div>
         )}
-        {mode === 'dark' && (
+        {!chatsOnly && mode === 'dark' && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {[
               { label: '💋 Flirting', interest: 'Flirting' },
@@ -701,8 +710,9 @@ const DashboardPage = () => {
           </div>
         )}
 
-        {/* Chat lists */}
-        {loading ? (
+        {/* Chat lists — only on /chats route */}
+        {chatsOnly && (loading ? (
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
@@ -820,7 +830,8 @@ const DashboardPage = () => {
               );
             })()}
           </section>
-        )}
+        ))}
+
 
 
         {/* Confirm before opening naming dialog */}
