@@ -63,7 +63,9 @@ interface GroupInvite {
 const DashboardPage = () => {
   const { user } = useAuth();
   const { mode } = useMode();
-  const { counts: unreadCounts, markChatAsRead } = useUnreadCounts();
+  const { counts: unreadCounts, totalUnread, markChatAsRead } = useUnreadCounts();
+  const { subscription, isActive, daysLeft } = useSubscription();
+  const { unreadNotifCount } = useNotifications();
   const navigate = useNavigate();
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
