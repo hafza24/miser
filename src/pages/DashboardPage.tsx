@@ -522,13 +522,13 @@ const DashboardPage = () => {
                 const groupLimit = plan.daily_group_limit ?? 0;
                 const features = [
                   { label: 'Daily chats', value: `${todayCount}/${dailyLimit}` },
-                  { label: 'Scene generations / day', value: sceneLimit > 0 ? String(sceneLimit) : '—' },
-                  { label: 'Group requests / day', value: groupLimit > 0 ? String(groupLimit) : '—' },
-                  { label: 'Dark Mode access', value: plan.dark_mode_access },
-                  { label: 'Group requests', value: plan.group_requests_access },
-                  { label: 'Auto-translate', value: plan.auto_translate_access },
-                  { label: 'Presence (online status)', value: plan.presence_access },
-                ];
+                  sceneLimit > 0 && { label: 'Scene generations / day', value: String(sceneLimit) },
+                  groupLimit > 0 && { label: 'Group requests / day', value: String(groupLimit) },
+                  plan.dark_mode_access && { label: 'Dark Mode access', value: true },
+                  plan.group_requests_access && { label: 'Group requests', value: true },
+                  plan.auto_translate_access && { label: 'Auto-translate', value: true },
+                  plan.presence_access && { label: 'Presence (online status)', value: true },
+                ].filter(Boolean) as { label: string; value: string | boolean }[];
                 return (
                   <button
                     onClick={() => navigate('/subscription')}
