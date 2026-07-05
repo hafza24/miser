@@ -692,7 +692,7 @@ const DashboardPage = () => {
             ))}
           </div>
         )}
-        {mode === 'dark' && (
+        {!chatsOnly && mode === 'dark' && (
           <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
             {[
               { label: '💋 Flirting', interest: 'Flirting' },
