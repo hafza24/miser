@@ -424,9 +424,6 @@ const DashboardPage = () => {
           aria-labelledby="dashboard-title"
         >
 
-          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
-          aria-labelledby="dashboard-title"
-        >
           <div
             aria-hidden="true"
             className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40 gradient-hero pointer-events-none"
