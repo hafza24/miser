@@ -1190,6 +1190,7 @@ export type Database = {
         }
         Returns: string
       }
+      delete_ended_chat: { Args: { p_chat_id: string }; Returns: undefined }
       effective_daily_chat_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_group_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_scene_limit: { Args: { _uid: string }; Returns: number }
