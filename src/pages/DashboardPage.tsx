@@ -673,42 +673,8 @@ const DashboardPage = () => {
 
 
 
-        {/* Mood / Category chips */}
-        {!chatsOnly && mode === 'light' && (
 
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            {[
-              { label: '💛 Emotional Support', interest: 'Emotional Support' },
-              { label: '🤝 Friendship', interest: 'Friendship' },
-              { label: '💕 Cute Love', interest: 'Cute Love' },
-            ].map(mood => (
-              <button
-                key={mood.interest}
-                onClick={() => navigate(`/browse?interest=${encodeURIComponent(mood.interest)}`)}
-                className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-all hover:scale-[1.03] active:scale-95"
-              >
-                {mood.label}
-              </button>
-            ))}
-          </div>
-        )}
-        {!chatsOnly && mode === 'dark' && (
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-            {[
-              { label: '💋 Flirting', interest: 'Flirting' },
-              { label: '🔥 Passionate Romance', interest: 'Passionate Romance' },
-              { label: '✨ Fantasy Roleplay', interest: 'Fantasy Roleplay' },
-            ].map(cat => (
-              <button
-                key={cat.interest}
-                onClick={() => navigate(`/browse?interest=${encodeURIComponent(cat.interest)}`)}
-                className="px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-all hover:scale-[1.03] active:scale-95 neon-glow"
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-        )}
+
 
         {/* Chat lists — only on /chats route */}
         {chatsOnly && (loading ? (
