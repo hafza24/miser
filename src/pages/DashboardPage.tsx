@@ -467,9 +467,11 @@ const DashboardPage = () => {
             </div>
           </div>
         </section>
+        )}
 
         {/* Stats overview */}
-        {(() => {
+        {!chatsOnly && (() => {
+
           const activeInMode = chats.filter(c => c.mode === mode && !isChatExpired(c));
           const directCount = activeInMode.filter(c => !c.is_group).length;
           const groupCount = activeInMode.filter(c => c.is_group).length;
