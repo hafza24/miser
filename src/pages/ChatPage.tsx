@@ -344,7 +344,10 @@ const ChatPage = () => {
     if (otherParticipants.length === 0) {
       setOtherUserId(null);
       // Group/mood rooms can legitimately have only the current user present
-      if (!chatInfo?.is_group) setChatEnded(true);
+      if (!chatInfo?.is_group) {
+        setChatEnded(true);
+        supabase.rpc('delete_ended_chat' as any, { p_chat_id: chatId });
+      }
       return;
     }
     const other = otherParticipants[0];
