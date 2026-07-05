@@ -67,6 +67,9 @@ const DashboardPage = () => {
   const { subscription, isActive, daysLeft } = useSubscription();
   const { unreadNotifCount } = useNotifications();
   const navigate = useNavigate();
+  const location = useLocation();
+  const chatsOnly = location.pathname.startsWith('/chats');
+
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [incoming, setIncoming] = useState<IncomingRequest[]>([]);
   const [sent, setSent] = useState<SentRequest[]>([]);
