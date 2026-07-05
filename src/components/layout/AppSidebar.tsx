@@ -18,7 +18,7 @@ import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 
 const mainItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/dashboard', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
+  { path: '/chats', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
   { path: '/browse', icon: Search, label: 'Browse' },
   { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
 ];
