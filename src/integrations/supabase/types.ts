@@ -32,6 +32,30 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_emails: {
+        Row: {
+          blocked_by: string | null
+          created_at: string
+          email: string
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          blocked_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          blocked_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       blocked_users: {
         Row: {
           blocked_id: string
@@ -1171,6 +1195,10 @@ export type Database = {
           p_request_id: string
         }
         Returns: string
+      }
+      admin_block_email: {
+        Args: { p_email: string; p_reason?: string }
+        Returns: undefined
       }
       chat_role: {
         Args: { _chat_id: string; _user_id: string }
