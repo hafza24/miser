@@ -475,8 +475,15 @@ const DashboardPage = () => {
           const notifCount = unreadNotifCount + invites.length + incoming.length;
           const planName = subscription?.plan?.name || 'Free';
           const dailyLimit = subscription?.plan?.daily_chat_limit ?? 3;
-          const todayCount = chats.filter(c => new Date(c.created_at).toDateString() === new Date().toDateString()).length;
+          const monthlyLimit = (subscription?.plan as any)?.monthly_chat_limit ?? 20;
+          const now = new Date();
+          const todayCount = chats.filter(c => new Date(c.created_at).toDateString() === now.toDateString()).length;
+          const monthCount = chats.filter(c => {
+            const d = new Date(c.created_at);
+            return d.getUTCFullYear() === now.getUTCFullYear() && d.getUTCMonth() === now.getUTCMonth();
+          }).length;
           const usagePct = dailyLimit > 0 ? Math.min(100, Math.round((todayCount / dailyLimit) * 100)) : 0;
+          const monthPct = monthlyLimit > 0 ? Math.min(100, Math.round((monthCount / monthlyLimit) * 100)) : 0;
 
           const tiles = [
             {
