@@ -882,6 +882,7 @@ export type Database = {
           relationship_status: string | null
           scheduled_deletion_at: string | null
           secondary_language: string | null
+          trial_used: boolean
           updated_at: string
           user_id: string
           violation_count: number
@@ -945,6 +946,7 @@ export type Database = {
           relationship_status?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
+          trial_used?: boolean
           updated_at?: string
           user_id: string
           violation_count?: number
@@ -1008,6 +1010,7 @@ export type Database = {
           relationship_status?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
+          trial_used?: boolean
           updated_at?: string
           user_id?: string
           violation_count?: number
