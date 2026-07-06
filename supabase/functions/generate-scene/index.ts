@@ -94,11 +94,12 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Check daily scene limit (per-user)
-    const todayStart = new Date();
+    // Check daily + monthly scene limits (per-user)
+    const now = new Date();
+    const todayStart = new Date(now);
     todayStart.setUTCHours(0, 0, 0, 0);
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-    // Get user's custom limit
     const { data: userProfile } = await adminClient
       .from('profiles')
       .select('daily_scene_limit')
@@ -107,19 +108,31 @@ Deno.serve(async (req) => {
 
     const userSceneLimit = userProfile?.daily_scene_limit ?? 10;
 
-    const { count: dailySceneCount, error: countError } = await adminClient
-      .from('messages')
-      .select('id', { count: 'exact', head: true })
-      .eq('sender_id', user.id)
-      .like('content', '📖 Scene%')
-      .gte('created_at', todayStart.toISOString());
+    // Effective monthly limit from plan / app settings
+    const { data: monthlyLimitRaw } = await (adminClient as any)
+      .rpc('effective_monthly_scene_limit', { _uid: user.id });
+    const monthlyLimit = typeof monthlyLimitRaw === 'number'
+      ? monthlyLimitRaw
+      : parseInt(String(monthlyLimitRaw ?? 0), 10) || 0;
 
-    if (countError) {
-      console.error('Error checking daily limit:', countError);
+    const [dailyRes, monthlyRes] = await Promise.all([
+      adminClient.from('messages').select('id', { count: 'exact', head: true })
+        .eq('sender_id', user.id).like('content', '📖 Scene%')
+        .gte('created_at', todayStart.toISOString()),
+      adminClient.from('messages').select('id', { count: 'exact', head: true })
+        .eq('sender_id', user.id).like('content', '📖 Scene%')
+        .gte('created_at', monthStart.toISOString()),
+    ]);
+
+    if ((dailyRes.count ?? 0) >= userSceneLimit) {
+      return new Response(JSON.stringify({ error: 'Daily scene limit reached. Try again tomorrow!', limit: userSceneLimit }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    if ((dailySceneCount ?? 0) >= userSceneLimit) {
-      return new Response(JSON.stringify({ error: 'Daily scene limit reached. Try again tomorrow!', limit: userSceneLimit }), {
+    if (monthlyLimit > 0 && (monthlyRes.count ?? 0) >= monthlyLimit) {
+      return new Response(JSON.stringify({ error: `Monthly scene limit reached (${monthlyLimit}/month) — resets next month.`, limit: monthlyLimit }), {
         status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
