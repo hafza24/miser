@@ -13,13 +13,14 @@ export interface NotificationItem {
     | 'subscription_expired'
     | 'payment_pending'
     | 'group_invite'
+    | 'mention'
     | 'admin_pending_subscription'
     | 'admin_pending_payment_request';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
-  meta?: { chatId?: string; requestId?: string; inviteId?: string; adminRoute?: string };
+  meta?: { chatId?: string; requestId?: string; inviteId?: string; adminRoute?: string; messageId?: string; mentionRowId?: string };
 }
 
 
