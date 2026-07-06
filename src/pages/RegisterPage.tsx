@@ -98,6 +98,18 @@ const RegisterPage = () => {
             />
           </div>
           <div>
+            <Label htmlFor="dob">Date of Birth</Label>
+            <Input
+              id="dob"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              max={maxDob}
+              required
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">You must be 18+ to join.</p>
+          </div>
+          <div>
             <Label htmlFor="password">Password</Label>
             <PasswordInput
               id="password"
