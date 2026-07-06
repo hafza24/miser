@@ -515,6 +515,41 @@ const DashboardPage = () => {
                 ))}
               </div>
 
+              {/* Monthly chat usage widget */}
+              {(() => {
+                const remaining = Math.max(0, monthlyLimit - monthCount);
+                const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+                const daysToReset = Math.max(1, Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+                const exhausted = monthlyLimit > 0 && remaining === 0;
+                return (
+                  <button
+                    onClick={() => navigate('/subscription')}
+                    className="bento-tile w-full p-4 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                    aria-label="Monthly chat usage"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Monthly chat usage</span>
+                      <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
+                    </div>
+                    <div className="mt-2 flex items-baseline gap-2">
+                      <span className="font-heading text-2xl font-bold text-foreground">{monthCount}</span>
+                      <span className="text-sm text-muted-foreground">/ {monthlyLimit > 0 ? monthlyLimit : '∞'} used</span>
+                    </div>
+                    <div className={`mt-0.5 text-xs ${exhausted ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                      {monthlyLimit === 0
+                        ? 'Unlimited chats this month'
+                        : exhausted
+                          ? `Limit reached — resets in ${daysToReset} day${daysToReset === 1 ? '' : 's'}`
+                          : `${remaining} left · resets in ${daysToReset} day${daysToReset === 1 ? '' : 's'}`}
+                    </div>
+                    {monthlyLimit > 0 && (
+                      <Progress value={monthPct} className="h-1.5 mt-3" />
+                    )}
+                  </button>
+                );
+              })()}
+
+
 
               {/* Plan card with all features */}
               {(() => {
