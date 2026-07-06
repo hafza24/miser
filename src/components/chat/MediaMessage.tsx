@@ -159,7 +159,12 @@ const MediaMessage: React.FC<Props> = ({
 
   const onReveal = async () => {
     if (revealed || secureOpen) return;
-    // Screen-recording gate for secure images
+    // Sender viewing their own view-once image → open in lightbox (no marking viewed)
+    if (isMine && viewOnceImage) {
+      setSecureOpen(true);
+      return;
+    }
+
     if (secureImage) {
       const capturing = await detectScreenCapture();
       if (capturing) {
