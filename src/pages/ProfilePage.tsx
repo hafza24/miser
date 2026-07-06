@@ -600,10 +600,7 @@ const ProfilePage = () => {
 
           {/* Languages */}
           <section className="bento-tile p-5 lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-2">
-              <LangIcon className="w-4 h-4 text-primary" />
-              <h3 className="font-heading text-base font-bold text-foreground">Languages</h3>
-            </div>
+            <h3 className="font-heading text-base font-bold text-foreground">Languages</h3>
             <p className="text-[11px] text-muted-foreground">Incoming messages auto-translate into your primary language.</p>
             <div>
               <Label>Primary</Label>
