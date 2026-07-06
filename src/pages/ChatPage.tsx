@@ -123,6 +123,7 @@ const ChatPage = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeName, setUpgradeName] = useState('');
   const [upgrading, setUpgrading] = useState(false);
+  const [members, setMembers] = useState<MentionMember[]>([]);
 
   const handleUpgrade = async () => {
     if (!chatId) return;
