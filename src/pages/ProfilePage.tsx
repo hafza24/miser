@@ -297,7 +297,7 @@ const ProfilePage = () => {
         {/* Bento grid — identity essentials */}
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           {/* Emoji picker */}
-          <section className="bento-tile p-5 lg:col-span-4">
+          <section className="bento-tile p-5 lg:col-span-4 self-start">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-1.5">
                 <User className="h-3.5 w-3.5 text-primary" />
