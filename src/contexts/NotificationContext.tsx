@@ -106,6 +106,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const prefExpiry   = profile?.notify_expiry   ?? true;
   const prefGroupInvites = profile?.notify_group_invites_pref ?? true;
   const prefMatches = profile?.notify_matches ?? true;
+  const prefMentions = profile?.notify_mentions ?? true;
 
 
   const setSoundEnabled = (v: boolean) => {
@@ -491,13 +492,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         }
         scheduleRefresh();
       })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'mention_notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        const row = payload.new as any;
+        const key = `mention:${row?.id}`;
+        if (lastEventKeyRef.current.has(key)) return;
+        lastEventKeyRef.current.add(key);
+        if (prefMentions) {
+          if (soundEnabled) playNotificationSound();
+          if (desktopEnabled) showDesktopNotification('You were mentioned', 'Someone mentioned you in a chat');
+        }
+        scheduleRefresh();
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites, prefMatches]);
+  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites, prefMatches, prefMentions]);
 
   // Admin-only realtime: pending subscriptions & payment requests
   useEffect(() => {

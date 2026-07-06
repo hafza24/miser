@@ -382,6 +382,51 @@ export type Database = {
           },
         ]
       }
+      mention_notifications: {
+        Row: {
+          chat_id: string
+          created_at: string
+          id: string
+          mentioner_id: string
+          message_id: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string
+          id?: string
+          mentioner_id: string
+          message_id: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string
+          id?: string
+          mentioner_id?: string
+          message_id?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mention_notifications_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mention_notifications_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reports: {
         Row: {
           admin_note: string | null
