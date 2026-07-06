@@ -9,6 +9,7 @@ interface TranslatedMessageProps {
   secondaryLanguage?: string | null;
   autoTranslate: boolean;
   isMine: boolean;
+  renderContent?: (text: string) => React.ReactNode;
 }
 
 type State = {
