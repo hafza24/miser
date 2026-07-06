@@ -66,6 +66,10 @@ const ProfilePage = () => {
   const [primaryLanguage, setPrimaryLanguage] = useState<string>((profile as any)?.primary_language || 'en');
   const [secondaryLanguage, setSecondaryLanguage] = useState<string>((profile as any)?.secondary_language || '');
   const [autoTranslate, setAutoTranslate] = useState<boolean>((profile as any)?.auto_translate_enabled ?? true);
+  const [age, setAge] = useState<string>(((profile as any)?.age ?? '').toString());
+  const [relationshipStatus, setRelationshipStatus] = useState<string>((profile as any)?.relationship_status || '');
+  const [orientation, setOrientation] = useState<string>((profile as any)?.orientation || '');
+  const [zodiac, setZodiac] = useState<string>((profile as any)?.zodiac || '');
 
   useEffect(() => {
     if (profile) {
