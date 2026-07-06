@@ -778,6 +778,7 @@ export type Database = {
           notify_mentions: boolean
           notify_messages: boolean
           notify_requests: boolean
+          orientation: string | null
           payment_status: string
           preferred_languages: string[]
           presence_status: Database["public"]["Enums"]["presence_status"]
@@ -785,11 +786,13 @@ export type Database = {
           profile_paused: boolean
           receive_group_invites: boolean
           region: string | null
+          relationship_status: string | null
           scheduled_deletion_at: string | null
           secondary_language: string | null
           updated_at: string
           user_id: string
           violation_count: number
+          zodiac: string | null
         }
         Insert: {
           age?: number | null
@@ -838,6 +841,7 @@ export type Database = {
           notify_mentions?: boolean
           notify_messages?: boolean
           notify_requests?: boolean
+          orientation?: string | null
           payment_status?: string
           preferred_languages?: string[]
           presence_status?: Database["public"]["Enums"]["presence_status"]
@@ -845,11 +849,13 @@ export type Database = {
           profile_paused?: boolean
           receive_group_invites?: boolean
           region?: string | null
+          relationship_status?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
           updated_at?: string
           user_id: string
           violation_count?: number
+          zodiac?: string | null
         }
         Update: {
           age?: number | null
@@ -898,6 +904,7 @@ export type Database = {
           notify_mentions?: boolean
           notify_messages?: boolean
           notify_requests?: boolean
+          orientation?: string | null
           payment_status?: string
           preferred_languages?: string[]
           presence_status?: Database["public"]["Enums"]["presence_status"]
@@ -905,11 +912,13 @@ export type Database = {
           profile_paused?: boolean
           receive_group_invites?: boolean
           region?: string | null
+          relationship_status?: string | null
           scheduled_deletion_at?: string | null
           secondary_language?: string | null
           updated_at?: string
           user_id?: string
           violation_count?: number
+          zodiac?: string | null
         }
         Relationships: []
       }
