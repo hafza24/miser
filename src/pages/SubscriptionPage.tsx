@@ -354,21 +354,22 @@ const SubscriptionPage = () => {
 
                     {/* Price */}
                     <div className="mb-4">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-foreground">${price}</span>
+                      <div className="flex items-baseline gap-1 flex-wrap">
+                        <span className="text-3xl font-bold text-foreground">{formatPkr(price)}</span>
                         <span className="text-sm text-muted-foreground">
                           /{billingPeriod === 'monthly' ? 'month' : 'year'}
                         </span>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">≈ ${price} USD</p>
                       {billingPeriod === 'yearly' && monthlyEquivalent !== null && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          ≈ ${monthlyEquivalent.toFixed(2)}/mo billed yearly
+                          ≈ {formatPkr(monthlyEquivalent)}/mo billed yearly
                         </p>
                       )}
                       {billingPeriod === 'yearly' && yearlySavings > 0 && (
                         <div className="mt-1.5 inline-flex items-center gap-1.5">
                           <Badge className="bg-green-500/15 text-green-600 border-green-500/30 border hover:bg-green-500/15">
-                            Save ${yearlySavings.toFixed(0)} ({savingsPct}% off)
+                            Save {formatPkr(yearlySavings)} ({savingsPct}% off)
                           </Badge>
                         </div>
                       )}
