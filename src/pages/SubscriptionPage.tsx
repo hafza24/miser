@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap } from 'lucide-react';
+import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PaymentInfoRow {
@@ -358,28 +358,6 @@ const SubscriptionPage = () => {
           </Card>
         )}
 
-        {/* Payment Details - Dynamic from DB */}
-        {!showForm && paymentInfo.length > 0 && (
-          <Card>
-            <CardContent className="p-5 space-y-2">
-              <h3 className="font-heading font-semibold text-foreground">Payment Details</h3>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Methods:</span>
-                  <span className="font-medium text-foreground">{paymentInfo.map(p => p.method_name).join(' · ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Account:</span>
-                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_number}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_holder}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Payment Form */}
         {showForm && selectedPlan && (
@@ -418,6 +396,68 @@ const SubscriptionPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Copyable payment details for selected method */}
+                {method && (() => {
+                  const info = paymentInfo.find(p => p.method_name === method);
+                  if (!info) return null;
+                  const copyText = async (text: string, label: string) => {
+                    try {
+                      await navigator.clipboard.writeText(text);
+                      toast.success(`${label} copied`);
+                    } catch {
+                      toast.error('Copy failed');
+                    }
+                  };
+                  return (
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-foreground">Send payment to</p>
+                        <Badge variant="outline" className="text-xs">{info.method_name}</Badge>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Account Number</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(info.account_number, 'Account number')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-mono font-semibold text-foreground truncate">{info.account_number}</span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Account Holder</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(info.account_holder, 'Name')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-medium text-foreground truncate">{info.account_holder}</span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Amount</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(String(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly), 'Amount')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-semibold text-foreground">
+                              ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                            </span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        After sending, upload the screenshot below as proof.
+                      </p>
+                    </div>
+                  );
+                })()}
                 <div className="space-y-2">
                   <Label htmlFor="txid">Transaction ID (optional)</Label>
                   <Input id="txid" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} placeholder="e.g. TXN12345678" maxLength={100} />
