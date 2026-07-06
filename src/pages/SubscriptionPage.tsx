@@ -157,7 +157,7 @@ const SubscriptionPage = () => {
       const { error: payError } = await supabase.from('payments').insert({
         user_id: user.id,
         subscription_id: (subData as any).id,
-        amount: price,
+        amount: pricePkr,
         method,
         transaction_id: transactionId.trim() || null,
         proof_url: filePath,
