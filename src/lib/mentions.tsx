@@ -18,6 +18,7 @@ export function renderMentions(
   text: string,
   members: MentionMember[] | undefined,
   meAlias?: string | null,
+  isMine?: boolean,
 ): React.ReactNode {
   if (!text) return text;
   const byLower = new Map<string, MentionMember>();
@@ -36,20 +37,21 @@ export function renderMentions(
     if (!known) continue; // leave as plain text
     if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index));
     const isMe = meLower && meLower === lower;
+    const cls = isMine
+      ? (isMe
+          ? 'font-semibold rounded px-1 bg-primary-foreground/20 text-primary-foreground'
+          : 'font-semibold text-primary-foreground underline underline-offset-2')
+      : (isMe
+          ? 'font-semibold rounded px-1 bg-primary/20 text-primary'
+          : 'font-medium text-primary');
     nodes.push(
-      <span
-        key={`m-${key++}`}
-        className={
-          isMe
-            ? 'font-semibold rounded px-1 bg-primary/20 text-primary'
-            : 'font-medium text-primary'
-        }
-      >
+      <span key={`m-${key++}`} className={cls}>
         {full}
       </span>,
     );
     lastIndex = match.index + full.length;
   }
+
   if (lastIndex === 0) return text;
   if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
   return <>{nodes}</>;
