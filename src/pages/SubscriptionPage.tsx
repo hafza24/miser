@@ -396,6 +396,68 @@ const SubscriptionPage = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Copyable payment details for selected method */}
+                {method && (() => {
+                  const info = paymentInfo.find(p => p.method_name === method);
+                  if (!info) return null;
+                  const copyText = async (text: string, label: string) => {
+                    try {
+                      await navigator.clipboard.writeText(text);
+                      toast.success(`${label} copied`);
+                    } catch {
+                      toast.error('Copy failed');
+                    }
+                  };
+                  return (
+                    <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-foreground">Send payment to</p>
+                        <Badge variant="outline" className="text-xs">{info.method_name}</Badge>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Account Number</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(info.account_number, 'Account number')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-mono font-semibold text-foreground truncate">{info.account_number}</span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Account Holder</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(info.account_holder, 'Name')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-medium text-foreground truncate">{info.account_holder}</span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">Amount</p>
+                          <button
+                            type="button"
+                            onClick={() => copyText(String(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly), 'Amount')}
+                            className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
+                          >
+                            <span className="font-semibold text-foreground">
+                              ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                            </span>
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        After sending, upload the screenshot below as proof.
+                      </p>
+                    </div>
+                  );
+                })()}
                 <div className="space-y-2">
                   <Label htmlFor="txid">Transaction ID (optional)</Label>
                   <Input id="txid" value={transactionId} onChange={(e) => setTransactionId(e.target.value)} placeholder="e.g. TXN12345678" maxLength={100} />
