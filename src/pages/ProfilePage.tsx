@@ -199,6 +199,12 @@ const ProfilePage = () => {
         relationship_status: relationshipStatus || null,
         orientation: orientation || null,
         zodiac: zodiac || null,
+        gender_preference: genderPreference,
+        location_preference: locationPreference,
+        country: country || null,
+        city: city.trim() || null,
+        age_min: Math.min(120, Math.max(18, parseInt(ageMin, 10) || 18)),
+        age_max: Math.min(120, Math.max(18, parseInt(ageMax, 10) || 99)),
       } as any)
       .eq('user_id', profile.user_id);
 
