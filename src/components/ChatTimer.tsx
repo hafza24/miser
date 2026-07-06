@@ -16,9 +16,10 @@ interface ChatTimerProps {
   expiresAt: string | null;
   timerStopped: boolean;
   currentUserId: string;
+  chatMode?: 'light' | 'dark';
 }
 
-const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId }: ChatTimerProps) => {
+const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId, chatMode = 'light' }: ChatTimerProps) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [expired, setExpired] = useState(false);
   const [stopRequest, setStopRequest] = useState<TimerStopRequest | null>(null);
@@ -142,6 +143,19 @@ const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId }: ChatTimer
       <div className="flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 px-3 py-1 rounded-full">
         <Clock className="h-3 w-3" />
         <span>Chat expired</span>
+      </div>
+    );
+  }
+
+  // Dark-mode chats are ephemeral: auto-expire in 24h, no stop-timer option.
+  if (chatMode === 'dark') {
+    return (
+      <div
+        className="flex items-center gap-1.5 text-xs text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full"
+        title="Dark-mode chats are ephemeral and disappear when the timer ends."
+      >
+        <Clock className="h-3 w-3" />
+        <span className="font-medium">Ephemeral · {timeLeft}</span>
       </div>
     );
   }
