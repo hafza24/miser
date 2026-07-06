@@ -12,6 +12,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { path: '/admin/notifications', icon: Bell, label: 'Inbox' },
     { path: '/admin/users', icon: Users, label: 'Users' },
     { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
+    { path: '/admin/blocked-emails', icon: ShieldBan, label: 'Blocked Emails' },
     { path: '/admin/chats', icon: MessagesSquare, label: 'Chats' },
     { path: '/admin/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
     
