@@ -70,6 +70,12 @@ const ProfilePage = () => {
   const [relationshipStatus, setRelationshipStatus] = useState<string>((profile as any)?.relationship_status || '');
   const [orientation, setOrientation] = useState<string>((profile as any)?.orientation || '');
   const [zodiac, setZodiac] = useState<string>((profile as any)?.zodiac || '');
+  const [genderPreference, setGenderPreference] = useState<string>((profile as any)?.gender_preference || 'any');
+  const [locationPreference, setLocationPreference] = useState<string>((profile as any)?.location_preference || 'worldwide');
+  const [country, setCountry] = useState<string>((profile as any)?.country || '');
+  const [city, setCity] = useState<string>((profile as any)?.city || '');
+  const [ageMin, setAgeMin] = useState<string>(((profile as any)?.age_min ?? 18).toString());
+  const [ageMax, setAgeMax] = useState<string>(((profile as any)?.age_max ?? 99).toString());
 
   useEffect(() => {
     if (profile) {
