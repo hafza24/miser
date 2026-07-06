@@ -96,6 +96,12 @@ const ProfilePage = () => {
       setRelationshipStatus((profile as any).relationship_status || '');
       setOrientation((profile as any).orientation || '');
       setZodiac((profile as any).zodiac || '');
+      setGenderPreference((profile as any).gender_preference || 'any');
+      setLocationPreference((profile as any).location_preference || 'worldwide');
+      setCountry((profile as any).country || '');
+      setCity((profile as any).city || '');
+      setAgeMin(((profile as any).age_min ?? 18).toString());
+      setAgeMax(((profile as any).age_max ?? 99).toString());
     }
   }, [profile]);
 
