@@ -358,18 +358,20 @@ const SettingsPage = () => {
         {/* Legal & Info */}
         <section className="bg-card rounded-2xl p-6 shadow-card space-y-2">
           <h3 className="font-heading font-semibold text-foreground mb-3">Information</h3>
-          {[
-            { label: 'Terms & Conditions', path: '/page/terms' },
-            { label: 'Privacy Policy',     path: '/page/privacy' },
-            { label: 'FAQ',                path: '/page/faq' },
-            { label: 'Contact Us',         path: '/page/contact' },
-            { label: 'About Us',           path: '/page/about' },
-            { label: 'Download App',       path: '/download' },
-          ].map((link) => (
-            <button key={link.path} onClick={() => navigate(link.path)} className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors">
-              {link.label}
-            </button>
-          ))}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Terms & Conditions', path: '/page/terms' },
+              { label: 'Privacy Policy',     path: '/page/privacy' },
+              { label: 'FAQ',                path: '/page/faq' },
+              { label: 'Contact Us',         path: '/page/contact' },
+              { label: 'About Us',           path: '/page/about' },
+              { label: 'Download App',       path: '/download' },
+            ].map((link) => (
+              <button key={link.path} onClick={() => navigate(link.path)} className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors border border-border">
+                {link.label}
+              </button>
+            ))}
+          </div>
         </section>
 
         {/* Delete */}
