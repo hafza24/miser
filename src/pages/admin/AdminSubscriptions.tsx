@@ -145,6 +145,12 @@ const PlansTab = () => {
               <div><Label>Scenes/day</Label><Input type="number" min={0} value={form.daily_scene_limit} onChange={e => setForm({...form, daily_scene_limit: +e.target.value})} /></div>
               <div><Label>Groups/day</Label><Input type="number" min={0} value={form.daily_group_limit} onChange={e => setForm({...form, daily_group_limit: +e.target.value})} /></div>
             </div>
+            <p className="text-xs text-muted-foreground pt-2 border-t">Monthly caps — resets on the 1st of each month (UTC). 0 = no monthly cap.</p>
+            <div className="grid grid-cols-3 gap-3">
+              <div><Label>Chats/month</Label><Input type="number" min={0} value={form.monthly_chat_limit} onChange={e => setForm({...form, monthly_chat_limit: +e.target.value})} /></div>
+              <div><Label>Scenes/month</Label><Input type="number" min={0} value={form.monthly_scene_limit} onChange={e => setForm({...form, monthly_scene_limit: +e.target.value})} /></div>
+              <div><Label>Groups/month</Label><Input type="number" min={0} value={form.monthly_group_limit} onChange={e => setForm({...form, monthly_group_limit: +e.target.value})} /></div>
+            </div>
             <div><Label>Max members per group</Label><Input type="number" min={2} max={50} value={form.max_group_members} onChange={e => setForm({...form, max_group_members: +e.target.value})} /></div>
             <div className="pt-2 border-t space-y-2">
               <p className="text-xs text-muted-foreground">Feature access</p>
