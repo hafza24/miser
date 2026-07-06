@@ -133,7 +133,7 @@ const SubscriptionPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 max-w-lg mx-auto space-y-6 animate-fade-in">
+      <div className="p-4 max-w-5xl mx-auto space-y-6 animate-fade-in">
         {/* Header */}
         <div className="text-center">
           <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
