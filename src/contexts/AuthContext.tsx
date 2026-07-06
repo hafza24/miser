@@ -174,12 +174,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, [updateOnlineStatus]);
 
-  const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+  const signUp = async (email: string, password: string, age?: number) => {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { emailRedirectTo: window.location.origin },
+      options: {
+        emailRedirectTo: window.location.origin,
+        data: age ? { age } : undefined,
+      },
     });
+    if (!error && age && data.user?.id) {
+      // Best-effort: persist age to the profile row
+      await supabase.from('profiles').update({ age } as any).eq('user_id', data.user.id);
+    }
     return { error };
   };
 
