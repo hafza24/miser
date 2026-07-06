@@ -591,16 +591,30 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const markAllRead = () => {
     if (!user) return;
+    const unreadMentionRowIds = notifications
+      .filter((n) => n.type === 'mention' && !n.read && n.meta?.mentionRowId)
+      .map((n) => n.meta!.mentionRowId as string);
     notifications.forEach((n) => readIdsRef.current.add(n.id));
     persistReadIds(user.id, readIdsRef.current);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (unreadMentionRowIds.length) {
+      supabase.from('mention_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .in('id', unreadMentionRowIds);
+    }
   };
 
   const markRead = (id: string) => {
     if (!user) return;
+    const target = notifications.find((n) => n.id === id);
     readIdsRef.current.add(id);
     persistReadIds(user.id, readIdsRef.current);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (target?.type === 'mention' && target.meta?.mentionRowId) {
+      supabase.from('mention_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('id', target.meta.mentionRowId);
+    }
   };
 
   const unreadNotifCount = notifications.filter((n) => !n.read).length;
