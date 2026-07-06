@@ -358,28 +358,6 @@ const SubscriptionPage = () => {
           </Card>
         )}
 
-        {/* Payment Details - Dynamic from DB */}
-        {!showForm && paymentInfo.length > 0 && (
-          <Card>
-            <CardContent className="p-5 space-y-2">
-              <h3 className="font-heading font-semibold text-foreground">Payment Details</h3>
-              <div className="space-y-1.5 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Methods:</span>
-                  <span className="font-medium text-foreground">{paymentInfo.map(p => p.method_name).join(' · ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Account:</span>
-                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_number}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Name:</span>
-                  <span className="font-medium text-foreground">{paymentInfo[0]?.account_holder}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Payment Form */}
         {showForm && selectedPlan && (
