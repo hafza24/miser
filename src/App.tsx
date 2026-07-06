@@ -84,8 +84,9 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
-  if (loading) return null;
-  if (user) return <Navigate to="/dashboard" replace />;
+  const { isAdmin, loading: adminLoading } = useAdminRole();
+  if (loading || (user && adminLoading)) return <RouteFallback />;
+  if (user) return <Navigate to={isAdmin ? "/admin/users" : "/dashboard"} replace />;
   return <>{children}</>;
 };
 
