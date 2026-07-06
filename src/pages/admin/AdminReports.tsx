@@ -111,7 +111,7 @@ const AdminReports = () => {
     { title: 'Active Subs', value: stats.activeSubscriptions, icon: TrendingUp, color: 'text-green-500' },
     { title: 'Expired Subs', value: stats.expiredSubscriptions, icon: Clock, color: 'text-destructive' },
     { title: 'Pending Payments', value: stats.pendingPayments, icon: CreditCard, color: 'text-yellow-500' },
-    { title: `Revenue (${period})`, value: `$${stats.totalRevenue}`, icon: TrendingUp, color: 'text-green-500' },
+    { title: `Revenue (${period})`, value: `Rs ${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: 'text-green-500' },
     { title: 'Approved Payments', value: stats.approvedPayments, icon: CreditCard, color: 'text-primary' },
   ];
 
@@ -178,7 +178,7 @@ const AdminReports = () => {
                   <CardContent>
                     <ResponsiveContainer width="100%" height={250}>
                       <PieChart>
-                        <Pie data={revenueByMethod} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name}: $${value}`}>
+                        <Pie data={revenueByMethod} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, value }) => `${name}: Rs ${Number(value).toLocaleString()}`}>
                           {revenueByMethod.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                         </Pie>
                         <Tooltip />

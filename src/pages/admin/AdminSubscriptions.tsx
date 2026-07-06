@@ -330,7 +330,7 @@ const SubscriptionsTab = () => {
                       <p className="text-sm text-foreground"><span className="text-muted-foreground">Expiry:</span> {new Date(sub.expiry_date).toLocaleDateString()}</p>
                       {sub.payment && (
                         <p className="text-sm text-foreground">
-                          <span className="text-muted-foreground">Amount:</span> ${sub.payment.amount} via {sub.payment.method}
+                          <span className="text-muted-foreground">Amount:</span> Rs {Number(sub.payment.amount).toLocaleString()} via {sub.payment.method}
                           {sub.payment.transaction_id && ` (${sub.payment.transaction_id})`}
                         </p>
                       )}

@@ -18,6 +18,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { usdToPkr, formatPkr } from '@/lib/currency';
 
 interface PaymentInfoRow {
   id: string;
@@ -129,7 +130,8 @@ const SubscriptionPage = () => {
         .upload(filePath, screenshot);
       if (uploadError) throw uploadError;
 
-      const price = billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly;
+      const priceUsd = billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly;
+      const pricePkr = usdToPkr(priceUsd);
       const expiryDate = new Date();
       if (billingPeriod === 'monthly') {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
@@ -155,7 +157,7 @@ const SubscriptionPage = () => {
       const { error: payError } = await supabase.from('payments').insert({
         user_id: user.id,
         subscription_id: (subData as any).id,
-        amount: price,
+        amount: pricePkr,
         method,
         transaction_id: transactionId.trim() || null,
         proof_url: filePath,
@@ -352,21 +354,22 @@ const SubscriptionPage = () => {
 
                     {/* Price */}
                     <div className="mb-4">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-foreground">${price}</span>
+                      <div className="flex items-baseline gap-1 flex-wrap">
+                        <span className="text-3xl font-bold text-foreground">{formatPkr(price)}</span>
                         <span className="text-sm text-muted-foreground">
                           /{billingPeriod === 'monthly' ? 'month' : 'year'}
                         </span>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">≈ ${price} USD</p>
                       {billingPeriod === 'yearly' && monthlyEquivalent !== null && (
                         <p className="text-xs text-muted-foreground mt-1">
-                          ≈ ${monthlyEquivalent.toFixed(2)}/mo billed yearly
+                          ≈ {formatPkr(monthlyEquivalent)}/mo billed yearly
                         </p>
                       )}
                       {billingPeriod === 'yearly' && yearlySavings > 0 && (
                         <div className="mt-1.5 inline-flex items-center gap-1.5">
                           <Badge className="bg-green-500/15 text-green-600 border-green-500/30 border hover:bg-green-500/15">
-                            Save ${yearlySavings.toFixed(0)} ({savingsPct}% off)
+                            Save {formatPkr(yearlySavings)} ({savingsPct}% off)
                           </Badge>
                         </div>
                       )}
@@ -467,8 +470,9 @@ const SubscriptionPage = () => {
               </div>
               <p className="text-sm text-muted-foreground mb-4">
                 Amount: <span className="font-bold text-foreground">
-                  ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                  {formatPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)}
                 </span> / {billingPeriod === 'monthly' ? 'month' : 'year'}
+                <span className="text-xs ml-1">(≈ ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly} USD)</span>
               </p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
@@ -538,11 +542,11 @@ const SubscriptionPage = () => {
                           <p className="text-xs text-muted-foreground mb-1">Amount</p>
                           <button
                             type="button"
-                            onClick={() => copyText(String(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly), 'Amount')}
+                            onClick={() => copyText(String(usdToPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)), 'Amount')}
                             className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
                           >
                             <span className="font-semibold text-foreground">
-                              ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                              {formatPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)}
                             </span>
                             <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
                           </button>
