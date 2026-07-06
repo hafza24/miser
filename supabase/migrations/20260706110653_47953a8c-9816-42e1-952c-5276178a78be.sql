@@ -1,0 +1,5 @@
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS age INTEGER CHECK (age IS NULL OR (age >= 18 AND age <= 120)),
+  ADD COLUMN IF NOT EXISTS relationship_status TEXT,
+  ADD COLUMN IF NOT EXISTS orientation TEXT,
+  ADD COLUMN IF NOT EXISTS zodiac TEXT;

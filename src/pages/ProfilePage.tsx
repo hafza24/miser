@@ -36,6 +36,10 @@ const PERSONALITY_OPTIONS = [
 
 const INTEREST_OPTIONS = ['Friendship', 'Cute Love', 'Emotional Support'];
 
+const RELATIONSHIP_OPTIONS = ['Single', 'Taken', 'Complicated', 'Open', 'Just exploring'];
+const ORIENTATION_OPTIONS = ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Prefer not to say'];
+const ZODIAC_OPTIONS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
   const [bio, setBio] = useState(profile?.bio || '');
@@ -62,6 +66,10 @@ const ProfilePage = () => {
   const [primaryLanguage, setPrimaryLanguage] = useState<string>((profile as any)?.primary_language || 'en');
   const [secondaryLanguage, setSecondaryLanguage] = useState<string>((profile as any)?.secondary_language || '');
   const [autoTranslate, setAutoTranslate] = useState<boolean>((profile as any)?.auto_translate_enabled ?? true);
+  const [age, setAge] = useState<string>(((profile as any)?.age ?? '').toString());
+  const [relationshipStatus, setRelationshipStatus] = useState<string>((profile as any)?.relationship_status || '');
+  const [orientation, setOrientation] = useState<string>((profile as any)?.orientation || '');
+  const [zodiac, setZodiac] = useState<string>((profile as any)?.zodiac || '');
 
   useEffect(() => {
     if (profile) {
@@ -78,6 +86,10 @@ const ProfilePage = () => {
       setPrimaryLanguage((profile as any).primary_language || 'en');
       setSecondaryLanguage((profile as any).secondary_language || '');
       setAutoTranslate((profile as any).auto_translate_enabled ?? true);
+      setAge(((profile as any).age ?? '').toString());
+      setRelationshipStatus((profile as any).relationship_status || '');
+      setOrientation((profile as any).orientation || '');
+      setZodiac((profile as any).zodiac || '');
     }
   }, [profile]);
 
@@ -171,6 +183,10 @@ const ProfilePage = () => {
         primary_language: primaryLanguage,
         secondary_language: secondaryLanguage || null,
         auto_translate_enabled: autoTranslate,
+        age: age.trim() ? Math.min(120, Math.max(18, parseInt(age, 10) || 0)) || null : null,
+        relationship_status: relationshipStatus || null,
+        orientation: orientation || null,
+        zodiac: zodiac || null,
       } as any)
       .eq('user_id', profile.user_id);
 
@@ -287,22 +303,79 @@ const ProfilePage = () => {
             </div>
           </section>
 
-          {/* Gender */}
-          <section className="bento-tile p-5 lg:col-span-2">
-            <div className="flex items-center gap-1.5 mb-3">
+          {/* About You */}
+          <section className="bento-tile p-5 lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-1.5">
               <User className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gender</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About you</span>
             </div>
-            <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
-              <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {GENDER_OPTIONS.map((g) => (
-                  <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            <div>
+              <Label>Gender</Label>
+              <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {GENDER_OPTIONS.map((g) => (
+                    <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Age</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={18}
+                max={120}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                placeholder="18+"
+              />
+            </div>
+
+            <div>
+              <Label>Relationship</Label>
+              <Select value={relationshipStatus || 'none'} onValueChange={(v) => setRelationshipStatus(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {RELATIONSHIP_OPTIONS.map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Orientation</Label>
+              <Select value={orientation || 'none'} onValueChange={(v) => setOrientation(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Orientation" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {ORIENTATION_OPTIONS.map((o) => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Zodiac</Label>
+              <Select value={zodiac || 'none'} onValueChange={(v) => setZodiac(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Sign" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {ZODIAC_OPTIONS.map((z) => (
+                    <SelectItem key={z} value={z}>{z}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </section>
+
 
           {/* Interest */}
           <section className="bento-tile p-5 lg:col-span-6">
