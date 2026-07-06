@@ -105,6 +105,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const prefRequests = profile?.notify_requests ?? true;
   const prefExpiry   = profile?.notify_expiry   ?? true;
   const prefGroupInvites = profile?.notify_group_invites_pref ?? true;
+  const prefMatches = profile?.notify_matches ?? true;
 
 
   const setSoundEnabled = (v: boolean) => {
@@ -474,13 +475,29 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         }
         scheduleRefresh();
       })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'match_notifications',
+        filter: `user_id=eq.${user.id}`,
+      }, (payload) => {
+        const row = payload.new as any;
+        const key = `match:${row?.id}`;
+        if (lastEventKeyRef.current.has(key)) return;
+        lastEventKeyRef.current.add(key);
+        if (prefMatches) {
+          if (soundEnabled) playNotificationSound();
+          if (desktopEnabled) showDesktopNotification('New match', 'A compatible person just appeared. Say hi!');
+        }
+        scheduleRefresh();
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
     };
-  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites]);
+  }, [user?.id, scheduleRefresh, soundEnabled, desktopEnabled, mutedIds, prefMessages, prefGroupInvites, prefMatches]);
 
   // Admin-only realtime: pending subscriptions & payment requests
   useEffect(() => {
