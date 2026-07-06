@@ -304,6 +304,11 @@ const ChatPage = () => {
     }
   }, [messages, userId]);
 
+  // Reset the jump guard whenever a new ?msg= arrives
+  useEffect(() => {
+    if (jumpToMsgId) jumpDoneRef.current = false;
+  }, [jumpToMsgId]);
+
   // Jump to a specific message when opened via ?msg= (from mention/notification links)
   useEffect(() => {
     if (!jumpToMsgId || jumpDoneRef.current || loadingChat || messages.length === 0) return;
