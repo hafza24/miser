@@ -36,6 +36,10 @@ const PERSONALITY_OPTIONS = [
 
 const INTEREST_OPTIONS = ['Friendship', 'Cute Love', 'Emotional Support'];
 
+const RELATIONSHIP_OPTIONS = ['Single', 'Taken', 'Complicated', 'Open', 'Just exploring'];
+const ORIENTATION_OPTIONS = ['Straight', 'Gay', 'Lesbian', 'Bisexual', 'Pansexual', 'Asexual', 'Queer', 'Prefer not to say'];
+const ZODIAC_OPTIONS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+
 const ProfilePage = () => {
   const { profile, refreshProfile } = useAuth();
   const [bio, setBio] = useState(profile?.bio || '');
