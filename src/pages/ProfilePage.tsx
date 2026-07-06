@@ -359,6 +359,47 @@ const ProfilePage = () => {
             })()}
           </section>
 
+          {/* Basics — bio/country/availability (under avatar, left of About You) */}
+          <section className="bento-tile p-5 lg:col-span-4 space-y-4 self-start">
+            <div className="flex items-center gap-2">
+              <Info className="w-4 h-4 text-primary" />
+              <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
+            </div>
+            <div>
+              <Label>Bio</Label>
+              <Textarea
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Tell others about yourself (anonymously)..."
+                maxLength={500}
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Country</Label>
+                <Select value={region || 'none'} onValueChange={(v) => setRegion(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Select your country" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {COUNTRIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Availability</Label>
+                <Select value={availability || 'none'} onValueChange={(v) => setAvailability(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="When are you available?" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— None —</SelectItem>
+                    {AVAILABILITY_OPTIONS.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </section>
+
+
           {/* About You */}
           <section className="bento-tile p-5 lg:col-span-2 space-y-4">
             <div className="flex items-center gap-1.5">
@@ -595,46 +636,6 @@ const ProfilePage = () => {
                 <p className="text-[11px] text-muted-foreground">Older messages translate on double-tap.</p>
               </div>
               <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
-            </div>
-          </section>
-
-          {/* Basics — bio/country/availability */}
-          <section className="bento-tile p-5 lg:col-span-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-primary" />
-              <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
-            </div>
-            <div>
-              <Label>Bio</Label>
-              <Textarea
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Tell others about yourself (anonymously)..."
-                maxLength={500}
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Country</Label>
-                <Select value={region || 'none'} onValueChange={(v) => setRegion(v === 'none' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="Select your country" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">— None —</SelectItem>
-                    {COUNTRIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Availability</Label>
-                <Select value={availability || 'none'} onValueChange={(v) => setAvailability(v === 'none' ? '' : v)}>
-                  <SelectTrigger><SelectValue placeholder="When are you available?" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">— None —</SelectItem>
-                    {AVAILABILITY_OPTIONS.map((a) => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </section>
         </div>
