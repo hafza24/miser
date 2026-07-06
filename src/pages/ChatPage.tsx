@@ -645,7 +645,7 @@ const ChatPage = () => {
               <ChatModeSwitch chatId={chatId!} chatMode={chatMode} currentUserId={userId} otherUserId={otherUserId} otherUserAlias={otherUser?.alias} onModeChanged={(newMode) => { setChatMode(newMode); setChatInfo(prev => prev ? { ...prev, mode: newMode } : prev); }} />
             )}
             {chatInfo && userId && (
-              <ChatTimer chatId={chatId!} expiresAt={chatInfo.expires_at} timerStopped={chatInfo.timer_stopped} currentUserId={userId} />
+              <ChatTimer chatId={chatId!} expiresAt={chatInfo.expires_at} timerStopped={chatInfo.timer_stopped} currentUserId={userId} chatMode={chatMode} />
             )}
             
             <DropdownMenu>
