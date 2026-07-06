@@ -183,6 +183,10 @@ const ProfilePage = () => {
         primary_language: primaryLanguage,
         secondary_language: secondaryLanguage || null,
         auto_translate_enabled: autoTranslate,
+        age: age.trim() ? Math.min(120, Math.max(18, parseInt(age, 10) || 0)) || null : null,
+        relationship_status: relationshipStatus || null,
+        orientation: orientation || null,
+        zodiac: zodiac || null,
       } as any)
       .eq('user_id', profile.user_id);
 
