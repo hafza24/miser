@@ -1076,6 +1076,9 @@ export type Database = {
           id: string
           is_active: boolean
           max_group_members: number
+          monthly_chat_limit: number
+          monthly_group_limit: number
+          monthly_scene_limit: number
           name: string
           presence_access: boolean
           price_monthly: number
@@ -1095,6 +1098,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_group_members?: number
+          monthly_chat_limit?: number
+          monthly_group_limit?: number
+          monthly_scene_limit?: number
           name: string
           presence_access?: boolean
           price_monthly?: number
@@ -1114,6 +1120,9 @@ export type Database = {
           id?: string
           is_active?: boolean
           max_group_members?: number
+          monthly_chat_limit?: number
+          monthly_group_limit?: number
+          monthly_scene_limit?: number
           name?: string
           presence_access?: boolean
           price_monthly?: number
@@ -1275,6 +1284,8 @@ export type Database = {
       }
       check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
       check_daily_group_limit: { Args: { _uid: string }; Returns: boolean }
+      check_monthly_chat_limit: { Args: { _user_id: string }; Returns: boolean }
+      check_monthly_group_limit: { Args: { _uid: string }; Returns: boolean }
       create_group_request: {
         Args: {
           p_gender_requirements: Json
@@ -1300,6 +1311,9 @@ export type Database = {
       effective_daily_chat_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_group_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_scene_limit: { Args: { _uid: string }; Returns: number }
+      effective_monthly_chat_limit: { Args: { _uid: string }; Returns: number }
+      effective_monthly_group_limit: { Args: { _uid: string }; Returns: number }
+      effective_monthly_scene_limit: { Args: { _uid: string }; Returns: number }
       ensure_group_request_chat: {
         Args: { p_request_id: string }
         Returns: string
