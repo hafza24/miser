@@ -35,7 +35,8 @@ export default defineConfig(({ mode }) => ({
           ) {
             return "react";
           }
-          if (id.includes("/recharts/") || id.includes("/d3-")) return "charts";
+          // Note: don't split recharts/d3 into a separate chunk — it causes
+          // "Cannot access '_' before initialization" due to circular deps.
         },
       },
     },
