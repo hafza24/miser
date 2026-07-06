@@ -130,7 +130,8 @@ const SubscriptionPage = () => {
         .upload(filePath, screenshot);
       if (uploadError) throw uploadError;
 
-      const price = billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly;
+      const priceUsd = billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly;
+      const pricePkr = usdToPkr(priceUsd);
       const expiryDate = new Date();
       if (billingPeriod === 'monthly') {
         expiryDate.setMonth(expiryDate.getMonth() + 1);
