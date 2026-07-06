@@ -245,6 +245,45 @@ const SubscriptionPage = () => {
           </Card>
         )}
 
+        {/* Free Trial Banner */}
+        {!showForm && canStartTrial && (
+          <Card className="border-2 border-primary/40 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent overflow-hidden">
+            <CardContent className="p-5">
+              <div className="flex items-start gap-4 flex-wrap">
+                <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
+                  <Crown className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1 min-w-[220px]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-heading font-bold text-foreground text-lg">
+                      7-Day Free Premium Trial
+                    </h3>
+                    <Badge className="bg-primary text-primary-foreground">Free</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Unlock all <strong className="text-foreground">{premiumPlan?.name}</strong> features for one week — no payment required. One trial per account.
+                  </p>
+                </div>
+                <Button
+                  className="gap-2"
+                  onClick={handleStartTrial}
+                  disabled={startingTrial}
+                >
+                  <Star className="h-4 w-4" />
+                  {startingTrial ? 'Starting...' : 'Start Free Trial'}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Trial Used Notice */}
+        {!showForm && trialUsed && !subscription && (
+          <p className="text-center text-xs text-muted-foreground">
+            You've already used your free trial. Choose a plan below to continue with premium.
+          </p>
+        )}
+
         {/* Billing Period Toggle */}
         {!showForm && (
           <div className="flex items-center justify-center gap-3">
