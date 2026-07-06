@@ -496,60 +496,59 @@ const DashboardPage = () => {
           ];
 
           return (
-            <section aria-labelledby="stats-heading" className="space-y-3">
+            <section aria-labelledby="stats-heading" className="space-y-2">
               <h2 id="stats-heading" className="sr-only">Overview</h2>
-              <div className="grid grid-cols-1 gap-3">
+
+              {/* Notifications + Monthly usage in one row */}
+              <div className="grid grid-cols-2 gap-2">
                 {tiles.map((t) => (
                   <button
                     key={t.label}
                     onClick={t.onClick}
-                    className="bento-tile p-4 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                    className="bento-tile p-3 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{t.label}</span>
-                      <t.icon className="h-4 w-4 text-primary" aria-hidden="true" />
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{t.label}</span>
+                      <t.icon className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
                     </div>
-                    <div className="mt-2 font-heading text-2xl font-bold text-foreground">{t.value}</div>
-                    <div className="mt-0.5 text-xs text-muted-foreground truncate">{t.hint}</div>
+                    <div className="mt-1 font-heading text-lg font-bold text-foreground leading-tight">{t.value}</div>
+                    <div className="text-[10px] text-muted-foreground truncate">{t.hint}</div>
                   </button>
                 ))}
+
+                {(() => {
+                  const remaining = Math.max(0, monthlyLimit - monthCount);
+                  const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+                  const daysToReset = Math.max(1, Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+                  const exhausted = monthlyLimit > 0 && remaining === 0;
+                  return (
+                    <button
+                      onClick={() => navigate('/subscription')}
+                      className="bento-tile p-3 text-left transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      aria-label="Monthly chat usage"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground truncate">Monthly chats</span>
+                        <Calendar className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                      </div>
+                      <div className="mt-1 flex items-baseline gap-1">
+                        <span className="font-heading text-lg font-bold text-foreground leading-tight">{monthCount}</span>
+                        <span className="text-[11px] text-muted-foreground">/ {monthlyLimit > 0 ? monthlyLimit : '∞'}</span>
+                      </div>
+                      <div className={`text-[10px] truncate ${exhausted ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                        {monthlyLimit === 0
+                          ? 'Unlimited'
+                          : exhausted
+                            ? `Resets in ${daysToReset}d`
+                            : `${remaining} left · ${daysToReset}d`}
+                      </div>
+                      {monthlyLimit > 0 && (
+                        <Progress value={monthPct} className="h-1 mt-1.5" />
+                      )}
+                    </button>
+                  );
+                })()}
               </div>
-
-              {/* Monthly chat usage widget */}
-              {(() => {
-                const remaining = Math.max(0, monthlyLimit - monthCount);
-                const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-                const daysToReset = Math.max(1, Math.ceil((nextReset.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-                const exhausted = monthlyLimit > 0 && remaining === 0;
-                return (
-                  <button
-                    onClick={() => navigate('/subscription')}
-                    className="bento-tile w-full p-4 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
-                    aria-label="Monthly chat usage"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Monthly chat usage</span>
-                      <Calendar className="h-4 w-4 text-primary" aria-hidden="true" />
-                    </div>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="font-heading text-2xl font-bold text-foreground">{monthCount}</span>
-                      <span className="text-sm text-muted-foreground">/ {monthlyLimit > 0 ? monthlyLimit : '∞'} used</span>
-                    </div>
-                    <div className={`mt-0.5 text-xs ${exhausted ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
-                      {monthlyLimit === 0
-                        ? 'Unlimited chats this month'
-                        : exhausted
-                          ? `Limit reached — resets in ${daysToReset} day${daysToReset === 1 ? '' : 's'}`
-                          : `${remaining} left · resets in ${daysToReset} day${daysToReset === 1 ? '' : 's'}`}
-                    </div>
-                    {monthlyLimit > 0 && (
-                      <Progress value={monthPct} className="h-1.5 mt-3" />
-                    )}
-                  </button>
-                );
-              })()}
-
-
 
               {/* Plan card with all features */}
               {(() => {
@@ -558,69 +557,67 @@ const DashboardPage = () => {
                 const groupLimit = plan.daily_group_limit ?? 0;
                 const features = [
                   { label: 'Daily chats', value: `${todayCount}/${dailyLimit}` },
-                  sceneLimit > 0 && { label: 'Scene generations / day', value: String(sceneLimit) },
-                  groupLimit > 0 && { label: 'Group requests / day', value: String(groupLimit) },
-                  plan.dark_mode_access && { label: 'Dark Mode access', value: true },
+                  sceneLimit > 0 && { label: 'Scenes / day', value: String(sceneLimit) },
+                  groupLimit > 0 && { label: 'Groups / day', value: String(groupLimit) },
+                  plan.dark_mode_access && { label: 'Dark Mode', value: true },
                   plan.group_requests_access && { label: 'Group requests', value: true },
                   plan.auto_translate_access && { label: 'Auto-translate', value: true },
-                  plan.presence_access && { label: 'Presence (online status)', value: true },
+                  plan.presence_access && { label: 'Presence', value: true },
                 ].filter(Boolean) as { label: string; value: string | boolean }[];
                 return (
                   <button
                     onClick={() => navigate('/subscription')}
-                    className="bento-tile w-full p-5 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
+                    className="bento-tile w-full p-3 text-left transition-transform hover:scale-[1.01] active:scale-[0.99]"
                     aria-label="View subscription plan"
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Your Plan</div>
-                        <div className="mt-1 font-heading text-xl font-bold text-foreground flex items-center gap-2">
-                          <Crown className="h-5 w-5 text-primary" aria-hidden="true" />
-                          {planName}
-                        </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Crown className="h-4 w-4 text-primary flex-shrink-0" aria-hidden="true" />
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Plan</span>
+                        <span className="font-heading text-sm font-bold text-foreground truncate">{planName}</span>
                         {isActive && daysLeft > 0 && daysLeft < 3650 && (
-                          <div className="mt-0.5 text-xs text-muted-foreground">{daysLeft} days left</div>
+                          <span className="text-[10px] text-muted-foreground">· {daysLeft}d left</span>
                         )}
                       </div>
-                      <span className="text-xs font-medium text-primary whitespace-nowrap">Manage →</span>
+                      <span className="text-[11px] font-medium text-primary whitespace-nowrap">Manage →</span>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
-                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Today's chat usage</span>
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-0.5">
+                        <span className="flex items-center gap-1"><TrendingUp className="h-3 w-3" /> Today</span>
                         <span>{todayCount}/{dailyLimit}</span>
                       </div>
-                      <Progress value={usagePct} className="h-1.5" />
+                      <Progress value={usagePct} className="h-1" />
                       {monthlyLimit > 0 && (
                         <>
-                          <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-2 mb-1">
-                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> This month's chat usage</span>
+                          <div className="flex items-center justify-between text-[10px] text-muted-foreground mt-1.5 mb-0.5">
+                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> Month</span>
                             <span>{monthCount}/{monthlyLimit}</span>
                           </div>
-                          <Progress value={monthPct} className="h-1.5" />
+                          <Progress value={monthPct} className="h-1" />
                         </>
                       )}
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <div className="mt-2 flex flex-wrap gap-1.5">
                       {features.map((f) => {
                         const isBool = typeof f.value === 'boolean';
                         const enabled = isBool ? f.value : true;
                         return (
                           <div
                             key={f.label}
-                            className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border"
+                            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-muted/40 border border-border"
                           >
                             {isBool ? (
                               enabled ? (
-                                <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                                <Check className="h-3 w-3 text-primary flex-shrink-0" />
                               ) : (
-                                <X className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                <X className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                               )
                             ) : (
-                              <span className="text-xs font-semibold text-foreground w-10 flex-shrink-0">{f.value as string}</span>
+                              <span className="text-[10px] font-semibold text-foreground">{f.value as string}</span>
                             )}
-                            <span className={`text-xs truncate ${isBool && !enabled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
+                            <span className={`text-[10px] ${isBool && !enabled ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
                               {f.label}
                             </span>
                           </div>
@@ -633,6 +630,7 @@ const DashboardPage = () => {
             </section>
 
           );
+
         })()}
 
 
