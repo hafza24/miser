@@ -88,7 +88,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
 
   return (
     <div onClick={onTap} onDoubleClick={fetchTranslation}>
-      <div>{content}</div>
+      <div>{renderContent ? renderContent(content) : content}</div>
       {!isMine && state.status === 'loading' && (
         <div className="mt-1 flex items-center gap-1 text-[11px] opacity-60 italic">
           <Loader2 className="h-3 w-3 animate-spin" /> Translating…
