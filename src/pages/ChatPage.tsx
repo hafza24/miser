@@ -963,7 +963,16 @@ const ChatPage = () => {
               {chatId && otherUserId && (
                 <SceneGenerator mode={mode as 'light' | 'dark'} chatId={chatId} otherUserId={otherUserId} disabled={expired || chatEnded || sending} onSend={sendGeneratedScene} continuationTrigger={continuationTrigger} />
               )}
-              <Input value={newMessage} onChange={handleInputChange} placeholder="Type a message..." className="flex-1 rounded-full h-9 text-sm" maxLength={2000} />
+              <MentionInput
+                value={newMessage}
+                onValueChange={setNewMessage}
+                onTyping={sendTyping}
+                members={members}
+                currentUserId={userId}
+                placeholder="Type a message... (use @ to mention)"
+                className="flex-1 rounded-full h-9 text-sm"
+                maxLength={2000}
+              />
               <Button type="submit" size="icon" disabled={!newMessage.trim() || sending} className="rounded-full flex-shrink-0 h-8 w-8">
                 <Send className="h-4 w-4" />
               </Button>
