@@ -312,32 +312,51 @@ const ProfilePage = () => {
                 </div>
               )}
             </div>
-            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
-              {EMOJI_OPTIONS.map((emoji) => {
-                const isSelected = emojiAvatar === emoji;
-                return (
-                  <button
-                    key={emoji}
-                    type="button"
-                    onClick={() => setEmojiAvatar(emoji)}
-                    aria-pressed={isSelected}
-                    aria-label={`Choose ${emoji}`}
-                    className={`relative aspect-square flex items-center justify-center rounded-2xl text-2xl transition-all duration-200 hover:scale-110 ${
-                      isSelected
-                        ? 'bg-primary/10 border-2 border-primary shadow-[0_0_20px_hsl(var(--primary)/0.35)] scale-110 z-10'
-                        : 'border border-border bg-muted/30 hover:bg-muted hover:border-primary/40'
-                    }`}
-                  >
-                    <span className="leading-none">{emoji}</span>
-                    {isSelected && (
-                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-card flex items-center justify-center">
-                        <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={4} />
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            {(() => {
+              const COLLAPSED = 11;
+              const base = EMOJI_OPTIONS.slice(0, COLLAPSED);
+              if (!showAllEmojis && emojiAvatar && !base.includes(emojiAvatar)) base[base.length - 1] = emojiAvatar;
+              const visible = showAllEmojis ? EMOJI_OPTIONS : base;
+              const hasMore = EMOJI_OPTIONS.length > COLLAPSED;
+              return (
+                <div className="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-12 gap-1.5">
+                  {visible.map((emoji) => {
+                    const isSelected = emojiAvatar === emoji;
+                    return (
+                      <button
+                        key={emoji}
+                        type="button"
+                        onClick={() => setEmojiAvatar(emoji)}
+                        aria-pressed={isSelected}
+                        aria-label={`Choose ${emoji}`}
+                        className={`relative aspect-square flex items-center justify-center rounded-lg text-lg transition-all duration-200 hover:scale-110 ${
+                          isSelected
+                            ? 'bg-primary/10 border-2 border-primary shadow-[0_0_14px_hsl(var(--primary)/0.35)] z-10'
+                            : 'border border-border bg-muted/30 hover:bg-muted hover:border-primary/40'
+                        }`}
+                      >
+                        <span className="leading-none">{emoji}</span>
+                        {isSelected && (
+                          <span className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-primary border-2 border-card flex items-center justify-center">
+                            <Check className="h-2 w-2 text-primary-foreground" strokeWidth={4} />
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                  {hasMore && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllEmojis((v) => !v)}
+                      aria-label={showAllEmojis ? 'Show fewer emojis' : 'Show more emojis'}
+                      className="aspect-square flex items-center justify-center rounded-lg border border-dashed border-primary/40 bg-primary/5 text-primary text-xs font-semibold hover:bg-primary/10 transition-all"
+                    >
+                      {showAllEmojis ? '−' : `+${EMOJI_OPTIONS.length - COLLAPSED}`}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </section>
 
           {/* About You */}
