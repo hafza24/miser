@@ -22,7 +22,7 @@ import BrowseProfilesPage from "./pages/BrowseProfilesPage";
 import SettingsPage from "./pages/SettingsPage";
 import SuspendedPage from "./pages/SuspendedPage";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminModeration from "./pages/admin/AdminModeration";
 import AdminChats from "./pages/admin/AdminChats";
