@@ -147,7 +147,8 @@ const MediaMessage: React.FC<Props> = ({
   const secureImage = viewOnce && mediaType === 'image' && !isMine && !alreadyViewed;
   const viewOnceImage = viewOnce && mediaType === 'image';
 
-  const [revealed, setRevealed] = useState((isMine && !viewOnceImage) || (!viewOnce) || alreadyViewed);
+  // View-once images NEVER render inline (for either side). All other media reveals normally.
+  const [revealed, setRevealed] = useState(!viewOnceImage && (isMine || !viewOnce || alreadyViewed));
   const [secureOpen, setSecureOpen] = useState(false);
   const { url } = useSignedMediaUrl(mediaPath, revealed || secureOpen);
   const left = useCountdown(expiresAt);
@@ -180,19 +181,23 @@ const MediaMessage: React.FC<Props> = ({
 
   if (!revealed && !secureOpen) {
     const isSenderViewOnce = isMine && viewOnceImage;
+    const isViewedViewOnceImage = viewOnceImage && alreadyViewed;
+    const hidden = isSenderViewOnce || isViewedViewOnceImage;
     return (
       <button
-        onClick={isSenderViewOnce ? undefined : onReveal}
-        disabled={isSenderViewOnce}
+        onClick={hidden ? undefined : onReveal}
+        disabled={hidden}
         className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-dashed border-border hover:bg-muted/70 transition disabled:cursor-not-allowed disabled:hover:bg-muted"
       >
         {secureImage ? <ShieldAlert className="h-8 w-8 text-primary" /> : <EyeOff className="h-8 w-8 text-muted-foreground" />}
         <span className="text-xs text-muted-foreground">
-          {isSenderViewOnce
-            ? 'View once — hidden preview'
-            : secureImage
-              ? 'Secure view once — tap & hold to view'
-              : 'View once — tap to reveal'}
+          {isViewedViewOnceImage
+            ? 'Image already viewed'
+            : isSenderViewOnce
+              ? 'View once — hidden preview'
+              : secureImage
+                ? 'Secure view once — tap & hold to view'
+                : 'View once — tap to reveal'}
         </span>
       </button>
     );
