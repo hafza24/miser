@@ -21,6 +21,8 @@ import SceneGenerator from '@/components/chat/SceneGenerator';
 import SwipeableMessage from '@/components/chat/SwipeableMessage';
 import TranslatedMessage from '@/components/chat/TranslatedMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
+import MentionInput from '@/components/chat/MentionInput';
+import { renderMentions, MentionMember } from '@/lib/mentions';
 import {
   AlertDialog,
   AlertDialogAction,
