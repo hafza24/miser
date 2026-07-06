@@ -116,7 +116,7 @@ const AdminDashboard = () => {
     { title: 'Total Users', value: stats.totalUsers, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
     { title: 'Online Now', value: stats.onlineUsers, icon: Users, color: 'text-green-500', bg: 'bg-green-500/10' },
     { title: 'Today Signups', value: stats.todaySignups, icon: TrendingUp, color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { title: 'Total Revenue', value: `$${stats.totalRevenue}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-600/10' },
+    { title: 'Total Revenue', value: `Rs ${stats.totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-600/10' },
     { title: 'Active Subs', value: stats.activeSubscriptions, icon: Crown, color: 'text-primary', bg: 'bg-primary/10' },
     { title: 'Pending Payments', value: stats.pendingPayments, icon: CreditCard, color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
     { title: 'Active Chats', value: stats.activeChats, icon: MessagesSquare, color: 'text-green-500', bg: 'bg-green-500/10' },
