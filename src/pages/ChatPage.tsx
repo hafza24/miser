@@ -256,6 +256,14 @@ const ChatPage = () => {
     const container = messagesContainerRef.current;
     if (!container || messages.length === 0 || initialScrollDoneRef.current) return;
 
+    // When opened via ?msg=, skip initial pin-to-bottom so the jump effect
+    // can scroll the target mention into view instead.
+    if (jumpToMsgId && !jumpDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
     const pin = () => { container.scrollTop = container.scrollHeight; };
     pin();
     const raf1 = requestAnimationFrame(() => {
@@ -273,7 +281,7 @@ const ChatPage = () => {
       return () => cancelAnimationFrame(raf2);
     });
     return () => cancelAnimationFrame(raf1);
-  }, [loadingChat, messages.length]);
+  }, [loadingChat, messages.length, jumpToMsgId]);
 
   // On new messages after initial load: auto-scroll if near bottom or it's my own
   // message; otherwise show "Jump to latest" with unread count.
@@ -296,22 +304,43 @@ const ChatPage = () => {
     }
   }, [messages, userId]);
 
+  // Reset the jump guard whenever a new ?msg= arrives
+  useEffect(() => {
+    if (jumpToMsgId) jumpDoneRef.current = false;
+  }, [jumpToMsgId]);
+
   // Jump to a specific message when opened via ?msg= (from mention/notification links)
   useEffect(() => {
-    if (!jumpToMsgId || jumpDoneRef.current || messages.length === 0) return;
-    const el = messageRefs.current[jumpToMsgId];
-    if (!el) return;
-    jumpDoneRef.current = true;
-    requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-primary');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1500);
-      // Clean the param so a refresh doesn't re-jump
+    if (!jumpToMsgId || jumpDoneRef.current || loadingChat || messages.length === 0) return;
+    const exists = messages.some(m => m.id === jumpToMsgId);
+    if (!exists) {
+      // Message isn't visible (deleted or not in loaded window)
+      jumpDoneRef.current = true;
+      toast.info('That message is no longer available');
       const next = new URLSearchParams(searchParams);
       next.delete('msg');
       setSearchParams(next, { replace: true });
-    });
-  }, [jumpToMsgId, messages, searchParams, setSearchParams]);
+      return;
+    }
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = messageRefs.current[jumpToMsgId];
+      if (!el) {
+        if (attempts++ < 20) {
+          setTimeout(tryScroll, 50);
+        }
+        return;
+      }
+      jumpDoneRef.current = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1800);
+      const next = new URLSearchParams(searchParams);
+      next.delete('msg');
+      setSearchParams(next, { replace: true });
+    };
+    requestAnimationFrame(tryScroll);
+  }, [jumpToMsgId, messages, loadingChat, searchParams, setSearchParams]);
 
   // Auto-scroll for typing indicator if user is already near bottom
   useEffect(() => {
