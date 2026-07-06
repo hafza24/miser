@@ -206,44 +206,143 @@ const SubscriptionPage = () => {
 
         {/* Plans Grid */}
         {!showForm && plans.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-stretch">
             {plans.map((plan, i) => {
               const Icon = planIcons[i % planIcons.length];
               const price = billingPeriod === 'monthly' ? plan.price_monthly : plan.price_yearly;
               const isCurrentPlan = isActive && subscription?.plan_id === plan.id;
+              const monthlyEquivalent = billingPeriod === 'yearly' && plan.price_yearly > 0
+                ? (plan.price_yearly / 12)
+                : null;
+              const yearlyIfMonthly = plan.price_monthly * 12;
+              const yearlySavings = plan.price_yearly > 0 && yearlyIfMonthly > 0
+                ? Math.max(0, yearlyIfMonthly - plan.price_yearly)
+                : 0;
+              const savingsPct = yearlyIfMonthly > 0
+                ? Math.round((yearlySavings / yearlyIfMonthly) * 100)
+                : 0;
+              const isPopular = i === 1 && plans.length >= 2;
               return (
-                <Card key={plan.id} className={`transition-all ${isCurrentPlan ? 'border-primary border-2' : 'hover:border-primary/50'}`}>
-                  <CardContent className="p-5">
-                    <div className="flex items-start gap-4">
+                <Card
+                  key={plan.id}
+                  className={`relative flex flex-col transition-all ${
+                    isCurrentPlan
+                      ? 'border-primary border-2'
+                      : isPopular
+                        ? 'border-primary/60 border-2 shadow-lg'
+                        : 'hover:border-primary/50'
+                  }`}
+                >
+                  {isPopular && !isCurrentPlan && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <Badge className="bg-primary text-primary-foreground shadow">Most Popular</Badge>
+                    </div>
+                  )}
+                  <CardContent className="p-5 flex flex-col flex-1">
+                    <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                         <Icon className="h-6 w-6 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-heading font-bold text-foreground">{plan.name}</h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-heading font-bold text-foreground text-lg">{plan.name}</h3>
                           {isCurrentPlan && <Badge className="bg-primary text-primary-foreground text-xs">Current</Badge>}
                         </div>
-                        {plan.description && <p className="text-sm text-muted-foreground mb-2">{plan.description}</p>}
-                        <div className="flex flex-wrap gap-1.5 mb-3 text-xs">
-                          <Badge variant="outline">📨 {plan.daily_chat_limit} chats/day</Badge>
-                          <Badge variant="outline">🎬 {plan.daily_scene_limit} scenes/day</Badge>
-                          {plan.dark_mode_access && <Badge variant="outline">🌑 Dark Mode</Badge>}
-                        </div>
-                        <div className="flex items-end justify-between">
-                          <div>
-                            <span className="text-2xl font-bold text-foreground">${price}</span>
-                            <span className="text-sm text-muted-foreground">/{billingPeriod === 'monthly' ? 'mo' : 'yr'}</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            disabled={isCurrentPlan || pendingSub}
-                            onClick={() => handleSelectPlan(plan)}
-                          >
-                            {isCurrentPlan ? 'Current Plan' : pendingSub ? 'Pending...' : isActive ? 'Upgrade' : 'Subscribe'}
-                          </Button>
-                        </div>
+                        {plan.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{plan.description}</p>
+                        )}
                       </div>
                     </div>
+
+                    {/* Price */}
+                    <div className="mb-4">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-bold text-foreground">${price}</span>
+                        <span className="text-sm text-muted-foreground">
+                          /{billingPeriod === 'monthly' ? 'month' : 'year'}
+                        </span>
+                      </div>
+                      {billingPeriod === 'yearly' && monthlyEquivalent !== null && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ≈ ${monthlyEquivalent.toFixed(2)}/mo billed yearly
+                        </p>
+                      )}
+                      {billingPeriod === 'yearly' && yearlySavings > 0 && (
+                        <div className="mt-1.5 inline-flex items-center gap-1.5">
+                          <Badge className="bg-green-500/15 text-green-600 border-green-500/30 border hover:bg-green-500/15">
+                            Save ${yearlySavings.toFixed(0)} ({savingsPct}% off)
+                          </Badge>
+                        </div>
+                      )}
+                      {billingPeriod === 'monthly' && plan.price_yearly > 0 && savingsPct > 0 && (
+                        <p className="text-xs text-green-600 mt-1">
+                          Switch to yearly and save {savingsPct}%
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Features */}
+                    <div className="space-y-2 mb-5 text-sm flex-1">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">
+                          <strong>{plan.daily_chat_limit}</strong> chats per day
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">
+                          <strong>{plan.daily_scene_limit}</strong> AI scenes per day
+                        </span>
+                      </div>
+                      {plan.monthly_chat_limit ? (
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-foreground">
+                            <strong>{plan.monthly_chat_limit}</strong> chats per month
+                          </span>
+                        </div>
+                      ) : null}
+                      {plan.monthly_scene_limit ? (
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-foreground">
+                            <strong>{plan.monthly_scene_limit}</strong> scenes per month
+                          </span>
+                        </div>
+                      ) : null}
+                      {plan.monthly_group_limit ? (
+                        <div className="flex items-start gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                          <span className="text-foreground">
+                            Join up to <strong>{plan.monthly_group_limit}</strong> groups
+                          </span>
+                        </div>
+                      ) : null}
+                      <div className="flex items-start gap-2">
+                        {plan.dark_mode_access ? (
+                          <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-muted-foreground/50 mt-0.5 flex-shrink-0" />
+                        )}
+                        <span className={plan.dark_mode_access ? 'text-foreground' : 'text-muted-foreground line-through'}>
+                          Dark Mode (24h auto-expire chats)
+                        </span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <CheckCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-foreground">Priority support</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      disabled={isCurrentPlan || pendingSub}
+                      variant={isPopular && !isCurrentPlan ? 'default' : 'outline'}
+                      onClick={() => handleSelectPlan(plan)}
+                    >
+                      {isCurrentPlan ? 'Current Plan' : pendingSub ? 'Pending...' : isActive ? 'Upgrade' : 'Subscribe'}
+                    </Button>
                   </CardContent>
                 </Card>
               );
