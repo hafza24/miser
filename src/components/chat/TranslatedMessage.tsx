@@ -96,7 +96,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
       )}
       {!isMine && state.status === 'done' && state.translated && (
         <div className="mt-1 pl-2 border-l-2 border-current/30 text-[12px] opacity-70 italic leading-snug animate-fade-in">
-          {state.translated}
+          {renderContent ? renderContent(state.translated) : state.translated}
         </div>
       )}
       {!isMine && state.status === 'error' && (
