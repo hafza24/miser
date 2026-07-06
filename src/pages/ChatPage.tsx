@@ -203,12 +203,15 @@ const ChatPage = () => {
       .channel(`chat-participants-${chatId}`)
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantDelete(payload.old as any, participantDeps);
+        loadMembers();
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantInsert(payload.new as any, participantDeps);
+        loadMembers();
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantUpdate(payload.new as any, participantDeps);
+        loadMembers();
       })
       .subscribe();
 
