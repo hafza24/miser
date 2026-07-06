@@ -390,6 +390,23 @@ const ChatPage = () => {
     }
   };
 
+  const loadMembers = async () => {
+    if (!chatId) return;
+    const { data: parts } = await supabase
+      .from('chat_participants')
+      .select('user_id')
+      .eq('chat_id', chatId)
+      .is('removed_at', null);
+    const ids = (parts || []).map((p: any) => p.user_id).filter(Boolean);
+    if (ids.length === 0) { setMembers([]); return; }
+    const { data: profs } = await supabase.rpc('get_public_profile_by_ids', { user_ids: ids });
+    setMembers(((profs as any[]) || []).map(p => ({
+      user_id: p.user_id,
+      alias: p.alias,
+      emoji_avatar: p.emoji_avatar,
+    })));
+  };
+
   const loadMyMute = useCallback(async () => {
     if (!userId) return;
     const { data } = await supabase.from('profiles').select('muted_until, is_suspended').eq('user_id', userId).maybeSingle();
