@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,44 +11,62 @@ import { NotificationProvider } from "@/contexts/NotificationContext";
 import { useAdminRole } from "@/hooks/useAdminRole";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
-import RegisterPage from "./pages/RegisterPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import ModeSelectPage from "./pages/ModeSelectPage";
-import DashboardPage from "./pages/DashboardPage";
-import ChatPage from "./pages/ChatPage";
-import ProfilePage from "./pages/ProfilePage";
-import BrowseProfilesPage from "./pages/BrowseProfilesPage";
-import SettingsPage from "./pages/SettingsPage";
-import SuspendedPage from "./pages/SuspendedPage";
-import NotFound from "./pages/NotFound";
-
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminModeration from "./pages/admin/AdminModeration";
-import AdminChats from "./pages/admin/AdminChats";
-import AdminTickets from "./pages/admin/AdminTickets";
-import AdminSubscriptions from "./pages/admin/AdminSubscriptions";
-import AdminReports from "./pages/admin/AdminReports";
-import AdminPages from "./pages/admin/AdminPages";
-import AdminPaymentInfo from "./pages/admin/AdminPaymentInfo";
-import AdminGroups from "./pages/admin/AdminGroups";
-import AdminNotifications from "./pages/admin/AdminNotifications";
-import AdminMoodRooms from "./pages/admin/AdminMoodRooms";
-import AdminBlockedEmails from "./pages/admin/AdminBlockedEmails";
-import SubscriptionPage from "./pages/SubscriptionPage";
-import SitePage from "./pages/SitePage";
-import DownloadPage from "./pages/DownloadPage";
-import BrowseGroupsPage from "./pages/BrowseGroupsPage";
-import CreateGroupRequestPage from "./pages/CreateGroupRequestPage";
-import GroupRequestDetailPage from "./pages/GroupRequestDetailPage";
-import MoodRoomsPage from "./pages/MoodRoomsPage";
 import HelpWidget from "./components/HelpWidget";
 
-const queryClient = new QueryClient();
+// Lazy-loaded routes — split into per-route chunks to speed initial load
+const RegisterPage = lazy(() => import("./pages/RegisterPage"));
+const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const ModeSelectPage = lazy(() => import("./pages/ModeSelectPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const ChatPage = lazy(() => import("./pages/ChatPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const BrowseProfilesPage = lazy(() => import("./pages/BrowseProfilesPage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const SuspendedPage = lazy(() => import("./pages/SuspendedPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const SubscriptionPage = lazy(() => import("./pages/SubscriptionPage"));
+const SitePage = lazy(() => import("./pages/SitePage"));
+const DownloadPage = lazy(() => import("./pages/DownloadPage"));
+const BrowseGroupsPage = lazy(() => import("./pages/BrowseGroupsPage"));
+const CreateGroupRequestPage = lazy(() => import("./pages/CreateGroupRequestPage"));
+const GroupRequestDetailPage = lazy(() => import("./pages/GroupRequestDetailPage"));
+const MoodRoomsPage = lazy(() => import("./pages/MoodRoomsPage"));
+
+// Admin bundle — separate chunks per page
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminModeration = lazy(() => import("./pages/admin/AdminModeration"));
+const AdminChats = lazy(() => import("./pages/admin/AdminChats"));
+const AdminTickets = lazy(() => import("./pages/admin/AdminTickets"));
+const AdminSubscriptions = lazy(() => import("./pages/admin/AdminSubscriptions"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminPages = lazy(() => import("./pages/admin/AdminPages"));
+const AdminPaymentInfo = lazy(() => import("./pages/admin/AdminPaymentInfo"));
+const AdminGroups = lazy(() => import("./pages/admin/AdminGroups"));
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminMoodRooms = lazy(() => import("./pages/admin/AdminMoodRooms"));
+const AdminBlockedEmails = lazy(() => import("./pages/admin/AdminBlockedEmails"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+    Loading…
+  </div>
+);
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, profile, loading } = useAuth();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading...</div>;
+  if (loading) return <RouteFallback />;
   if (!user) return <Navigate to="/login" replace />;
   if (profile?.is_suspended) return <Navigate to="/suspended" replace />;
   return <>{children}</>;
@@ -58,9 +76,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdminRole();
 
-  if (authLoading || adminLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Loading...</div>;
-  }
+  if (authLoading || adminLoading) return <RouteFallback />;
   if (!user) return <Navigate to="/login" replace />;
   if (!isAdmin) return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
@@ -75,49 +91,51 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => (
   <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
-      <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
-      <Route path="/suspended" element={<SuspendedPage />} />
-      <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/chats" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/chat/:chatId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+    <Suspense fallback={<RouteFallback />}>
+      <Routes>
+        <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+        <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+        <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+        <Route path="/forgot-password" element={<PublicRoute><ForgotPasswordPage /></PublicRoute>} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/suspended" element={<SuspendedPage />} />
+        <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/chats" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/chat/:chatId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
 
-      <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-      <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
-      <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
-      <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
-      <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
-      <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
-      <Route path="/mood-rooms" element={<ProtectedRoute><MoodRoomsPage /></ProtectedRoute>} />
-      {/* Public pages */}
-      <Route path="/page/:slug" element={<SitePage />} />
-      <Route path="/download" element={<DownloadPage />} />
-      {/* Legacy redirect */}
-      <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
-      {/* Admin routes */}
-      <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
-      <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
-      <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
-      <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
-      <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
-      <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
-      <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
-      <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
-      <Route path="/admin/payment-info" element={<AdminRoute><AdminPaymentInfo /></AdminRoute>} />
-      <Route path="/admin/groups" element={<AdminRoute><AdminGroups /></AdminRoute>} />
-      <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
-      <Route path="/admin/mood-rooms" element={<AdminRoute><AdminMoodRooms /></AdminRoute>} />
-      <Route path="/admin/blocked-emails" element={<AdminRoute><AdminBlockedEmails /></AdminRoute>} />
-      {/* Legacy redirect */}
-      <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+        <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
+        <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
+        <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
+        <Route path="/mood-rooms" element={<ProtectedRoute><MoodRoomsPage /></ProtectedRoute>} />
+        {/* Public pages */}
+        <Route path="/page/:slug" element={<SitePage />} />
+        <Route path="/download" element={<DownloadPage />} />
+        {/* Legacy redirect */}
+        <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
+        {/* Admin routes */}
+        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+        <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
+        <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
+        <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
+        <Route path="/admin/tickets" element={<AdminRoute><AdminTickets /></AdminRoute>} />
+        <Route path="/admin/subscriptions" element={<AdminRoute><AdminSubscriptions /></AdminRoute>} />
+        <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+        <Route path="/admin/pages" element={<AdminRoute><AdminPages /></AdminRoute>} />
+        <Route path="/admin/payment-info" element={<AdminRoute><AdminPaymentInfo /></AdminRoute>} />
+        <Route path="/admin/groups" element={<AdminRoute><AdminGroups /></AdminRoute>} />
+        <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
+        <Route path="/admin/mood-rooms" element={<AdminRoute><AdminMoodRooms /></AdminRoute>} />
+        <Route path="/admin/blocked-emails" element={<AdminRoute><AdminBlockedEmails /></AdminRoute>} />
+        {/* Legacy redirect */}
+        <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   </BrowserRouter>
 );
 
