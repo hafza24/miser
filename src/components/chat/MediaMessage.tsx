@@ -145,8 +145,9 @@ const MediaMessage: React.FC<Props> = ({
 }) => {
   const alreadyViewed = viewedBy?.includes(currentUserId) ?? false;
   const secureImage = viewOnce && mediaType === 'image' && !isMine && !alreadyViewed;
+  const viewOnceImage = viewOnce && mediaType === 'image';
 
-  const [revealed, setRevealed] = useState(isMine || !viewOnce || alreadyViewed);
+  const [revealed, setRevealed] = useState((isMine && !viewOnceImage) || (!viewOnce) || alreadyViewed);
   const [secureOpen, setSecureOpen] = useState(false);
   const { url } = useSignedMediaUrl(mediaPath, revealed || secureOpen);
   const left = useCountdown(expiresAt);
