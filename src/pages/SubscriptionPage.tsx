@@ -470,8 +470,9 @@ const SubscriptionPage = () => {
               </div>
               <p className="text-sm text-muted-foreground mb-4">
                 Amount: <span className="font-bold text-foreground">
-                  ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                  {formatPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)}
                 </span> / {billingPeriod === 'monthly' ? 'month' : 'year'}
+                <span className="text-xs ml-1">(≈ ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly} USD)</span>
               </p>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
