@@ -38,6 +38,8 @@ const SubscriptionPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState<PaymentInfoRow[]>([]);
+  const [trialUsed, setTrialUsed] = useState<boolean>(true);
+  const [startingTrial, setStartingTrial] = useState(false);
 
   useEffect(() => {
     const loadPaymentInfo = async () => {
@@ -50,6 +52,59 @@ const SubscriptionPage = () => {
     };
     loadPaymentInfo();
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('trial_used')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setTrialUsed(!!(data as any)?.trial_used);
+    })();
+  }, [user]);
+
+  const premiumPlan = plans.length > 0
+    ? ([...plans].reverse().find(p => p.dark_mode_access) || plans[plans.length - 1])
+    : null;
+
+  const canStartTrial =
+    !!user &&
+    !trialUsed &&
+    !subscription &&
+    !!premiumPlan;
+
+  const handleStartTrial = async () => {
+    if (!user || !premiumPlan) return;
+    setStartingTrial(true);
+    try {
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 7);
+
+      const { error: subError } = await supabase.from('subscriptions').insert({
+        user_id: user.id,
+        plan_id: premiumPlan.id,
+        start_date: new Date().toISOString(),
+        expiry_date: expiryDate.toISOString(),
+        status: 'active',
+        billing_period: 'trial',
+      } as any);
+      if (subError) throw subError;
+
+      const { error: profErr } = await supabase
+        .from('profiles')
+        .update({ trial_used: true } as any)
+        .eq('user_id', user.id);
+      if (profErr) throw profErr;
+
+      setTrialUsed(true);
+      toast.success('🎉 Your 7-day free premium trial is active!');
+    } catch (err: any) {
+      toast.error('Failed to start trial: ' + (err.message || 'Unknown error'));
+    }
+    setStartingTrial(false);
+  };
 
   const handleSelectPlan = (plan: SubscriptionPlan) => {
     setSelectedPlan(plan);
