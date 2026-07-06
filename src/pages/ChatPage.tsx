@@ -306,20 +306,36 @@ const ChatPage = () => {
 
   // Jump to a specific message when opened via ?msg= (from mention/notification links)
   useEffect(() => {
-    if (!jumpToMsgId || jumpDoneRef.current || messages.length === 0) return;
-    const el = messageRefs.current[jumpToMsgId];
-    if (!el) return;
-    jumpDoneRef.current = true;
-    requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      el.classList.add('ring-2', 'ring-primary');
-      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1500);
-      // Clean the param so a refresh doesn't re-jump
+    if (!jumpToMsgId || jumpDoneRef.current || loadingChat || messages.length === 0) return;
+    const exists = messages.some(m => m.id === jumpToMsgId);
+    if (!exists) {
+      // Message isn't visible (deleted or not in loaded window)
+      jumpDoneRef.current = true;
+      toast.info('That message is no longer available');
       const next = new URLSearchParams(searchParams);
       next.delete('msg');
       setSearchParams(next, { replace: true });
-    });
-  }, [jumpToMsgId, messages, searchParams, setSearchParams]);
+      return;
+    }
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = messageRefs.current[jumpToMsgId];
+      if (!el) {
+        if (attempts++ < 20) {
+          setTimeout(tryScroll, 50);
+        }
+        return;
+      }
+      jumpDoneRef.current = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1800);
+      const next = new URLSearchParams(searchParams);
+      next.delete('msg');
+      setSearchParams(next, { replace: true });
+    };
+    requestAnimationFrame(tryScroll);
+  }, [jumpToMsgId, messages, loadingChat, searchParams, setSearchParams]);
 
   // Auto-scroll for typing indicator if user is already near bottom
   useEffect(() => {
