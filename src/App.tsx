@@ -113,6 +113,7 @@ const AppRoutes = () => (
       <Route path="/admin/groups" element={<AdminRoute><AdminGroups /></AdminRoute>} />
       <Route path="/admin/notifications" element={<AdminRoute><AdminNotifications /></AdminRoute>} />
       <Route path="/admin/mood-rooms" element={<AdminRoute><AdminMoodRooms /></AdminRoute>} />
+      <Route path="/admin/blocked-emails" element={<AdminRoute><AdminBlockedEmails /></AdminRoute>} />
       {/* Legacy redirect */}
       <Route path="/admin/payments" element={<Navigate to="/admin/subscriptions" replace />} />
       <Route path="*" element={<NotFound />} />
