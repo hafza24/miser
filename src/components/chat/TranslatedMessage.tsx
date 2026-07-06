@@ -28,6 +28,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
   secondaryLanguage,
   autoTranslate,
   isMine,
+  renderContent,
 }) => {
   const target = primaryLanguage || 'en';
   const cacheKey = `${messageId}:${target}`;
