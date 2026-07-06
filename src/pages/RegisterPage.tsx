@@ -8,8 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 
+const calcAge = (dobStr: string): number => {
+  const dob = new Date(dobStr);
+  if (isNaN(dob.getTime())) return NaN;
+  const today = new Date();
+  let age = today.getFullYear() - dob.getFullYear();
+  const m = today.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+  return age;
+};
+
 const RegisterPage = () => {
   const [email, setEmail] = useState('');
+  const [dob, setDob] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -17,8 +28,28 @@ const RegisterPage = () => {
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
+  // Max DOB = today minus 18 years (used to constrain the date picker)
+  const maxDob = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toISOString().split('T')[0];
+  })();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!dob) {
+      toast.error('Please enter your date of birth');
+      return;
+    }
+    const age = calcAge(dob);
+    if (isNaN(age) || age < 18) {
+      toast.error('You must be 18 or older to join Fur&Fir. Account creation blocked.');
+      return;
+    }
+    if (age > 120) {
+      toast.error('Please enter a valid date of birth');
+      return;
+    }
     if (password !== confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -28,7 +59,7 @@ const RegisterPage = () => {
       return;
     }
     setLoading(true);
-    const { error } = await signUp(email.trim(), password);
+    const { error } = await signUp(email.trim(), password, age);
     setLoading(false);
     if (error) {
       if (error.message?.toLowerCase().includes('already registered') || error.message?.toLowerCase().includes('already been registered')) {
@@ -65,6 +96,18 @@ const RegisterPage = () => {
               required
               maxLength={255}
             />
+          </div>
+          <div>
+            <Label htmlFor="dob">Date of Birth</Label>
+            <Input
+              id="dob"
+              type="date"
+              value={dob}
+              onChange={(e) => setDob(e.target.value)}
+              max={maxDob}
+              required
+            />
+            <p className="text-[11px] text-muted-foreground mt-1">You must be 18+ to join.</p>
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
