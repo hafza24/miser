@@ -70,6 +70,12 @@ const ProfilePage = () => {
   const [relationshipStatus, setRelationshipStatus] = useState<string>((profile as any)?.relationship_status || '');
   const [orientation, setOrientation] = useState<string>((profile as any)?.orientation || '');
   const [zodiac, setZodiac] = useState<string>((profile as any)?.zodiac || '');
+  const [genderPreference, setGenderPreference] = useState<string>((profile as any)?.gender_preference || 'any');
+  const [locationPreference, setLocationPreference] = useState<string>((profile as any)?.location_preference || 'worldwide');
+  const [country, setCountry] = useState<string>((profile as any)?.country || '');
+  const [city, setCity] = useState<string>((profile as any)?.city || '');
+  const [ageMin, setAgeMin] = useState<string>(((profile as any)?.age_min ?? 18).toString());
+  const [ageMax, setAgeMax] = useState<string>(((profile as any)?.age_max ?? 99).toString());
 
   useEffect(() => {
     if (profile) {
@@ -90,6 +96,12 @@ const ProfilePage = () => {
       setRelationshipStatus((profile as any).relationship_status || '');
       setOrientation((profile as any).orientation || '');
       setZodiac((profile as any).zodiac || '');
+      setGenderPreference((profile as any).gender_preference || 'any');
+      setLocationPreference((profile as any).location_preference || 'worldwide');
+      setCountry((profile as any).country || '');
+      setCity((profile as any).city || '');
+      setAgeMin(((profile as any).age_min ?? 18).toString());
+      setAgeMax(((profile as any).age_max ?? 99).toString());
     }
   }, [profile]);
 
@@ -187,6 +199,12 @@ const ProfilePage = () => {
         relationship_status: relationshipStatus || null,
         orientation: orientation || null,
         zodiac: zodiac || null,
+        gender_preference: genderPreference,
+        location_preference: locationPreference,
+        country: country || null,
+        city: city.trim() || null,
+        age_min: Math.min(120, Math.max(18, parseInt(ageMin, 10) || 18)),
+        age_max: Math.min(120, Math.max(18, parseInt(ageMax, 10) || 99)),
       } as any)
       .eq('user_id', profile.user_id);
 
@@ -401,6 +419,54 @@ const ProfilePage = () => {
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">Select one interest</p>
+
+            <div className="mt-5 pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Gender preference</Label>
+                <Select value={genderPreference} onValueChange={setGenderPreference}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Location preference</Label>
+                <Select value={locationPreference} onValueChange={setLocationPreference}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="worldwide">Worldwide</SelectItem>
+                    <SelectItem value="same_country">Same country</SelectItem>
+                    <SelectItem value="same_city">Same city</SelectItem>
+                    <SelectItem value="near_me">Near me</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Country</Label>
+                <Select value={country || 'none'} onValueChange={(v) => setCountry(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Not set" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Not set —</SelectItem>
+                    {COUNTRIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>City</Label>
+                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Optional" />
+              </div>
+              <div>
+                <Label>Min age</Label>
+                <Input type="number" min={18} max={120} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} />
+              </div>
+              <div>
+                <Label>Max age</Label>
+                <Input type="number" min={18} max={120} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} />
+              </div>
+            </div>
           </section>
 
           {/* Character — wide tile */}
