@@ -256,6 +256,14 @@ const ChatPage = () => {
     const container = messagesContainerRef.current;
     if (!container || messages.length === 0 || initialScrollDoneRef.current) return;
 
+    // When opened via ?msg=, skip initial pin-to-bottom so the jump effect
+    // can scroll the target mention into view instead.
+    if (jumpToMsgId && !jumpDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
     const pin = () => { container.scrollTop = container.scrollHeight; };
     pin();
     const raf1 = requestAnimationFrame(() => {
@@ -273,7 +281,7 @@ const ChatPage = () => {
       return () => cancelAnimationFrame(raf2);
     });
     return () => cancelAnimationFrame(raf1);
-  }, [loadingChat, messages.length]);
+  }, [loadingChat, messages.length, jumpToMsgId]);
 
   // On new messages after initial load: auto-scroll if near bottom or it's my own
   // message; otherwise show "Jump to latest" with unread count.
