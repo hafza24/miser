@@ -864,6 +864,7 @@ const ChatPage = () => {
                                 secondaryLanguage={(profile as any)?.secondary_language || null}
                                 autoTranslate={shouldAuto}
                                 isMine={false}
+                                renderContent={(t) => renderMentions(t, members, profile?.alias)}
                               />
                             )}
                             <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
