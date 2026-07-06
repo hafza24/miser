@@ -60,6 +60,7 @@ const ProfilePage = () => {
   const [charLifeStory, setCharLifeStory] = useState(profile?.character_life_story || '');
   const [gender, setGender] = useState(profile?.gender || '');
   const [emojiAvatar, setEmojiAvatar] = useState(profile?.emoji_avatar || '🙂');
+  const [showAllEmojis, setShowAllEmojis] = useState(false);
   const [selectedInterest, setSelectedInterest] = useState<string>(
     (profile?.interests && profile.interests.length > 0) ? profile.interests[0] : ''
   );
