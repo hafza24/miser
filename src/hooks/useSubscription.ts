@@ -10,6 +10,9 @@ export interface SubscriptionPlan {
   price_yearly: number;
   daily_chat_limit: number;
   daily_scene_limit: number;
+  monthly_chat_limit?: number;
+  monthly_scene_limit?: number;
+  monthly_group_limit?: number;
   dark_mode_access: boolean;
   is_active: boolean;
   sort_order: number;
