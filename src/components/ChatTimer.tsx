@@ -147,6 +147,19 @@ const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId, chatMode = 
     );
   }
 
+  // Dark-mode chats are ephemeral: auto-expire in 24h, no stop-timer option.
+  if (chatMode === 'dark') {
+    return (
+      <div
+        className="flex items-center gap-1.5 text-xs text-primary bg-primary/10 border border-primary/30 px-3 py-1 rounded-full"
+        title="Dark-mode chats are ephemeral and disappear when the timer ends."
+      >
+        <Clock className="h-3 w-3" />
+        <span className="font-medium">Ephemeral · {timeLeft}</span>
+      </div>
+    );
+  }
+
   // Show incoming stop request from other user
   if (stopRequest && stopRequest.sender_id !== currentUserId) {
     return (
