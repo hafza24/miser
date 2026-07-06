@@ -9,19 +9,20 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const navItems = [
     { path: '/admin', icon: Gauge, label: 'Overview' },
-    { path: '/admin/notifications', icon: Bell, label: 'Inbox' },
     { path: '/admin/users', icon: Users, label: 'Users' },
     { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
     { path: '/admin/blocked-emails', icon: ShieldBan, label: 'Blocked Emails' },
     { path: '/admin/chats', icon: MessagesSquare, label: 'Chats' },
     { path: '/admin/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
-    
+
     { path: '/admin/tickets', icon: Ticket, label: 'Tickets' },
     { path: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
     { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { path: '/admin/pages', icon: FileText, label: 'Pages' },
     { path: '/admin/payment-info', icon: Wallet, label: 'Payment Info' },
   ];
+
+  const inboxActive = location.pathname === '/admin/notifications';
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -36,6 +37,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
               <h1 className="font-heading text-lg font-bold text-foreground">Admin Panel</h1>
             </div>
           </div>
+          <Button
+            variant={inboxActive ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => navigate('/admin/notifications')}
+            className="rounded-full"
+            aria-label="Inbox"
+            title="Inbox"
+          >
+            <Bell className="h-5 w-5" />
+          </Button>
         </div>
       </header>
 
