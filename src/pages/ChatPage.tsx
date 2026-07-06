@@ -21,6 +21,8 @@ import SceneGenerator from '@/components/chat/SceneGenerator';
 import SwipeableMessage from '@/components/chat/SwipeableMessage';
 import TranslatedMessage from '@/components/chat/TranslatedMessage';
 import ChatModeSwitch from '@/components/ChatModeSwitch';
+import MentionInput from '@/components/chat/MentionInput';
+import { renderMentions, MentionMember } from '@/lib/mentions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -121,6 +123,7 @@ const ChatPage = () => {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [upgradeName, setUpgradeName] = useState('');
   const [upgrading, setUpgrading] = useState(false);
+  const [members, setMembers] = useState<MentionMember[]>([]);
 
   const handleUpgrade = async () => {
     if (!chatId) return;
@@ -149,7 +152,7 @@ const ChatPage = () => {
     if (!chatId || !userId) return;
     const init = async () => {
       setLoadingChat(true);
-      await Promise.all([loadChatInfo(), loadMessages(), loadOtherUser()]);
+      await Promise.all([loadChatInfo(), loadMessages(), loadOtherUser(), loadMembers()]);
       setLoadingChat(false);
     };
     init();
@@ -200,12 +203,15 @@ const ChatPage = () => {
       .channel(`chat-participants-${chatId}`)
       .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantDelete(payload.old as any, participantDeps);
+        loadMembers();
       })
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantInsert(payload.new as any, participantDeps);
+        loadMembers();
       })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'chat_participants', filter: `chat_id=eq.${chatId}` }, (payload) => {
         handleParticipantUpdate(payload.new as any, participantDeps);
+        loadMembers();
       })
       .subscribe();
 
@@ -382,6 +388,23 @@ const ChatPage = () => {
       const { data: prof } = await supabase.rpc('get_public_profile_by_ids', { user_ids: [other.user_id] });
       if (prof && prof.length > 0) setOtherUser(prof[0]);
     }
+  };
+
+  const loadMembers = async () => {
+    if (!chatId) return;
+    const { data: parts } = await supabase
+      .from('chat_participants')
+      .select('user_id')
+      .eq('chat_id', chatId)
+      .is('removed_at', null);
+    const ids = (parts || []).map((p: any) => p.user_id).filter(Boolean);
+    if (ids.length === 0) { setMembers([]); return; }
+    const { data: profs } = await supabase.rpc('get_public_profile_by_ids', { user_ids: ids });
+    setMembers(((profs as any[]) || []).map(p => ({
+      user_id: p.user_id,
+      alias: p.alias,
+      emoji_avatar: p.emoji_avatar,
+    })));
   };
 
   const loadMyMute = useCallback(async () => {
@@ -832,7 +855,7 @@ const ChatPage = () => {
                                 currentUserId={userId}
                               />
                             ) : isMe ? (
-                              msg.content
+                              renderMentions(msg.content, members, profile?.alias)
                             ) : (
                               <TranslatedMessage
                                 messageId={msg.id}
@@ -841,6 +864,7 @@ const ChatPage = () => {
                                 secondaryLanguage={(profile as any)?.secondary_language || null}
                                 autoTranslate={shouldAuto}
                                 isMine={false}
+                                renderContent={(t) => renderMentions(t, members, profile?.alias)}
                               />
                             )}
                             <div className={`flex items-center gap-0.5 mt-1 ${isMe ? 'text-primary-foreground/60 justify-end' : 'text-muted-foreground'}`}>
@@ -939,7 +963,16 @@ const ChatPage = () => {
               {chatId && otherUserId && (
                 <SceneGenerator mode={mode as 'light' | 'dark'} chatId={chatId} otherUserId={otherUserId} disabled={expired || chatEnded || sending} onSend={sendGeneratedScene} continuationTrigger={continuationTrigger} />
               )}
-              <Input value={newMessage} onChange={handleInputChange} placeholder="Type a message..." className="flex-1 rounded-full h-9 text-sm" maxLength={2000} />
+              <MentionInput
+                value={newMessage}
+                onValueChange={setNewMessage}
+                onTyping={sendTyping}
+                members={members}
+                currentUserId={userId}
+                placeholder="Type a message... (use @ to mention)"
+                className="flex-1 rounded-full h-9 text-sm"
+                maxLength={2000}
+              />
               <Button type="submit" size="icon" disabled={!newMessage.trim() || sending} className="rounded-full flex-shrink-0 h-8 w-8">
                 <Send className="h-4 w-4" />
               </Button>

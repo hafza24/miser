@@ -9,6 +9,7 @@ interface TranslatedMessageProps {
   secondaryLanguage?: string | null;
   autoTranslate: boolean;
   isMine: boolean;
+  renderContent?: (text: string) => React.ReactNode;
 }
 
 type State = {
@@ -27,6 +28,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
   secondaryLanguage,
   autoTranslate,
   isMine,
+  renderContent,
 }) => {
   const target = primaryLanguage || 'en';
   const cacheKey = `${messageId}:${target}`;
@@ -86,7 +88,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
 
   return (
     <div onClick={onTap} onDoubleClick={fetchTranslation}>
-      <div>{content}</div>
+      <div>{renderContent ? renderContent(content) : content}</div>
       {!isMine && state.status === 'loading' && (
         <div className="mt-1 flex items-center gap-1 text-[11px] opacity-60 italic">
           <Loader2 className="h-3 w-3 animate-spin" /> Translating…
@@ -94,7 +96,7 @@ const TranslatedMessage: React.FC<TranslatedMessageProps> = ({
       )}
       {!isMine && state.status === 'done' && state.translated && (
         <div className="mt-1 pl-2 border-l-2 border-current/30 text-[12px] opacity-70 italic leading-snug animate-fade-in">
-          {state.translated}
+          {renderContent ? renderContent(state.translated) : state.translated}
         </div>
       )}
       {!isMine && state.status === 'error' && (
