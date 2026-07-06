@@ -152,7 +152,7 @@ const ChatPage = () => {
     if (!chatId || !userId) return;
     const init = async () => {
       setLoadingChat(true);
-      await Promise.all([loadChatInfo(), loadMessages(), loadOtherUser()]);
+      await Promise.all([loadChatInfo(), loadMessages(), loadOtherUser(), loadMembers()]);
       setLoadingChat(false);
     };
     init();
