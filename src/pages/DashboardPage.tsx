@@ -556,6 +556,15 @@ const DashboardPage = () => {
                         <span>{todayCount}/{dailyLimit}</span>
                       </div>
                       <Progress value={usagePct} className="h-1.5" />
+                      {monthlyLimit > 0 && (
+                        <>
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground mt-2 mb-1">
+                            <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> This month's chat usage</span>
+                            <span>{monthCount}/{monthlyLimit}</span>
+                          </div>
+                          <Progress value={monthPct} className="h-1.5" />
+                        </>
+                      )}
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2">
