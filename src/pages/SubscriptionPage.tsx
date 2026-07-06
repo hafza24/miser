@@ -542,11 +542,11 @@ const SubscriptionPage = () => {
                           <p className="text-xs text-muted-foreground mb-1">Amount</p>
                           <button
                             type="button"
-                            onClick={() => copyText(String(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly), 'Amount')}
+                            onClick={() => copyText(String(usdToPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)), 'Amount')}
                             className="w-full flex items-center justify-between gap-2 rounded-lg bg-background border border-border px-3 py-2 hover:border-primary/50 transition-colors group"
                           >
                             <span className="font-semibold text-foreground">
-                              ${billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly}
+                              {formatPkr(billingPeriod === 'monthly' ? selectedPlan.price_monthly : selectedPlan.price_yearly)}
                             </span>
                             <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary flex-shrink-0" />
                           </button>
