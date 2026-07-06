@@ -13,13 +13,14 @@ export interface NotificationItem {
     | 'subscription_expired'
     | 'payment_pending'
     | 'group_invite'
+    | 'mention'
     | 'admin_pending_subscription'
     | 'admin_pending_payment_request';
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
-  meta?: { chatId?: string; requestId?: string; inviteId?: string; adminRoute?: string };
+  meta?: { chatId?: string; requestId?: string; inviteId?: string; adminRoute?: string; messageId?: string; mentionRowId?: string };
 }
 
 
@@ -388,16 +389,64 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       }
     }
 
+    // 6) Mention notifications (server-enforced by notify_mentions)
+    if (prefMentions) {
+      const { data: mentions } = await supabase
+        .from('mention_notifications')
+        .select('id, chat_id, message_id, mentioner_id, created_at, read_at')
+        .eq('user_id', user.id)
+        .gte('created_at', cutoff)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      const mentionerIds = new Set<string>((mentions ?? []).map((m: any) => m.mentioner_id));
+      const missing = Array.from(mentionerIds).filter((id) => !profileCache[id]);
+      if (missing.length) {
+        const { data: mprofiles } = await supabase
+          .from('profiles')
+          .select('user_id, alias, emoji_avatar')
+          .in('user_id', missing);
+        mprofiles?.forEach((p: any) => {
+          profileCache[p.user_id] = { alias: p.alias, emoji_avatar: p.emoji_avatar };
+        });
+      }
+
+      const msgIds = (mentions ?? []).map((m: any) => m.message_id);
+      let msgContentMap = new Map<string, string>();
+      if (msgIds.length) {
+        const { data: msgs } = await supabase
+          .from('messages')
+          .select('id, content')
+          .in('id', msgIds);
+        msgContentMap = new Map((msgs ?? []).map((m: any) => [m.id, (m.content || '').slice(0, 120)]));
+      }
+
+      (mentions ?? []).forEach((m: any) => {
+        if (mutedIds.has(m.mentioner_id)) return;
+        const p = profileCache[m.mentioner_id];
+        const preview = msgContentMap.get(m.message_id) || 'mentioned you';
+        items.push({
+          id: `mention-${m.id}`,
+          type: 'mention',
+          title: `${p?.emoji_avatar || '@'} ${p?.alias || 'Someone'} mentioned you`,
+          message: preview,
+          timestamp: m.created_at,
+          read: !!m.read_at,
+          meta: { chatId: m.chat_id, messageId: m.message_id, mentionRowId: m.id },
+        });
+      });
+    }
+
 
     // Apply persisted read state + dedupe by id, newest first
     const seen = new Set<string>();
     const merged = items
       .filter((it) => (seen.has(it.id) ? false : (seen.add(it.id), true)))
-      .map((it) => ({ ...it, read: readIdsRef.current.has(it.id) }))
+      .map((it) => ({ ...it, read: it.read || readIdsRef.current.has(it.id) }))
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
     setNotifications(merged);
-  }, [user, prefMessages, prefRequests, prefExpiry, prefGroupInvites, mutedIds, isAdmin]);
+  }, [user, prefMessages, prefRequests, prefExpiry, prefGroupInvites, prefMentions, mutedIds, isAdmin]);
 
   // Debounced refresh to coalesce bursts of realtime events
   const scheduleRefresh = useCallback(() => {
@@ -542,16 +591,30 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const markAllRead = () => {
     if (!user) return;
+    const unreadMentionRowIds = notifications
+      .filter((n) => n.type === 'mention' && !n.read && n.meta?.mentionRowId)
+      .map((n) => n.meta!.mentionRowId as string);
     notifications.forEach((n) => readIdsRef.current.add(n.id));
     persistReadIds(user.id, readIdsRef.current);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    if (unreadMentionRowIds.length) {
+      supabase.from('mention_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .in('id', unreadMentionRowIds);
+    }
   };
 
   const markRead = (id: string) => {
     if (!user) return;
+    const target = notifications.find((n) => n.id === id);
     readIdsRef.current.add(id);
     persistReadIds(user.id, readIdsRef.current);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+    if (target?.type === 'mention' && target.meta?.mentionRowId) {
+      supabase.from('mention_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('id', target.meta.mentionRowId);
+    }
   };
 
   const unreadNotifCount = notifications.filter((n) => !n.read).length;

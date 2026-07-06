@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,6 +78,9 @@ const ChatPage = () => {
   const userId = user?.id;
   const { mode, setMode } = useMode();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const jumpToMsgId = searchParams.get('msg');
+  const jumpDoneRef = useRef(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
@@ -286,6 +289,23 @@ const ChatPage = () => {
       setShowJumpButton(true);
     }
   }, [messages, userId]);
+
+  // Jump to a specific message when opened via ?msg= (from mention/notification links)
+  useEffect(() => {
+    if (!jumpToMsgId || jumpDoneRef.current || messages.length === 0) return;
+    const el = messageRefs.current[jumpToMsgId];
+    if (!el) return;
+    jumpDoneRef.current = true;
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary');
+      setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 1500);
+      // Clean the param so a refresh doesn't re-jump
+      const next = new URLSearchParams(searchParams);
+      next.delete('msg');
+      setSearchParams(next, { replace: true });
+    });
+  }, [jumpToMsgId, messages, searchParams, setSearchParams]);
 
   // Auto-scroll for typing indicator if user is already near bottom
   useEffect(() => {
