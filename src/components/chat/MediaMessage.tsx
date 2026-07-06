@@ -187,13 +187,14 @@ const MediaMessage: React.FC<Props> = ({
   if (!revealed && !secureOpen) {
     const isSenderViewOnce = isMine && viewOnceImage;
     const isViewedViewOnceImage = viewOnceImage && alreadyViewed;
-    const hidden = isSenderViewOnce || isViewedViewOnceImage;
+    const hidden = isViewedViewOnceImage;
     return (
       <button
         onClick={hidden ? undefined : onReveal}
         disabled={hidden}
         className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-dashed border-border hover:bg-muted/70 transition disabled:cursor-not-allowed disabled:hover:bg-muted"
       >
+
         {secureImage ? <ShieldAlert className="h-8 w-8 text-primary" /> : <EyeOff className="h-8 w-8 text-muted-foreground" />}
         <span className="text-xs text-muted-foreground">
           {isViewedViewOnceImage
