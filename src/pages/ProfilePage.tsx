@@ -361,10 +361,7 @@ const ProfilePage = () => {
 
           {/* Basics — bio/country/availability (under avatar, left of About You) */}
           <section className="bento-tile p-5 lg:col-span-4 space-y-4 self-start">
-            <div className="flex items-center gap-2">
-              <Info className="w-4 h-4 text-primary" />
-              <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
-            </div>
+            <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
             <div>
               <Label>Bio</Label>
               <Textarea
