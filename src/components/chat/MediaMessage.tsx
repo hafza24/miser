@@ -147,7 +147,8 @@ const MediaMessage: React.FC<Props> = ({
   const secureImage = viewOnce && mediaType === 'image' && !isMine && !alreadyViewed;
   const viewOnceImage = viewOnce && mediaType === 'image';
 
-  const [revealed, setRevealed] = useState((isMine && !viewOnceImage) || (!viewOnce) || alreadyViewed);
+  // View-once images NEVER render inline (for either side). All other media reveals normally.
+  const [revealed, setRevealed] = useState(!viewOnceImage && (isMine || !viewOnce || alreadyViewed));
   const [secureOpen, setSecureOpen] = useState(false);
   const { url } = useSignedMediaUrl(mediaPath, revealed || secureOpen);
   const left = useCountdown(expiresAt);
