@@ -18,6 +18,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap, Copy } from 'lucide-react';
 import { toast } from 'sonner';
+import { usdToPkr, formatPkr } from '@/lib/currency';
 
 interface PaymentInfoRow {
   id: string;
