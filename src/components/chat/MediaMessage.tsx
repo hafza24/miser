@@ -145,8 +145,9 @@ const MediaMessage: React.FC<Props> = ({
 }) => {
   const alreadyViewed = viewedBy?.includes(currentUserId) ?? false;
   const secureImage = viewOnce && mediaType === 'image' && !isMine && !alreadyViewed;
+  const viewOnceImage = viewOnce && mediaType === 'image';
 
-  const [revealed, setRevealed] = useState(isMine || !viewOnce || alreadyViewed);
+  const [revealed, setRevealed] = useState((isMine && !viewOnceImage) || (!viewOnce) || alreadyViewed);
   const [secureOpen, setSecureOpen] = useState(false);
   const { url } = useSignedMediaUrl(mediaPath, revealed || secureOpen);
   const left = useCountdown(expiresAt);
@@ -178,14 +179,20 @@ const MediaMessage: React.FC<Props> = ({
   };
 
   if (!revealed && !secureOpen) {
+    const isSenderViewOnce = isMine && viewOnceImage;
     return (
       <button
-        onClick={onReveal}
-        className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-dashed border-border hover:bg-muted/70 transition"
+        onClick={isSenderViewOnce ? undefined : onReveal}
+        disabled={isSenderViewOnce}
+        className="flex flex-col items-center justify-center gap-2 w-56 h-40 rounded-xl bg-muted border border-dashed border-border hover:bg-muted/70 transition disabled:cursor-not-allowed disabled:hover:bg-muted"
       >
         {secureImage ? <ShieldAlert className="h-8 w-8 text-primary" /> : <EyeOff className="h-8 w-8 text-muted-foreground" />}
         <span className="text-xs text-muted-foreground">
-          {secureImage ? 'Secure view once — tap & hold to view' : 'View once — tap to reveal'}
+          {isSenderViewOnce
+            ? 'View once — hidden preview'
+            : secureImage
+              ? 'Secure view once — tap & hold to view'
+              : 'View once — tap to reveal'}
         </span>
       </button>
     );
