@@ -419,6 +419,54 @@ const ProfilePage = () => {
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">Select one interest</p>
+
+            <div className="mt-5 pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <Label>Gender preference</Label>
+                <Select value={genderPreference} onValueChange={setGenderPreference}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Location preference</Label>
+                <Select value={locationPreference} onValueChange={setLocationPreference}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="worldwide">Worldwide</SelectItem>
+                    <SelectItem value="same_country">Same country</SelectItem>
+                    <SelectItem value="same_city">Same city</SelectItem>
+                    <SelectItem value="near_me">Near me</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Country</Label>
+                <Select value={country || 'none'} onValueChange={(v) => setCountry(v === 'none' ? '' : v)}>
+                  <SelectTrigger><SelectValue placeholder="Not set" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">— Not set —</SelectItem>
+                    {COUNTRIES.map((c) => (<SelectItem key={c} value={c}>{c}</SelectItem>))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>City</Label>
+                <Input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Optional" />
+              </div>
+              <div>
+                <Label>Min age</Label>
+                <Input type="number" min={18} max={120} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} />
+              </div>
+              <div>
+                <Label>Max age</Label>
+                <Input type="number" min={18} max={120} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} />
+              </div>
+            </div>
           </section>
 
           {/* Character — wide tile */}
