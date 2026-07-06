@@ -884,7 +884,7 @@ const ChatPage = () => {
                                 currentUserId={userId}
                               />
                             ) : isMe ? (
-                              renderMentions(msg.content, members, profile?.alias)
+                              renderMentions(msg.content, members, profile?.alias, true)
                             ) : (
                               <TranslatedMessage
                                 messageId={msg.id}
