@@ -303,22 +303,79 @@ const ProfilePage = () => {
             </div>
           </section>
 
-          {/* Gender */}
-          <section className="bento-tile p-5 lg:col-span-2">
-            <div className="flex items-center gap-1.5 mb-3">
+          {/* About You */}
+          <section className="bento-tile p-5 lg:col-span-2 space-y-4">
+            <div className="flex items-center gap-1.5">
               <User className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Gender</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About you</span>
             </div>
-            <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
-              <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">— None —</SelectItem>
-                {GENDER_OPTIONS.map((g) => (
-                  <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            <div>
+              <Label>Gender</Label>
+              <Select value={gender || 'none'} onValueChange={(v) => setGender(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Select gender" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {GENDER_OPTIONS.map((g) => (
+                    <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Age</Label>
+              <Input
+                type="number"
+                inputMode="numeric"
+                min={18}
+                max={120}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                placeholder="18+"
+              />
+            </div>
+
+            <div>
+              <Label>Relationship</Label>
+              <Select value={relationshipStatus || 'none'} onValueChange={(v) => setRelationshipStatus(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {RELATIONSHIP_OPTIONS.map((r) => (
+                    <SelectItem key={r} value={r}>{r}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Orientation</Label>
+              <Select value={orientation || 'none'} onValueChange={(v) => setOrientation(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Orientation" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {ORIENTATION_OPTIONS.map((o) => (
+                    <SelectItem key={o} value={o}>{o}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Zodiac</Label>
+              <Select value={zodiac || 'none'} onValueChange={(v) => setZodiac(v === 'none' ? '' : v)}>
+                <SelectTrigger><SelectValue placeholder="Sign" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">— None —</SelectItem>
+                  {ZODIAC_OPTIONS.map((z) => (
+                    <SelectItem key={z} value={z}>{z}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </section>
+
 
           {/* Interest */}
           <section className="bento-tile p-5 lg:col-span-6">
