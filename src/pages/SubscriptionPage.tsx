@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap } from 'lucide-react';
+import { Crown, Upload, CheckCircle, Clock, XCircle, Lock, Star, Zap, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PaymentInfoRow {
