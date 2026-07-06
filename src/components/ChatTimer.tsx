@@ -16,9 +16,10 @@ interface ChatTimerProps {
   expiresAt: string | null;
   timerStopped: boolean;
   currentUserId: string;
+  chatMode?: 'light' | 'dark';
 }
 
-const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId }: ChatTimerProps) => {
+const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId, chatMode = 'light' }: ChatTimerProps) => {
   const [timeLeft, setTimeLeft] = useState('');
   const [expired, setExpired] = useState(false);
   const [stopRequest, setStopRequest] = useState<TimerStopRequest | null>(null);
