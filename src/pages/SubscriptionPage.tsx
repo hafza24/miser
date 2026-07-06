@@ -206,7 +206,7 @@ const SubscriptionPage = () => {
 
         {/* Plans Grid */}
         {!showForm && plans.length > 0 && (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {plans.map((plan, i) => {
               const Icon = planIcons[i % planIcons.length];
               const price = billingPeriod === 'monthly' ? plan.price_monthly : plan.price_yearly;
