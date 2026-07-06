@@ -133,7 +133,7 @@ const SubscriptionPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 max-w-lg mx-auto space-y-6 animate-fade-in">
+      <div className="p-4 max-w-5xl mx-auto space-y-6 animate-fade-in">
         {/* Header */}
         <div className="text-center">
           <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -206,7 +206,7 @@ const SubscriptionPage = () => {
 
         {/* Plans Grid */}
         {!showForm && plans.length > 0 && (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {plans.map((plan, i) => {
               const Icon = planIcons[i % planIcons.length];
               const price = billingPeriod === 'monthly' ? plan.price_monthly : plan.price_yearly;
