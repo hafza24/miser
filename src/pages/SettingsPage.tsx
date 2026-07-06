@@ -179,7 +179,7 @@ const SettingsPage = () => {
             <UserCheck className="h-5 w-5" /> Presence
           </h3>
           <p className="text-xs text-muted-foreground">How others see your activity status.</p>
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {PRESENCE_OPTIONS.map((opt) => {
               const active = profile.presence_status === opt.value;
               return (
