@@ -297,27 +297,45 @@ const ProfilePage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
           {/* Emoji picker */}
           <section className="bento-tile p-5 lg:col-span-4">
-            <div className="flex items-center gap-1.5 mb-3">
-              <User className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emoji avatar</span>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-primary" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emoji avatar</span>
+              </div>
+              {emojiAvatar && (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Selected</span>
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 ring-1 ring-primary/30 flex items-center justify-center text-xl shadow-[0_0_16px_hsl(var(--primary)/0.25)]">
+                    {emojiAvatar}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="flex flex-wrap gap-2">
-              {EMOJI_OPTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setEmojiAvatar(emoji)}
-                  aria-pressed={emojiAvatar === emoji}
-                  aria-label={`Choose ${emoji}`}
-                  className={`text-2xl p-2 rounded-xl transition-all ${
-                    emojiAvatar === emoji
-                      ? 'bg-primary/15 ring-2 ring-primary scale-110'
-                      : 'hover:bg-accent'
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+              {EMOJI_OPTIONS.map((emoji) => {
+                const isSelected = emojiAvatar === emoji;
+                return (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => setEmojiAvatar(emoji)}
+                    aria-pressed={isSelected}
+                    aria-label={`Choose ${emoji}`}
+                    className={`relative aspect-square flex items-center justify-center rounded-2xl text-2xl transition-all duration-200 hover:scale-110 ${
+                      isSelected
+                        ? 'bg-primary/10 border-2 border-primary shadow-[0_0_20px_hsl(var(--primary)/0.35)] scale-110 z-10'
+                        : 'border border-border bg-muted/30 hover:bg-muted hover:border-primary/40'
+                    }`}
+                  >
+                    <span className="leading-none">{emoji}</span>
+                    {isSelected && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-card flex items-center justify-center">
+                        <Check className="h-2.5 w-2.5 text-primary-foreground" strokeWidth={4} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </section>
 
