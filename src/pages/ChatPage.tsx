@@ -78,6 +78,9 @@ const ChatPage = () => {
   const userId = user?.id;
   const { mode, setMode } = useMode();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const jumpToMsgId = searchParams.get('msg');
+  const jumpDoneRef = useRef(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
