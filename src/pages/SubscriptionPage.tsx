@@ -66,7 +66,9 @@ const SubscriptionPage = () => {
   }, [user]);
 
   const premiumPlan = plans.length > 0
-    ? ([...plans].reverse().find(p => p.dark_mode_access) || plans[plans.length - 1])
+    ? (plans.find(p => p.name?.toLowerCase() === 'premium')
+        || [...plans].reverse().find(p => p.dark_mode_access)
+        || plans[plans.length - 1])
     : null;
 
   const canStartTrial =
