@@ -12,7 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Plus, Users, MessageCircle, Check, X,
   Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus, MoreVertical, ArrowUpRight,
-  Bell, Crown, UsersRound, TrendingUp,
+  Bell, Crown, UsersRound, TrendingUp, Calendar,
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { useSubscription } from '@/hooks/useSubscription';
