@@ -8,7 +8,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/admin', icon: Gauge, label: 'Overview' },
     { path: '/admin/users', icon: Users, label: 'Users' },
     { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
     { path: '/admin/blocked-emails', icon: ShieldBan, label: 'Blocked Emails' },
@@ -32,10 +31,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="rounded-full">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-2">
+            <button
+              onClick={() => navigate('/admin')}
+              className="flex items-center gap-2 rounded-lg px-2 py-1 -mx-2 hover:bg-muted transition-colors"
+              aria-label="Admin overview"
+            >
               <Shield className="h-5 w-5 text-primary" />
               <h1 className="font-heading text-lg font-bold text-foreground">Admin Panel</h1>
-            </div>
+            </button>
           </div>
           <Button
             variant={inboxActive ? 'default' : 'ghost'}
