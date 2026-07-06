@@ -86,6 +86,10 @@ const ProfilePage = () => {
       setPrimaryLanguage((profile as any).primary_language || 'en');
       setSecondaryLanguage((profile as any).secondary_language || '');
       setAutoTranslate((profile as any).auto_translate_enabled ?? true);
+      setAge(((profile as any).age ?? '').toString());
+      setRelationshipStatus((profile as any).relationship_status || '');
+      setOrientation((profile as any).orientation || '');
+      setZodiac((profile as any).zodiac || '');
     }
   }, [profile]);
 
