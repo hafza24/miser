@@ -59,15 +59,14 @@ Topic: ${gr.topic}. Group size: ${gr.member_limit}. Composition: ${composition}.
 Tone: ${isDark ? 'mature, sensual, emotionally charged — adults only, no illegal/non-consensual content' : 'warm, wholesome, emotionally safe, inclusive'}.
 Avoid cliches. Use sensory detail.`;
 
-    const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${lovableApiKey}` },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+    let args: string | null = null;
+    try {
+      const result = await callFreeAI({
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Create a scene for a ${gr.type} group about "${gr.topic}".` },
         ],
+        temperature: 0.9,
         tools: [{
           type: 'function',
           function: {
@@ -87,20 +86,21 @@ Avoid cliches. Use sensory detail.`;
           },
         }],
         tool_choice: { type: 'function', function: { name: 'set_scene' } },
-        temperature: 0.9,
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error('AI error', aiResp.status, t);
-      if (aiResp.status === 429) return new Response(JSON.stringify({ error: 'Rate limit, try again shortly.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      if (aiResp.status === 402) return new Response(JSON.stringify({ error: 'AI credits exhausted.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      return new Response(JSON.stringify({ error: 'AI failed' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      });
+      args = result.toolArguments;
+      // Fallback: some providers return JSON in content instead of tool call
+      if (!args && result.content) {
+        const m = result.content.match(/\{[\s\S]*\}/);
+        if (m) args = m[0];
+      }
+    } catch (e) {
+      const err = e as FreeAiError;
+      return new Response(JSON.stringify({ error: err.message || 'AI failed' }), {
+        status: err.status || 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const data = await aiResp.json();
-    const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     if (!args) {
       return new Response(JSON.stringify({ error: 'No scene returned' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
