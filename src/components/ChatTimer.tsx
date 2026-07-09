@@ -131,18 +131,18 @@ const ChatTimer = ({ chatId, expiresAt, timerStopped, currentUserId, chatMode = 
 
   if (timerStopped) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 px-2 sm:px-3 py-1 rounded-full">
         <Check className="h-3 w-3 text-primary" />
-        <span>Permanent chat</span>
+        <span className="hidden sm:inline">Permanent chat</span>
       </div>
     );
   }
 
   if (expired) {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 px-3 py-1 rounded-full">
+      <div className="flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 px-2 sm:px-3 py-1 rounded-full">
         <Clock className="h-3 w-3" />
-        <span>Chat expired</span>
+        <span className="hidden sm:inline">Chat expired</span>
       </div>
     );
   }
