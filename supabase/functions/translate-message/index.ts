@@ -98,66 +98,46 @@ Rules:
 - detected_language must be a short BCP-47-ish code: en, ur, hi, ar, es, fr, de, ru, zh, ja, ko, pt, tr, id, bn, fa, it, nl, etc. For Roman Urdu use "ur"; for Hinglish use "hi".
 Return ONLY via the provided tool.`;
 
-    const aiResp = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: sourceText },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "return_translation",
-                description: "Return the translation result.",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    detected_language: { type: "string" },
-                    translated_text: { type: "string" },
-                    was_already_target: { type: "boolean" },
-                  },
-                  required: [
-                    "detected_language",
-                    "translated_text",
-                    "was_already_target",
-                  ],
-                  additionalProperties: false,
+    let toolCall: string | null = null;
+    try {
+      const result = await callFreeAI({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: sourceText },
+        ],
+        temperature: 0.3,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "return_translation",
+              description: "Return the translation result.",
+              parameters: {
+                type: "object",
+                properties: {
+                  detected_language: { type: "string" },
+                  translated_text: { type: "string" },
+                  was_already_target: { type: "boolean" },
                 },
+                required: ["detected_language", "translated_text", "was_already_target"],
+                additionalProperties: false,
               },
             },
-          ],
-          tool_choice: {
-            type: "function",
-            function: { name: "return_translation" },
           },
-        }),
-      },
-    );
-
-    if (!aiResp.ok) {
-      if (aiResp.status === 429)
-        return json({ error: "Rate limit, try again shortly" }, 429);
-      if (aiResp.status === 402)
-        return json({ error: "AI credits exhausted" }, 402);
-      const t = await aiResp.text();
-      console.error("AI error:", aiResp.status, t);
-      return json({ error: "Translation failed" }, 500);
+        ],
+        tool_choice: { type: "function", function: { name: "return_translation" } },
+      });
+      toolCall = result.toolArguments;
+      if (!toolCall && result.content) {
+        const m = result.content.match(/\{[\s\S]*\}/);
+        if (m) toolCall = m[0];
+      }
+    } catch (e) {
+      const err = e as FreeAiError;
+      return json({ error: err.message || "Translation failed" }, err.status || 500);
     }
 
-    const aiData = await aiResp.json();
-    const toolCall =
-      aiData?.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments;
     if (!toolCall) {
-      console.error("No tool call:", JSON.stringify(aiData));
       return json({ error: "Translation failed" }, 500);
     }
     const parsed = JSON.parse(toolCall);
