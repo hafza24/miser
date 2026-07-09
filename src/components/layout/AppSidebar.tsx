@@ -20,6 +20,7 @@ const mainItems = [
   { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { path: '/chats', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
   { path: '/browse', icon: Search, label: 'Browse' },
+  { path: '/groups', icon: UsersRound, label: 'Groups' },
   { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
 ];
 
