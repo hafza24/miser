@@ -39,14 +39,8 @@ Deno.serve(async (req) => {
       return json({ error: "Translation disabled" }, 403);
     }
 
-    const { data: modelRow } = await admin
-      .from("app_settings")
-      .select("value")
-      .eq("key", "translation_model")
-      .maybeSingle();
-    const model =
-      (typeof modelRow?.value === "string" ? modelRow.value : null) ||
-      "google/gemini-3-flash-preview";
+
+
 
     const body = await req.json();
     const { message_id, target_language, text } = body ?? {};
