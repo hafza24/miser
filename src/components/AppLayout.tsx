@@ -2,8 +2,9 @@ import React from 'react';
 import { useMode } from '@/contexts/ModeContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Shield, UsersRound } from 'lucide-react';
+import { Sun, Moon, MessageCircle, User, Settings, LogOut, Search, Shield, UsersRound, LayoutDashboard, Sparkles, Crown, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { useAdminRole } from '@/hooks/useAdminRole';
 import NotificationDropdown from '@/components/NotificationDropdown';
@@ -46,6 +47,30 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
         </Button>
       )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-full h-9 w-9 md:hidden"
+            aria-label="More"
+            title="More"
+          >
+            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+            <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/mood-rooms')}>
+            <Sparkles className="h-4 w-4 mr-2" /> Mood Rooms
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/subscription')}>
+            <Crown className="h-4 w-4 mr-2" /> Premium
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <NotificationDropdown />
       <Button
         variant="ghost"
