@@ -23,7 +23,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const mobileNav = [
     { path: '/dashboard', icon: MessageCircle, label: 'Chats' },
     { path: '/browse', icon: Search, label: 'Browse' },
-    { path: '/groups', icon: UsersRound, label: 'Groups' },
+    { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
     { path: '/profile', icon: User, label: 'Profile' },
     { path: '/settings', icon: Settings, label: 'Settings' },
   ];
