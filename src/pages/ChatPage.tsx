@@ -998,7 +998,7 @@ const ChatPage = () => {
                 onTyping={sendTyping}
                 members={members}
                 currentUserId={userId}
-                placeholder="Type a message... (use @ to mention)"
+                placeholder="Message… @ to mention"
                 className="flex-1 rounded-full h-9 text-sm"
                 maxLength={2000}
               />

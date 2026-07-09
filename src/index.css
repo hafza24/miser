@@ -176,7 +176,7 @@
     background: var(--gradient-light);
   }
   .gradient-hero {
-    background: var(--gradient-hero);
+    background-image: var(--gradient-hero);
   }
   .shadow-soft {
     box-shadow: var(--shadow-soft);

@@ -245,11 +245,11 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
       <button
         onClick={switchToDark}
         disabled={sending}
-        className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-accent/30 px-3 py-1 rounded-full transition-colors cursor-pointer"
+        className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-accent/30 px-2 sm:px-3 py-1 rounded-full transition-colors cursor-pointer"
         title="Request to switch to dark mode (requires consent)"
       >
         <Sun className="h-3 w-3 text-amber-500" />
-        <span>Light</span>
+        <span className="hidden sm:inline">Light</span>
         <Moon className="h-3 w-3 opacity-40" />
       </button>
     );
@@ -259,11 +259,11 @@ const ChatModeSwitch = ({ chatId, chatMode, currentUserId, otherUserId, otherUse
     <button
       onClick={switchToLight}
       disabled={sending}
-      className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-accent/30 px-3 py-1 rounded-full transition-colors cursor-pointer"
+      className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 hover:bg-accent/30 px-2 sm:px-3 py-1 rounded-full transition-colors cursor-pointer"
       title="Switch to light mode (instant)"
     >
       <Moon className="h-3 w-3 text-indigo-400" />
-      <span>Dark</span>
+      <span className="hidden sm:inline">Dark</span>
       <Sun className="h-3 w-3 opacity-40" />
     </button>
   );

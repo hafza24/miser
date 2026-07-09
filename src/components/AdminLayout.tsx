@@ -53,15 +53,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      <nav className="border-b border-border bg-card/50">
-        <div className="max-w-5xl mx-auto flex gap-1 px-4 py-2 overflow-x-auto">
+      <nav className="border-b border-border bg-card/50 relative">
+        <div className="max-w-5xl mx-auto flex gap-1 px-4 py-2 overflow-x-auto scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
               <button
                 key={item.path}
+                ref={active ? (el) => el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' }) : undefined}
                 onClick={() => navigate(item.path)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
@@ -71,6 +72,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             );
           })}
         </div>
+        <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-card/80 to-transparent sm:hidden" />
       </nav>
 
       <main className="flex-1 max-w-5xl mx-auto w-full p-4">
