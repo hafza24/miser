@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { callFreeAI, FreeAiError } from '../_shared/free-ai.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -220,54 +221,24 @@ Profile B (${other.alias}):
 - mood: ${other.mood_preference ?? 'none'}
 ${continuationContext}`;
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'Lovable AI is not configured.' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${lovableApiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+    let scene: string | undefined;
+    try {
+      const result = await callFreeAI({
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.9,
         max_tokens: 1024,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      const text = await aiResponse.text();
-      if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: 'Rate limit exceeded, please try again in a moment.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits exhausted. Please add credits to your Lovable workspace.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      console.error('Lovable AI error:', aiResponse.status, text);
-      return new Response(JSON.stringify({ error: 'Failed to generate scene.' }), {
-        status: 500,
+      });
+      scene = result.content?.trim();
+    } catch (e) {
+      const err = e as FreeAiError;
+      return new Response(JSON.stringify({ error: err.message || 'AI failed.' }), {
+        status: err.status || 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const aiData = await aiResponse.json();
-    const scene = aiData?.choices?.[0]?.message?.content?.trim();
 
     if (!scene) {
       return new Response(JSON.stringify({ error: 'The AI returned an empty scene.' }), {

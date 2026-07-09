@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { callFreeAI, FreeAiError } from '../_shared/free-ai.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,10 +46,8 @@ Deno.serve(async (req) => {
       return new Response(JSON.stringify({ error: 'Not allowed' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    if (!lovableApiKey) {
-      return new Response(JSON.stringify({ error: 'AI not configured' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+
+
 
     const gr_req = gr.gender_requirements ?? {};
     const composition = `${gr_req.men || 0} men, ${gr_req.women || 0} women, ${gr_req.any || 0} any`;
