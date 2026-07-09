@@ -63,8 +63,8 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <DropdownMenuItem onClick={() => navigate('/dashboard')}>
             <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/mood-rooms')}>
-            <Sparkles className="h-4 w-4 mr-2" /> Mood Rooms
+          <DropdownMenuItem onClick={() => navigate('/groups')}>
+            <UsersRound className="h-4 w-4 mr-2" /> Groups
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate('/subscription')}>
             <Crown className="h-4 w-4 mr-2" /> Premium
