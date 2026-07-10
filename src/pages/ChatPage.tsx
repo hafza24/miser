@@ -108,6 +108,25 @@ const ChatPage = () => {
   const [actionMessage, setActionMessage] = useState<Message | null>(null);
   const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
   const [mutedUntil, setMutedUntil] = useState<string | null>(null);
+  // Per-chat auto-translate override (localStorage). Falls back to profile default.
+  const profileAutoTr = (profile as any)?.auto_translate_enabled !== false;
+  const [autoTrChat, setAutoTrChat] = useState<boolean>(() => {
+    if (!chatId) return profileAutoTr;
+    const v = typeof window !== 'undefined' ? localStorage.getItem(`atr:${chatId}`) : null;
+    return v == null ? profileAutoTr : v === '1';
+  });
+  useEffect(() => {
+    if (!chatId) return;
+    const v = localStorage.getItem(`atr:${chatId}`);
+    setAutoTrChat(v == null ? profileAutoTr : v === '1');
+  }, [chatId, profileAutoTr]);
+  const toggleAutoTrChat = () => {
+    setAutoTrChat((prev) => {
+      const next = !prev;
+      if (chatId) localStorage.setItem(`atr:${chatId}`, next ? '1' : '0');
+      return next;
+    });
+  };
   const [reportMsgReason, setReportMsgReason] = useState('');
   const [reportMsgTarget, setReportMsgTarget] = useState<Message | null>(null);
   const [reportingMsg, setReportingMsg] = useState(false);
