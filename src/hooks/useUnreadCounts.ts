@@ -25,17 +25,38 @@ export const playNotificationSound = () => {
   }
 };
 
-export const showDesktopNotification = (title: string, body: string) => {
+export const showDesktopNotification = (
+  title: string,
+  body: string,
+  opts: { tag?: string; url?: string; force?: boolean } = {}
+) => {
   if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-  if (document.hasFocus()) return; // Don't show if app is focused
-  try {
-    new Notification(title, {
-      body,
-      icon: '/favicon.ico',
-      tag: 'new-message', // Replaces previous notification
+  // Skip if the tab is visible AND focused, unless forced
+  if (!opts.force && document.visibilityState === 'visible' && document.hasFocus()) return;
+
+  const options: NotificationOptions = {
+    body,
+    icon: '/icons/icon-192x192.png',
+    badge: '/icons/icon-192x192.png',
+    tag: opts.tag || 'general',
+    data: { url: opts.url || '/' },
+  };
+
+  // Prefer service worker registration (required for Android/PWA background notifications)
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then((reg) => {
+      if (reg) {
+        reg.showNotification(title, options).catch(() => {
+          try { new Notification(title, options); } catch {}
+        });
+      } else {
+        try { new Notification(title, options); } catch {}
+      }
+    }).catch(() => {
+      try { new Notification(title, options); } catch {}
     });
-  } catch {
-    // Notification not supported
+  } else {
+    try { new Notification(title, options); } catch {}
   }
 };
 
