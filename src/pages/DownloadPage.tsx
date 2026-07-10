@@ -26,6 +26,26 @@ const DownloadPage = () => {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  const enableNotifications = async () => {
+    try {
+      if (typeof Notification === 'undefined') return;
+      if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg && Notification.permission === 'granted') {
+          reg.showNotification('Fur&Fir notifications enabled', {
+            body: "You'll get alerts for messages, matches and mentions.",
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-192x192.png',
+            tag: 'welcome',
+          });
+        }
+      }
+    } catch {}
+  };
+
   const handleInstallPWA = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -33,6 +53,12 @@ const DownloadPage = () => {
       if (outcome === 'accepted') setIsInstalled(true);
       setDeferredPrompt(null);
     }
+    await enableNotifications();
+  };
+
+  const handleApkClick = async () => {
+    // Fire notification permission alongside APK download
+    await enableNotifications();
   };
 
   return (
