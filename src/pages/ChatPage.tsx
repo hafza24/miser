@@ -864,7 +864,7 @@ const ChatPage = () => {
                 const repliedMsg = getReplyContent(msg.reply_to);
                 const isPendingDelete = !!pendingDeletes[msg.id];
                 const interactive = !expired && !chatEnded;
-                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && (profile as any)?.auto_translate_enabled !== false;
+                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && autoTrChat;
                 return (
                   <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
