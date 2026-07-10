@@ -73,14 +73,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const updateOnlineStatus = useCallback(async (userId: string, isOnline: boolean) => {
-    await supabase
-      .from('profiles')
-      .update({ 
-        is_online: isOnline, 
-        last_seen_at: new Date().toISOString() 
-      })
-      .eq('user_id', userId);
+  // Throttle presence writes: heartbeat was the single hottest DB query. Only write once per minute per state.
+  const lastPresenceRef = useRef<{ state: boolean | null; at: number }>({ state: null, at: 0 });
+  const updateOnlineStatus = useCallback(async (_userId: string, isOnline: boolean) => {
+    const now = Date.now();
+    const last = lastPresenceRef.current;
+    if (last.state === isOnline && now - last.at < 60_000) return;
+    lastPresenceRef.current = { state: isOnline, at: now };
+    // Lightweight RPC touches only presence columns and skips the sensitive-fields guard
+    await supabase.rpc('update_presence' as any, { _is_online: isOnline });
   }, []);
 
   const fetchProfile = async (userId: string) => {
