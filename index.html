@@ -38,11 +38,33 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
+      (function () {
+        if (!('serviceWorker' in navigator)) return;
+        var h = location.hostname;
+        var inIframe = window.self !== window.top;
+        var isPreview =
+          inIframe ||
+          h.indexOf('id-preview--') === 0 ||
+          h.indexOf('preview--') === 0 ||
+          h === 'lovableproject.com' ||
+          h.endsWith('.lovableproject.com') ||
+          h === 'lovableproject-dev.com' ||
+          h.endsWith('.lovableproject-dev.com') ||
+          h === 'beta.lovable.dev' ||
+          h.endsWith('.beta.lovable.dev') ||
+          location.search.indexOf('sw=off') !== -1;
+        if (isPreview) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (r) {
+              if (r.active && r.active.scriptURL.indexOf('/service-worker.js') !== -1) r.unregister();
+            });
+          });
+          return;
+        }
+        window.addEventListener('load', function () {
           navigator.serviceWorker.register('/service-worker.js');
         });
-      }
+      })();
     </script>
   </body>
 </html>
