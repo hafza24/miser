@@ -498,7 +498,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         const isOnChat = currentChatId === msg.chat_id && document.hasFocus();
         if (!isOnChat && prefMessages) {
           if (soundEnabled) playNotificationSound();
-          if (desktopEnabled) showDesktopNotification('New Message', (msg.content || '').slice(0, 100));
+          if (desktopEnabled) showDesktopNotification('New Message', (msg.content || '').slice(0, 100), { tag: `msg-${msg.chat_id}`, url: `/chat/${msg.chat_id}` });
         }
         scheduleRefresh();
       })
@@ -521,7 +521,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         lastEventKeyRef.current.add(key);
         if (payload.eventType === 'INSERT' && prefGroupInvites) {
           if (soundEnabled) playNotificationSound();
-          if (desktopEnabled) showDesktopNotification('Group Invite', 'You were invited to a group chat');
+          if (desktopEnabled) showDesktopNotification('Group Invite', 'You were invited to a group chat', { tag: `inv-${inv?.id}`, url: '/notifications' });
         }
         scheduleRefresh();
       })
@@ -537,7 +537,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         lastEventKeyRef.current.add(key);
         if (prefMatches) {
           if (soundEnabled) playNotificationSound();
-          if (desktopEnabled) showDesktopNotification('New match', 'A compatible person just appeared. Say hi!');
+          if (desktopEnabled) showDesktopNotification('New match', 'A compatible person just appeared. Say hi!', { tag: `match-${row?.id}`, url: '/browse' });
         }
         scheduleRefresh();
       })
@@ -553,7 +553,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
         lastEventKeyRef.current.add(key);
         if (prefMentions) {
           if (soundEnabled) playNotificationSound();
-          if (desktopEnabled) showDesktopNotification('You were mentioned', 'Someone mentioned you in a chat');
+          if (desktopEnabled) showDesktopNotification('You were mentioned', 'Someone mentioned you in a chat', { tag: `mention-${row?.id}`, url: row?.chat_id ? `/chat/${row.chat_id}` : '/notifications' });
         }
         scheduleRefresh();
       })
@@ -574,7 +574,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_requests' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           if (soundEnabled) playNotificationSound();
-          if (desktopEnabled) showDesktopNotification('New payment request', 'A user submitted payment proof for review.');
+          if (desktopEnabled) showDesktopNotification('New payment request', 'A user submitted payment proof for review.', { tag: 'admin-pay', url: '/admin/payments' });
         }
         scheduleRefresh();
       })
