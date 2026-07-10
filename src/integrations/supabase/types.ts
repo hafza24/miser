@@ -1499,6 +1499,7 @@ export type Database = {
         Args: { p_chat_id: string; p_image_url: string; p_name: string }
         Returns: undefined
       }
+      update_presence: { Args: { _is_online: boolean }; Returns: undefined }
       upgrade_chat_to_group: {
         Args: { p_chat_id: string; p_name: string }
         Returns: undefined
