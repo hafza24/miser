@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2, Languages } from 'lucide-react';
 import MediaUploader from '@/components/chat/MediaUploader';
 import MediaMessage from '@/components/chat/MediaMessage';
 import GroupInfoSheet from '@/components/chat/GroupInfoSheet';
