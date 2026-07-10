@@ -6,7 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { moderateMessage } from '@/lib/moderation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2 } from 'lucide-react';
+import { ArrowLeft, ArrowDown, Send, Smile, LogOut, WandSparkles, Flag, Ban, MoreVertical, Reply, X, Trash2, Undo2, Users, UserPlus2, Languages } from 'lucide-react';
 import MediaUploader from '@/components/chat/MediaUploader';
 import MediaMessage from '@/components/chat/MediaMessage';
 import GroupInfoSheet from '@/components/chat/GroupInfoSheet';
@@ -108,6 +108,25 @@ const ChatPage = () => {
   const [actionMessage, setActionMessage] = useState<Message | null>(null);
   const [pendingDeletes, setPendingDeletes] = useState<Record<string, { remaining: number }>>({});
   const [mutedUntil, setMutedUntil] = useState<string | null>(null);
+  // Per-chat auto-translate override (localStorage). Falls back to profile default.
+  const profileAutoTr = (profile as any)?.auto_translate_enabled !== false;
+  const [autoTrChat, setAutoTrChat] = useState<boolean>(() => {
+    if (!chatId) return profileAutoTr;
+    const v = typeof window !== 'undefined' ? localStorage.getItem(`atr:${chatId}`) : null;
+    return v == null ? profileAutoTr : v === '1';
+  });
+  useEffect(() => {
+    if (!chatId) return;
+    const v = localStorage.getItem(`atr:${chatId}`);
+    setAutoTrChat(v == null ? profileAutoTr : v === '1');
+  }, [chatId, profileAutoTr]);
+  const toggleAutoTrChat = () => {
+    setAutoTrChat((prev) => {
+      const next = !prev;
+      if (chatId) localStorage.setItem(`atr:${chatId}`, next ? '1' : '0');
+      return next;
+    });
+  };
   const [reportMsgReason, setReportMsgReason] = useState('');
   const [reportMsgTarget, setReportMsgTarget] = useState<Message | null>(null);
   const [reportingMsg, setReportingMsg] = useState(false);
@@ -664,6 +683,10 @@ const ChatPage = () => {
                     <UserPlus2 className="h-4 w-4 mr-2" /> Convert to group
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={toggleAutoTrChat}>
+                  <Languages className="h-4 w-4 mr-2" />
+                  Auto-translate: {autoTrChat ? 'On' : 'Off'}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="text-amber-500 focus:text-amber-500">
                   <Flag className="h-4 w-4 mr-2" />
                   Report User
@@ -841,7 +864,7 @@ const ChatPage = () => {
                 const repliedMsg = getReplyContent(msg.reply_to);
                 const isPendingDelete = !!pendingDeletes[msg.id];
                 const interactive = !expired && !chatEnded;
-                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && (profile as any)?.auto_translate_enabled !== false;
+                const shouldAuto = !isMe && otherMsgIdsForAuto.has(msg.id) && autoTrChat;
                 return (
                   <div key={msg.id} ref={(el) => { messageRefs.current[msg.id] = el; }} className="rounded-2xl transition-shadow">
                     <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
