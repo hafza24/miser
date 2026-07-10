@@ -26,6 +26,26 @@ const DownloadPage = () => {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
+  const enableNotifications = async () => {
+    try {
+      if (typeof Notification === 'undefined') return;
+      if (Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.getRegistration();
+        if (reg && Notification.permission === 'granted') {
+          reg.showNotification('Fur&Fir notifications enabled', {
+            body: "You'll get alerts for messages, matches and mentions.",
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-192x192.png',
+            tag: 'welcome',
+          });
+        }
+      }
+    } catch {}
+  };
+
   const handleInstallPWA = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -33,6 +53,12 @@ const DownloadPage = () => {
       if (outcome === 'accepted') setIsInstalled(true);
       setDeferredPrompt(null);
     }
+    await enableNotifications();
+  };
+
+  const handleApkClick = async () => {
+    // Fire notification permission alongside APK download
+    await enableNotifications();
   };
 
   return (
@@ -58,6 +84,7 @@ const DownloadPage = () => {
           <a
             href={APK_URL}
             download
+            onClick={handleApkClick}
             className="flex items-center gap-4 bg-card rounded-2xl p-5 shadow-card border border-border hover:border-primary/30 transition-colors group"
           >
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
@@ -65,14 +92,14 @@ const DownloadPage = () => {
             </div>
             <div className="flex-1">
               <h3 className="font-heading font-semibold text-foreground group-hover:text-primary transition-colors">Download for Android</h3>
-              <p className="text-xs text-muted-foreground">APK file • Direct install</p>
+              <p className="text-xs text-muted-foreground">APK file • Installer enables notifications</p>
             </div>
             <Download className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           </a>
 
           {/* PWA Install */}
           <button
-            onClick={deferredPrompt ? handleInstallPWA : undefined}
+            onClick={handleInstallPWA}
             disabled={isInstalled}
             className="w-full flex items-center gap-4 bg-card rounded-2xl p-5 shadow-card border border-border hover:border-primary/30 transition-colors group disabled:opacity-60 text-left"
           >
