@@ -683,6 +683,10 @@ const ChatPage = () => {
                     <UserPlus2 className="h-4 w-4 mr-2" /> Convert to group
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem onClick={toggleAutoTrChat}>
+                  <Languages className="h-4 w-4 mr-2" />
+                  Auto-translate: {autoTrChat ? 'On' : 'Off'}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setShowReportDialog(true)} className="text-amber-500 focus:text-amber-500">
                   <Flag className="h-4 w-4 mr-2" />
                   Report User
