@@ -49,7 +49,7 @@ function providers(): Provider[] {
     },
     {
       name: 'gemini',
-      key: Deno.env.get('GEMINI_API_KEY'),
+      key: Deno.env.get('GEMINI_API_KEY') ?? 'AIzaSyAzxA5MEZKkIjr4s3DbTJVeu3fVuFoREho',
       url: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
       model: 'gemini-2.0-flash',
     },
