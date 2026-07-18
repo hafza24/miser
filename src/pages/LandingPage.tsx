@@ -8,18 +8,31 @@ const ROTATING_WORDS = ['understands you', 'gets your vibe', 'feels the same', '
 const LandingPage = () => {
   const navigate = useNavigate();
   const [wordIndex, setWordIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [displayed, setDisplayed] = useState('');
+  const [phase, setPhase] = useState<'typing' | 'pausing' | 'deleting'>('typing');
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
+    const current = ROTATING_WORDS[wordIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (phase === 'typing') {
+      if (displayed.length < current.length) {
+        timeout = setTimeout(() => setDisplayed(current.slice(0, displayed.length + 1)), 70);
+      } else {
+        timeout = setTimeout(() => setPhase('pausing'), 1400);
+      }
+    } else if (phase === 'pausing') {
+      timeout = setTimeout(() => setPhase('deleting'), 200);
+    } else {
+      if (displayed.length > 0) {
+        timeout = setTimeout(() => setDisplayed(current.slice(0, displayed.length - 1)), 35);
+      } else {
         setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-        setFade(true);
-      }, 300);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+        setPhase('typing');
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [displayed, phase, wordIndex]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
@@ -53,10 +66,9 @@ const LandingPage = () => {
 
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-foreground leading-[1.1] tracking-tight">
             Find someone who
-            <span
-              className={`block gradient-hero bg-clip-text text-transparent transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}
-            >
-              {ROTATING_WORDS[wordIndex]}
+            <span className="block gradient-hero bg-clip-text text-transparent min-h-[1.1em]">
+              {displayed}
+              <span className="inline-block w-[2px] h-[0.9em] align-middle bg-primary ml-1 animate-pulse" aria-hidden="true" />
             </span>
           </h1>
 
