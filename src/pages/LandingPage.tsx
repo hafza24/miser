@@ -73,7 +73,7 @@ const LandingPage = () => {
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-            The safe, anonymous space for emotional connection and romantic exploration. Two modes, one purpose — <strong className="text-foreground">real human connection.</strong>
+            The safe, anonymous space for emotional connection and romantic exploration. Two modes, one purpose real human connection.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
