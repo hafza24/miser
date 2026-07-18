@@ -229,6 +229,44 @@
     transition: top 150ms ease;
   }
   .skip-link:focus { top: 0.5rem; }
+
+  /* Reusable eyebrow / section subtitle chip */
+  .primary-subtitle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.12), hsl(var(--accent) / 0.12));
+    border: 1px solid hsl(var(--primary) / 0.25);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px -8px hsl(var(--primary) / 0.35), inset 0 1px 0 hsl(var(--primary-foreground) / 0.15);
+    transition: transform 200ms ease, box-shadow 200ms ease;
+  }
+  .primary-subtitle::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 4px hsl(var(--primary) / 0.18), 0 0 12px hsl(var(--primary) / 0.6);
+    animation: primary-subtitle-pulse 1.8s ease-in-out infinite;
+  }
+  .primary-subtitle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 26px -8px hsl(var(--primary) / 0.5), inset 0 1px 0 hsl(var(--primary-foreground) / 0.2);
+  }
+  @keyframes primary-subtitle-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.55; transform: scale(1.35); }
+  }
 }
 
 

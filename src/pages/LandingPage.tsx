@@ -59,8 +59,7 @@ const LandingPage = () => {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-secondary/15 blur-[100px] pointer-events-none" />
 
         <div className="relative z-10 space-y-6 max-w-xl w-full">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/15 text-primary text-sm font-semibold">
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="primary-subtitle">
             Privacy-first anonymous connections
           </div>
 
