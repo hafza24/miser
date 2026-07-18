@@ -142,11 +142,16 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
             {[
-              { icon: Users, title: 'Create Profile', desc: 'Pick your emoji, set your vibe. Stay completely anonymous.' },
-              { icon: Heart, title: 'Choose Your Mode', desc: 'Light for friendship & support. Dark for romance & flirting.' },
-              { icon: MessageCircle, title: 'Start Chatting', desc: 'Match by interests and connect with people who get you.' },
-            ].map((item) => (
-              <div key={item.title} className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
+              { icon: Users, title: 'Create Profile', desc: 'Pick a playful emoji, choose your alias, and set the vibe that feels right for you. No real names, no photos, no pressure — you stay completely anonymous from the very first moment you join.' },
+              { icon: Heart, title: 'Choose Your Mode', desc: 'Switch between Light mode for friendship, emotional support and soft romance, or Dark mode for adults-only flirting and passionate roleplay. Your mode, your rules — change it whenever your mood shifts.' },
+              { icon: MessageCircle, title: 'Start Chatting', desc: 'Get matched with people who share your interests, language and energy. Break the ice instantly, build real connection, and enjoy safe conversations with auto-delete and full block controls always at hand.' },
+            ].map((item, i) => (
+              <div
+                key={item.title}
+                data-reveal
+                style={{ transitionDelay: `${i * 150}ms` }}
+                className="reveal-on-scroll relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300"
+              >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
                   <item.icon className="h-6 w-6 text-primary" />
                 </div>
