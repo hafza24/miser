@@ -8,18 +8,31 @@ const ROTATING_WORDS = ['understands you', 'gets your vibe', 'feels the same', '
 const LandingPage = () => {
   const navigate = useNavigate();
   const [wordIndex, setWordIndex] = useState(0);
-  const [fade, setFade] = useState(true);
+  const [displayed, setDisplayed] = useState('');
+  const [phase, setPhase] = useState<'typing' | 'pausing' | 'deleting'>('typing');
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFade(false);
-      setTimeout(() => {
+    const current = ROTATING_WORDS[wordIndex];
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (phase === 'typing') {
+      if (displayed.length < current.length) {
+        timeout = setTimeout(() => setDisplayed(current.slice(0, displayed.length + 1)), 70);
+      } else {
+        timeout = setTimeout(() => setPhase('pausing'), 1400);
+      }
+    } else if (phase === 'pausing') {
+      timeout = setTimeout(() => setPhase('deleting'), 200);
+    } else {
+      if (displayed.length > 0) {
+        timeout = setTimeout(() => setDisplayed(current.slice(0, displayed.length - 1)), 35);
+      } else {
         setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
-        setFade(true);
-      }, 300);
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
+        setPhase('typing');
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [displayed, phase, wordIndex]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
