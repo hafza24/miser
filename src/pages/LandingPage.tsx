@@ -280,7 +280,7 @@ const LandingPage = () => {
           <span className="font-heading font-bold text-foreground">Fur&amp;Fir</span>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <button onClick={() => navigate('/page/about')} className="hover:text-foreground transition-colors">About</button>
-            <button onClick={() => navigate('/page/faq')} className="hover:text-foreground transition-colors">FAQ</button>
+            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-foreground transition-colors">FAQ</button>
             <button onClick={() => navigate('/page/privacy')} className="hover:text-foreground transition-colors">Privacy</button>
             <button onClick={() => navigate('/page/terms')} className="hover:text-foreground transition-colors">Terms</button>
             <button onClick={() => navigate('/page/contact')} className="hover:text-foreground transition-colors">Contact</button>
