@@ -257,22 +257,37 @@ const LandingPage = () => {
               { q: 'Can I block or report someone?', a: 'Yes. Bidirectional blocking hides both users from each other instantly. Reports are reviewed by admins, and repeated violations trigger auto-suspension.' },
               { q: 'Is there a mobile app?', a: 'Yes — install Fur&Fir as a PWA from the Download page, or grab the Android APK. Both support push notifications for matches and messages.' },
               { q: 'How do I cancel my subscription?', a: 'You can cancel anytime from the Subscription page. Your premium features remain active until the end of the current billing period.' },
-            ].map((item, i) => (
-              <details
-                key={i}
-                data-reveal
-                style={{ transitionDelay: `${i * 80}ms` }}
-                className="reveal-on-scroll group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
-              >
-                <summary className="flex items-center justify-between gap-4 p-5 cursor-pointer list-none font-heading font-semibold text-foreground text-base [&::-webkit-details-marker]:hidden">
-                  <span>{item.q}</span>
-                  <ChevronDown className="h-5 w-5 text-primary flex-shrink-0 transition-transform duration-300 group-open:rotate-180" />
-                </summary>
-                <div className="px-5 pb-5 -mt-1 text-sm text-muted-foreground leading-relaxed">
-                  {item.a}
+            ].map((item, i) => {
+              const isOpen = openFaq === i;
+              return (
+                <div
+                  key={i}
+                  data-reveal
+                  style={{ transitionDelay: `${i * 80}ms` }}
+                  className="reveal-on-scroll group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenFaq(isOpen ? null : i)}
+                    aria-expanded={isOpen}
+                    className="w-full flex items-center justify-between gap-4 p-5 text-left font-heading font-semibold text-foreground text-base"
+                  >
+                    <span>{item.q}</span>
+                    <ChevronDown className={`h-5 w-5 text-primary flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <div
+                    className="grid transition-[grid-template-rows] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]"
+                    style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">
+                        {item.a}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </details>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
