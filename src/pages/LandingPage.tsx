@@ -212,27 +212,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-4 sm:px-6 py-16 sm:py-20 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
-        <div className="max-w-md mx-auto space-y-5 relative z-10">
-          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
-            Ready to connect?
-          </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Join thousands finding real, meaningful connections anonymously.
-          </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/register')}
-            className="w-full sm:w-auto px-10 h-12 text-base font-semibold rounded-full gap-2 shadow-soft hover:scale-[1.03] active:scale-[0.98] transition-transform"
-          >
-            Get Started Free
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section id="faq" className="px-4 sm:px-6 py-16 sm:py-20 bg-muted/40 scroll-mt-20">
         <div className="max-w-2xl mx-auto">
@@ -258,7 +237,9 @@ const LandingPage = () => {
             ].map((item, i) => (
               <details
                 key={i}
-                className="group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
+                data-reveal
+                style={{ transitionDelay: `${i * 80}ms` }}
+                className="reveal-on-scroll group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
               >
                 <summary className="flex items-center justify-between gap-4 p-5 cursor-pointer list-none font-heading font-semibold text-foreground text-base [&::-webkit-details-marker]:hidden">
                   <span>{item.q}</span>
@@ -270,6 +251,27 @@ const LandingPage = () => {
               </details>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="px-4 sm:px-6 py-16 sm:py-20 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+        <div className="max-w-md mx-auto space-y-5 relative z-10">
+          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
+            Ready to connect?
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Join thousands finding real, meaningful connections anonymously.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/register')}
+            className="w-full sm:w-auto px-10 h-12 text-base font-semibold rounded-full gap-2 shadow-soft hover:scale-[1.03] active:scale-[0.98] transition-transform"
+          >
+            Get Started Free
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </section>
 
