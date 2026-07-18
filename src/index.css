@@ -248,8 +248,8 @@
   /* Scroll-triggered reveal (used with IntersectionObserver + [data-reveal]) */
   .reveal-on-scroll {
     opacity: 0;
-    transform: translateY(24px);
-    transition: opacity 700ms ease-out, transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateY(48px);
+    transition: opacity 800ms ease-out, transform 800ms cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
   }
   .reveal-on-scroll.is-visible {
