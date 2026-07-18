@@ -47,7 +47,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
         </Button>
       )}
-      <NotificationDropdown />
+      
       <Button
         variant="ghost"
         size="icon"
