@@ -66,10 +66,9 @@ const LandingPage = () => {
 
           <h1 className="font-heading text-4xl sm:text-5xl md:text-6xl font-bold text-foreground leading-[1.1] tracking-tight">
             Find someone who
-            <span
-              className={`block gradient-hero bg-clip-text text-transparent transition-opacity duration-300 ${fade ? 'opacity-100' : 'opacity-0'}`}
-            >
-              {ROTATING_WORDS[wordIndex]}
+            <span className="block gradient-hero bg-clip-text text-transparent min-h-[1.1em]">
+              {displayed}
+              <span className="inline-block w-[2px] h-[0.9em] align-middle bg-primary ml-1 animate-pulse" aria-hidden="true" />
             </span>
           </h1>
 
