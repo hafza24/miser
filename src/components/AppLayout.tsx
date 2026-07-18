@@ -47,30 +47,6 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
         </Button>
       )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full h-9 w-9 md:hidden"
-            aria-label="More"
-            title="More"
-          >
-            <MoreHorizontal className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-            <LayoutDashboard className="h-4 w-4 mr-2" /> Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/groups')}>
-            <UsersRound className="h-4 w-4 mr-2" /> Groups
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => navigate('/subscription')}>
-            <Crown className="h-4 w-4 mr-2" /> Premium
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
       <NotificationDropdown />
       <Button
         variant="ghost"
