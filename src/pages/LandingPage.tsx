@@ -124,12 +124,11 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
             {[
-              { step: '01', icon: Users, title: 'Create Profile', desc: 'Pick your emoji, set your vibe. Stay completely anonymous.' },
-              { step: '02', icon: Heart, title: 'Choose Your Mode', desc: 'Light for friendship & support. Dark for romance & flirting.' },
-              { step: '03', icon: MessageCircle, title: 'Start Chatting', desc: 'Match by interests and connect with people who get you.' },
+              { icon: Users, title: 'Create Profile', desc: 'Pick your emoji, set your vibe. Stay completely anonymous.' },
+              { icon: Heart, title: 'Choose Your Mode', desc: 'Light for friendship & support. Dark for romance & flirting.' },
+              { icon: MessageCircle, title: 'Start Chatting', desc: 'Match by interests and connect with people who get you.' },
             ].map((item) => (
-              <div key={item.step} className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
-                <span className="text-4xl font-heading font-bold text-primary/10 absolute top-3 right-4 select-none">{item.step}</span>
+              <div key={item.title} className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
                   <item.icon className="h-6 w-6 text-primary" />
                 </div>
