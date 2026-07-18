@@ -150,7 +150,7 @@ const LandingPage = () => {
               <div
                 key={item.title}
                 data-reveal
-                style={{ transitionDelay: `${i * 150}ms` }}
+                style={{ transitionDelay: `${i * 200}ms` }}
                 className="reveal-on-scroll relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
