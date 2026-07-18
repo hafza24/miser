@@ -234,13 +234,53 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section id="faq" className="px-4 sm:px-6 py-16 sm:py-20 bg-muted/40 scroll-mt-20">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-10">
+            <div className="primary-subtitle mb-4">FAQ</div>
+            <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted-foreground mt-2 text-sm">
+              Everything you need to know before joining Fur&amp;Fir
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { q: 'Is Fur&Fir really anonymous?', a: 'Yes. You sign up with just an email and use an emoji + alias. Your real identity is never shown to other users, and we don\'t track conversations for advertising.' },
+              { q: 'What is the difference between Light and Dark mode?', a: 'Light mode is for friendship, emotional support, and soft romance. Dark mode is an adults-only space for flirting, passionate romance, and fantasy roleplay. You can switch anytime, but interactions stay isolated per mode.' },
+              { q: 'How much does it cost?', a: 'Fur&Fir is free to start. Premium features (like Dark Mode and higher daily limits) require a subscription with a 7-day free trial. Payment is manual via JazzCash / EasyPaisa with proof approval.' },
+              { q: 'Are my chats private and secure?', a: 'Chats are protected end-to-end and can be set to auto-delete after 24 hours. View-once media disappears after viewing. We enforce strict row-level security on all data.' },
+              { q: 'Can I block or report someone?', a: 'Yes. Bidirectional blocking hides both users from each other instantly. Reports are reviewed by admins, and repeated violations trigger auto-suspension.' },
+              { q: 'Is there a mobile app?', a: 'Yes — install Fur&Fir as a PWA from the Download page, or grab the Android APK. Both support push notifications for matches and messages.' },
+              { q: 'How do I cancel my subscription?', a: 'You can cancel anytime from the Subscription page. Your premium features remain active until the end of the current billing period.' },
+            ].map((item, i) => (
+              <details
+                key={i}
+                className="group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
+              >
+                <summary className="flex items-center justify-between gap-4 p-5 cursor-pointer list-none font-heading font-semibold text-foreground text-base [&::-webkit-details-marker]:hidden">
+                  <span>{item.q}</span>
+                  <ChevronDown className="h-5 w-5 text-primary flex-shrink-0 transition-transform duration-300 group-open:rotate-180" />
+                </summary>
+                <div className="px-5 pb-5 -mt-1 text-sm text-muted-foreground leading-relaxed">
+                  {item.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4 sm:px-6 bg-card/50">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="font-heading font-bold text-foreground">Fur&amp;Fir</span>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
             <button onClick={() => navigate('/page/about')} className="hover:text-foreground transition-colors">About</button>
-            <button onClick={() => navigate('/page/faq')} className="hover:text-foreground transition-colors">FAQ</button>
+            <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-foreground transition-colors">FAQ</button>
             <button onClick={() => navigate('/page/privacy')} className="hover:text-foreground transition-colors">Privacy</button>
             <button onClick={() => navigate('/page/terms')} className="hover:text-foreground transition-colors">Terms</button>
             <button onClick={() => navigate('/page/contact')} className="hover:text-foreground transition-colors">Contact</button>
