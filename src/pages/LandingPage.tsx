@@ -34,6 +34,24 @@ const LandingPage = () => {
     return () => clearTimeout(timeout);
   }, [displayed, phase, wordIndex]);
 
+  // Reveal FAQ cards on scroll
+  useEffect(() => {
+    const els = document.querySelectorAll('[data-reveal]');
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-visible');
+            io.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-background overflow-x-hidden">
       {/* Nav */}
@@ -124,12 +142,11 @@ const LandingPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
             {[
-              { step: '01', icon: Users, title: 'Create Profile', desc: 'Pick your emoji, set your vibe. Stay completely anonymous.' },
-              { step: '02', icon: Heart, title: 'Choose Your Mode', desc: 'Light for friendship & support. Dark for romance & flirting.' },
-              { step: '03', icon: MessageCircle, title: 'Start Chatting', desc: 'Match by interests and connect with people who get you.' },
+              { icon: Users, title: 'Create Profile', desc: 'Pick your emoji, set your vibe. Stay completely anonymous.' },
+              { icon: Heart, title: 'Choose Your Mode', desc: 'Light for friendship & support. Dark for romance & flirting.' },
+              { icon: MessageCircle, title: 'Start Chatting', desc: 'Match by interests and connect with people who get you.' },
             ].map((item) => (
-              <div key={item.step} className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
-                <span className="text-4xl font-heading font-bold text-primary/10 absolute top-3 right-4 select-none">{item.step}</span>
+              <div key={item.title} className="relative bg-card rounded-2xl p-6 shadow-card border border-border text-center group hover:shadow-soft hover:-translate-y-1 transition-all duration-300">
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
                   <item.icon className="h-6 w-6 text-primary" />
                 </div>
@@ -213,27 +230,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="px-4 sm:px-6 py-16 sm:py-20 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
-        <div className="max-w-md mx-auto space-y-5 relative z-10">
-          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
-            Ready to connect?
-          </h2>
-          <p className="text-muted-foreground leading-relaxed">
-            Join thousands finding real, meaningful connections anonymously.
-          </p>
-          <Button
-            size="lg"
-            onClick={() => navigate('/register')}
-            className="w-full sm:w-auto px-10 h-12 text-base font-semibold rounded-full gap-2 shadow-soft hover:scale-[1.03] active:scale-[0.98] transition-transform"
-          >
-            Get Started Free
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </section>
-
       {/* FAQ */}
       <section id="faq" className="px-4 sm:px-6 py-16 sm:py-20 bg-muted/40 scroll-mt-20">
         <div className="max-w-2xl mx-auto">
@@ -259,7 +255,9 @@ const LandingPage = () => {
             ].map((item, i) => (
               <details
                 key={i}
-                className="group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
+                data-reveal
+                style={{ transitionDelay: `${i * 80}ms` }}
+                className="reveal-on-scroll group bg-card rounded-2xl border border-border shadow-card hover:border-primary/40 transition-colors overflow-hidden"
               >
                 <summary className="flex items-center justify-between gap-4 p-5 cursor-pointer list-none font-heading font-semibold text-foreground text-base [&::-webkit-details-marker]:hidden">
                   <span>{item.q}</span>
@@ -274,12 +272,33 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* Final CTA */}
+      <section className="px-4 sm:px-6 py-16 sm:py-20 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+        <div className="max-w-md mx-auto space-y-5 relative z-10">
+          <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground">
+            Ready to connect?
+          </h2>
+          <p className="text-muted-foreground leading-relaxed">
+            Join thousands finding real, meaningful connections anonymously.
+          </p>
+          <Button
+            size="lg"
+            onClick={() => navigate('/register')}
+            className="w-full sm:w-auto px-10 h-12 text-base font-semibold rounded-full gap-2 shadow-soft hover:scale-[1.03] active:scale-[0.98] transition-transform"
+          >
+            Get Started Free
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border py-8 px-4 sm:px-6 bg-card/50">
         <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <span className="font-heading font-bold text-foreground">Fur&amp;Fir</span>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-            <button onClick={() => navigate('/page/about')} className="hover:text-foreground transition-colors">About</button>
+            <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-foreground transition-colors">About</button>
             <button onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-foreground transition-colors">FAQ</button>
             <button onClick={() => navigate('/page/privacy')} className="hover:text-foreground transition-colors">Privacy</button>
             <button onClick={() => navigate('/page/terms')} className="hover:text-foreground transition-colors">Terms</button>
