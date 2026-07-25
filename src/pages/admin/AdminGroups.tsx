@@ -31,6 +31,7 @@ const AdminGroups = () => {
         'group_requests_enabled','group_require_admin_approval','group_daily_create_limit','group_max_members',
         'presence_feature_enabled','auto_translate_feature_enabled',
         'free_daily_chat_limit','free_daily_group_limit','free_daily_scene_limit','free_presence_access','free_auto_translate_access',
+        'max_active_chats',
       ]),
       (supabase as any).from('group_requests').select('*').order('created_at', { ascending: false }).limit(100),
     ]);
