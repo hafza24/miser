@@ -131,10 +131,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleBeforeUnload = () => {
-      // Use sendBeacon for reliable offline status on page close
-      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?user_id=eq.${user.id}`;
-      const body = JSON.stringify({ is_online: false, last_seen_at: new Date().toISOString() });
-      navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+      // Route via the lightweight RPC to skip the sensitive-fields trigger.
+      // This was the hottest DB query in production (690s cumulative).
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/rpc/update_presence`;
+      const body = JSON.stringify({ _is_online: false });
+      try {
+        navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+      } catch {
+        /* ignore */
+      }
     };
 
     // Set online when component mounts with user
