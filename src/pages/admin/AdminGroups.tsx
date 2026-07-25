@@ -21,6 +21,7 @@ const AdminGroups = () => {
   const [freeScene, setFreeScene] = useState(0);
   const [freePresence, setFreePresence] = useState(false);
   const [freeAutoTr, setFreeAutoTr] = useState(false);
+  const [maxActiveChats, setMaxActiveChats] = useState(5);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
