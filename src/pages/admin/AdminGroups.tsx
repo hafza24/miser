@@ -95,6 +95,11 @@ const AdminGroups = () => {
               <Input type="number" min={2} max={50} value={groupMax} onChange={e => setGroupMax(parseInt(e.target.value, 10) || 2)} className="w-24" />
               <Button size="sm" onClick={() => saveSetting('group_max_members', groupMax)}>Save</Button>
             </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Max active 1:1 chats per user (concurrent)</Label>
+              <Input type="number" min={1} max={50} value={maxActiveChats} onChange={e => setMaxActiveChats(parseInt(e.target.value, 10) || 1)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('max_active_chats', maxActiveChats)}>Save</Button>
+            </div>
           </CardContent>
         </Card>
 
