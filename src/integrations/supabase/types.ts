@@ -1277,6 +1277,7 @@ export type Database = {
         }
         Returns: string
       }
+      active_chat_count: { Args: { _uid: string }; Returns: number }
       admin_block_email: {
         Args: { p_email: string; p_reason?: string }
         Returns: undefined
@@ -1285,6 +1286,7 @@ export type Database = {
         Args: { _chat_id: string; _user_id: string }
         Returns: string
       }
+      check_active_chat_cap: { Args: { _uid: string }; Returns: boolean }
       check_daily_chat_limit: { Args: { _user_id: string }; Returns: boolean }
       check_daily_group_limit: { Args: { _uid: string }; Returns: boolean }
       check_monthly_chat_limit: { Args: { _user_id: string }; Returns: boolean }
@@ -1314,6 +1316,7 @@ export type Database = {
       effective_daily_chat_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_group_limit: { Args: { _uid: string }; Returns: number }
       effective_daily_scene_limit: { Args: { _uid: string }; Returns: number }
+      effective_max_active_chats: { Args: { _uid: string }; Returns: number }
       effective_monthly_chat_limit: { Args: { _uid: string }; Returns: number }
       effective_monthly_group_limit: { Args: { _uid: string }; Returns: number }
       effective_monthly_scene_limit: { Args: { _uid: string }; Returns: number }

@@ -21,6 +21,7 @@ const AdminGroups = () => {
   const [freeScene, setFreeScene] = useState(0);
   const [freePresence, setFreePresence] = useState(false);
   const [freeAutoTr, setFreeAutoTr] = useState(false);
+  const [maxActiveChats, setMaxActiveChats] = useState(5);
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,6 +31,7 @@ const AdminGroups = () => {
         'group_requests_enabled','group_require_admin_approval','group_daily_create_limit','group_max_members',
         'presence_feature_enabled','auto_translate_feature_enabled',
         'free_daily_chat_limit','free_daily_group_limit','free_daily_scene_limit','free_presence_access','free_auto_translate_access',
+        'max_active_chats',
       ]),
       (supabase as any).from('group_requests').select('*').order('created_at', { ascending: false }).limit(100),
     ]);
@@ -47,6 +49,7 @@ const AdminGroups = () => {
       if (s.key === 'free_daily_scene_limit') setFreeScene(toInt(s.value, 0));
       if (s.key === 'free_presence_access') setFreePresence(toBool(s.value, false));
       if (s.key === 'free_auto_translate_access') setFreeAutoTr(toBool(s.value, false));
+      if (s.key === 'max_active_chats') setMaxActiveChats(toInt(s.value, 5));
     }
     setRequests(reqs || []);
     setLoading(false);
@@ -91,6 +94,11 @@ const AdminGroups = () => {
               <Label className="flex-1">Max members allowed per group</Label>
               <Input type="number" min={2} max={50} value={groupMax} onChange={e => setGroupMax(parseInt(e.target.value, 10) || 2)} className="w-24" />
               <Button size="sm" onClick={() => saveSetting('group_max_members', groupMax)}>Save</Button>
+            </div>
+            <div className="flex items-center gap-3">
+              <Label className="flex-1">Max active 1:1 chats per user (concurrent)</Label>
+              <Input type="number" min={1} max={50} value={maxActiveChats} onChange={e => setMaxActiveChats(parseInt(e.target.value, 10) || 1)} className="w-24" />
+              <Button size="sm" onClick={() => saveSetting('max_active_chats', maxActiveChats)}>Save</Button>
             </div>
           </CardContent>
         </Card>
