@@ -96,8 +96,9 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
     supabase.from('muted_users').select('muted_id').eq('muter_id', user.id).then(({ data }) => {
       setMutedIds(new Set((data ?? []).map((r: any) => r.muted_id)));
     });
-    supabase.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle()
-      .then(({ data }) => setIsAdmin(!!data));
+    import('@/hooks/adminRoleCache').then(({ fetchIsAdmin }) =>
+      fetchIsAdmin(user.id).then((v) => setIsAdmin(v))
+    );
   }, [user?.id]);
 
 
