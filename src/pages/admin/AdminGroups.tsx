@@ -49,6 +49,7 @@ const AdminGroups = () => {
       if (s.key === 'free_daily_scene_limit') setFreeScene(toInt(s.value, 0));
       if (s.key === 'free_presence_access') setFreePresence(toBool(s.value, false));
       if (s.key === 'free_auto_translate_access') setFreeAutoTr(toBool(s.value, false));
+      if (s.key === 'max_active_chats') setMaxActiveChats(toInt(s.value, 5));
     }
     setRequests(reqs || []);
     setLoading(false);
