@@ -34,6 +34,7 @@ const GroupRequestDetailPage = lazy(() => import("./pages/GroupRequestDetailPage
 const MoodRoomsPage = lazy(() => import("./pages/MoodRoomsPage"));
 
 // Admin bundle — separate chunks per page
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminModeration = lazy(() => import("./pages/admin/AdminModeration"));
 const AdminChats = lazy(() => import("./pages/admin/AdminChats"));
