@@ -146,8 +146,6 @@ const BrowseGroupsPage = () => {
                 </Button>
               </div>
             );
-              </div>
-            );
           })}
           </div>
         )}
