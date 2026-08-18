@@ -6,6 +6,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw, Heart, Plus } from 'lucide-react';
@@ -14,6 +15,7 @@ import { toast } from 'sonner';
 import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { EmptyState } from '@/components/layout/EmptyState';
+import { SectionCard } from '@/components/layout/SectionCard';
 
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
@@ -267,7 +269,7 @@ const BrowseProfilesPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 sm:p-6 space-y-5">
+      <div className="space-y-6">
         <PageHeader
           title={mode === 'light' ? '🌸 Discover People' : '🔮 Discover People'}
           description="Find someone who understands you"
@@ -298,10 +300,10 @@ const BrowseProfilesPage = () => {
           }
         />
 
-        {/* Bento control grid */}
+        {/* Search & Matching */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           {/* Search — spans wide */}
-          <div className="bento-tile p-4 md:col-span-4">
+          <SectionCard className="md:col-span-4 p-4">
             <div className="flex items-center gap-1.5 mb-2">
               <Search className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Search</span>
@@ -316,30 +318,29 @@ const BrowseProfilesPage = () => {
                 maxLength={100}
               />
             </div>
-          </div>
+          </SectionCard>
 
           {/* Smart match tile */}
-          <div className="bento-tile p-4 md:col-span-2 flex items-center justify-between gap-3">
-            <div className="flex items-start gap-2 min-w-0">
-              <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
+          <SectionCard className="md:col-span-2">
+            <div className="flex items-center justify-between gap-3 p-1">
+              <div className="flex items-start gap-2 min-w-0">
+                <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">Smart Match</div>
+                  <div className="text-[11px] text-muted-foreground line-clamp-2">Rank by preferences</div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-foreground">Smart match</div>
-                <div className="text-[11px] text-muted-foreground line-clamp-2">Rank by your preferences</div>
-              </div>
+              <Switch
+                checked={useSmartMatch}
+                onCheckedChange={setUseSmartMatch}
+              />
             </div>
-            <button
-              onClick={() => setUseSmartMatch((v) => !v)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 ${useSmartMatch ? 'bg-primary text-primary-foreground shadow-soft' : 'bg-muted text-muted-foreground'}`}
-              aria-pressed={useSmartMatch}
-            >
-              {useSmartMatch ? 'On' : 'Off'}
-            </button>
-          </div>
+          </SectionCard>
 
           {/* Interest tile — full width */}
-          <div className="bento-tile p-4 md:col-span-6">
+          <SectionCard title="Interests" className="md:col-span-6">
             <div className="flex items-center gap-1.5 mb-3">
               <Heart className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interests</span>
@@ -363,12 +364,12 @@ const BrowseProfilesPage = () => {
                 );
               })}
             </div>
-          </div>
+          </SectionCard>
         </div>
 
         {/* Collapsible Filters */}
         {showFilters && (
-          <div className="bento-tile p-4 space-y-4 animate-fade-in">
+          <SectionCard title="More Filters" className="animate-fade-in">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">More Filters</span>
               {hasActiveFilters && (
@@ -430,7 +431,7 @@ const BrowseProfilesPage = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </SectionCard>
         )}
 
         {loading ? (
@@ -455,22 +456,21 @@ const BrowseProfilesPage = () => {
             <p className="text-xs text-muted-foreground">{filtered.length} {filtered.length === 1 ? 'person' : 'people'} found</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               {filtered.map((p) => (
-                <article key={p.user_id} className="bento-tile p-4 flex flex-col gap-3">
+                <article key={p.user_id} className="bg-card border border-border rounded-3xl p-5 flex flex-col gap-4 shadow-sm hover:shadow-md transition-all hover:border-primary/30 group">
                   <div className="flex items-start gap-3">
-                    <div className="text-3xl flex-shrink-0 relative h-11 w-11 rounded-xl bg-gradient-to-br from-primary/15 to-accent/30 flex items-center justify-center">
+                    <div className="text-3xl flex-shrink-0 relative h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/20 flex items-center justify-center border border-primary/5">
                       {p.emoji_avatar}
-                      <OnlineIndicator isOnline={p.is_online} size="sm" className="absolute -bottom-0.5 -right-0.5" />
+                      <OnlineIndicator isOnline={p.is_online} size="sm" className="absolute -bottom-1 -right-1" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-semibold text-foreground truncate text-sm">{p.alias}</h3>
+                        <h3 className="font-heading font-bold text-foreground truncate text-sm">{p.alias}</h3>
                         <OnlineIndicator isOnline={p.is_online} size="sm" showLabel lastSeenAt={p.last_seen_at} />
                       </div>
                       {p.character_title && (
-                        <p className="text-[11px] font-medium text-primary mt-0.5 truncate">✨ {p.character_title}</p>
-                      )}
-                      {p.bio && (
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{p.bio}</p>
+                        <p className="text-[11px] font-black uppercase tracking-widest text-primary mt-1 truncate">
+                          {p.character_title}
+                        </p>
                       )}
                     </div>
                     <Button
@@ -478,31 +478,41 @@ const BrowseProfilesPage = () => {
                       variant="ghost"
                       onClick={() => blockUser(p.user_id)}
                       disabled={actionId === p.user_id}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 shrink-0"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0 rounded-full"
                       aria-label={`Block ${p.alias}`}
                     >
-                      <Ban className="h-3.5 w-3.5" />
+                      <Ban className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap gap-1">
+                  {p.bio && (
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                      {p.bio}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-1.5">
                     {p.interests?.slice(0, 3).map((interest) => (
-                      <span key={interest} className="text-[10px] px-1.5 py-0.5 rounded-full bg-accent/30 text-accent-foreground font-medium">
+                      <span key={interest} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">
                         {INTEREST_EMOJIS[interest] || '•'} {interest}
                       </span>
                     ))}
                     {p.character_personality?.slice(0, 2).map((trait) => (
-                      <span key={trait} className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-medium">{trait}</span>
+                      <span key={trait} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">{trait}</span>
                     ))}
-                    {p.region && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary text-secondary-foreground">🌍 {p.region}</span>}
                   </div>
 
-                  <div className="mt-auto pt-1 flex items-center justify-between gap-2 border-t border-border/60">
-                    {useSmartMatch && (p.matchScore ?? 0) > 0 ? (
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-primary/80 flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" /> {p.matchScore} match
-                      </span>
-                    ) : <span />}
+                  <div className="mt-auto pt-3 flex items-center justify-between gap-2 border-t border-border/60">
+                    <div className="flex items-center gap-2">
+                      {useSmartMatch && (p.matchScore ?? 0) > 0 && (
+                        <Badge variant="secondary" className="text-[10px] rounded-full px-2 h-5 font-black uppercase tracking-wider">
+                          <Sparkles className="h-2.5 w-2.5 mr-1" /> {p.matchScore}%
+                        </Badge>
+                      )}
+                      {p.region && (
+                        <span className="text-[10px] font-bold text-muted-foreground">🌍 {p.region}</span>
+                      )}
+                    </div>
                     {renderRequestButton(p)}
                   </div>
                 </article>

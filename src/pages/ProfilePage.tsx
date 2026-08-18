@@ -15,6 +15,7 @@ import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { LANGUAGES } from '@/lib/languages';
 import { Switch } from '@/components/ui/switch';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
 
 
 const GENDER_OPTIONS: { value: string; label: string }[] = [
@@ -222,96 +223,98 @@ const ProfilePage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 sm:p-6 space-y-5 animate-fade-in pb-24">
-        <PageHeader title="Your Profile" description="Curate how others see you" />
+      <div className="space-y-6">
+        <PageHeader 
+          title="Your Profile" 
+          description="Curate your presence in Fur&Fir."
+          actions={
+            <Button onClick={handleSave} disabled={saving} className="rounded-full px-6">
+              {saving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          }
+        />
 
-        {/* Hero identity tile */}
-        <section className="bento-tile p-6 sm:p-8 relative overflow-hidden">
-          <div className="absolute inset-0 opacity-40 pointer-events-none" style={{ background: 'var(--gradient-surface)' }} />
-          <div className="absolute -top-16 -right-16 h-56 w-56 rounded-full blur-3xl opacity-30" style={{ background: 'var(--gradient-hero)' }} />
-
-          <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
-            <div className="relative shrink-0 mx-auto sm:mx-0">
-              <div className="h-24 w-24 rounded-3xl bg-gradient-to-br from-primary/20 to-accent/40 flex items-center justify-center text-6xl shadow-elevated">
+        {/* Hero identity */}
+        <SectionCard className="relative overflow-hidden">
+          <div className="absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-br from-primary via-transparent to-accent" />
+          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-8">
+            {/* Avatar Section */}
+            <div className="relative group shrink-0">
+              <div className="h-32 w-32 rounded-[2.5rem] bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-6xl shadow-xl ring-4 ring-background transition-transform group-hover:scale-105 duration-300">
                 {emojiAvatar}
               </div>
               <OnlineIndicator
                 isOnline={profile.is_online ?? true}
                 size="lg"
-                className="absolute -bottom-1 -right-1"
+                className="absolute -bottom-1 -right-1 ring-4 ring-background"
               />
             </div>
 
-            <div className="flex-1 min-w-0 text-center sm:text-left">
-              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+            {/* Info Section */}
+            <div className="flex-1 min-w-0 text-center md:text-left space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center gap-3">
                 {editingAlias ? (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 max-w-sm mx-auto md:mx-0">
                     <Input
                       value={newAlias}
                       onChange={(e) => setNewAlias(e.target.value)}
-                      className="w-44 h-9 text-sm"
+                      className="h-10 text-lg font-bold"
                       maxLength={30}
                       autoFocus
                     />
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleAliasSave} disabled={aliasSaving} aria-label="Save name">
-                      <Check className="h-4 w-4 text-success" />
+                    <Button size="icon" onClick={handleAliasSave} disabled={aliasSaving} className="shrink-0 rounded-full h-10 w-10">
+                      <Check className="h-5 w-5" />
                     </Button>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setEditingAlias(false)} aria-label="Cancel">
-                      <X className="h-4 w-4 text-destructive" />
+                    <Button size="icon" variant="ghost" onClick={() => setEditingAlias(false)} className="shrink-0 rounded-full h-10 w-10">
+                      <X className="h-5 w-5" />
                     </Button>
                   </div>
                 ) : (
-                  <>
-                    <h2 className="font-heading text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{profile.alias}</h2>
-                    <Button size="icon" variant="ghost" className="h-8 w-8" onClick={handleAliasEdit} aria-label="Edit name">
-                      <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex items-center justify-center md:justify-start gap-3">
+                    <h2 className="font-heading text-3xl md:text-4xl font-black text-foreground tracking-tight">{profile.alias}</h2>
+                    <Button size="icon" variant="secondary" className="rounded-full h-8 w-8" onClick={handleAliasEdit}>
+                      <Pencil className="h-4 w-4" />
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
-              <div className="mt-1 flex items-center justify-center sm:justify-start gap-2 flex-wrap text-xs text-muted-foreground">
-                <OnlineIndicator isOnline={profile.is_online ?? true} size="sm" showLabel lastSeenAt={profile.last_seen_at} />
-                <span>•</span>
-                <span>Anonymous identity</span>
-                {gender && <><span>•</span><span>{GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}</span></>}
-              </div>
-              {!editingAlias && !canChangeAlias() && (
-                <p className="text-[11px] text-muted-foreground mt-1">Name change available in {getDaysUntilAliasChange()} days</p>
-              )}
 
-              <div className="mt-4 flex flex-wrap items-center justify-center sm:justify-start gap-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                  {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-muted-foreground font-medium">
+                <span className="flex items-center gap-2 bg-primary/5 px-3 py-1 rounded-full border border-primary/10">
+                  <OnlineIndicator isOnline={profile.is_online ?? true} size="sm" showLabel lastSeenAt={profile.last_seen_at} />
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-accent/60 text-accent-foreground">
-                  <MessageCircle className="w-3.5 h-3.5" />
-                  {DAILY_CHAT_LIMIT - chatsUsedToday > 0
-                    ? `${DAILY_CHAT_LIMIT - chatsUsedToday} chat${DAILY_CHAT_LIMIT - chatsUsedToday !== 1 ? 's' : ''} left today`
-                    : 'No chats left today'}
-                </span>
+                <span className="bg-muted px-3 py-1 rounded-full border border-border">Anonymous Identity</span>
+                {gender && (
+                  <span className="bg-muted px-3 py-1 rounded-full border border-border capitalize">
+                    {GENDER_OPTIONS.find(g => g.value === gender)?.label ?? gender}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 pt-2">
+                <div className="flex items-center gap-3 bg-card border border-border p-1.5 rounded-2xl shadow-sm">
+                  <span className={`flex items-center gap-2 px-3 py-1 rounded-xl text-xs font-bold uppercase tracking-wider ${
+                    profile.mode_preference === 'light' ? 'bg-amber-500/10 text-amber-500' : 'bg-indigo-500/10 text-indigo-500'
+                  }`}>
+                    {profile.mode_preference === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}
+                  </span>
+                  <span className="text-xs font-bold text-muted-foreground mr-2">
+                    {DAILY_CHAT_LIMIT - chatsUsedToday} / {DAILY_CHAT_LIMIT} chats left
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </section>
+        </SectionCard>
 
         {/* Bento grid — identity essentials */}
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 lg:auto-rows-min lg:grid-flow-dense">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 lg:auto-rows-min lg:grid-flow-dense">
           {/* Emoji picker */}
-          <section className="bento-tile p-5 lg:col-span-4 self-start">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emoji avatar</span>
-              </div>
-              {emojiAvatar && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Selected</span>
-                  <div className="h-9 w-9 rounded-xl bg-primary/10 ring-1 ring-primary/30 flex items-center justify-center text-xl shadow-[0_0_16px_hsl(var(--primary)/0.25)]">
-                    {emojiAvatar}
-                  </div>
-                </div>
-              )}
-            </div>
+          <SectionCard 
+            title="Emoji Avatar" 
+            description="Choose an emoji that represents you."
+            className="lg:col-span-4 self-start"
+          >
             {(() => {
               const COLLAPSED = 11;
               const base = EMOJI_OPTIONS.slice(0, COLLAPSED);
@@ -357,11 +360,10 @@ const ProfilePage = () => {
                 </div>
               );
             })()}
-          </section>
+          </SectionCard>
 
           {/* Basics — bio/country/availability (under avatar, left of About You) */}
-          <section className="bento-tile p-5 lg:col-span-4 space-y-4 self-start">
-            <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
+          <SectionCard title="Basics" className="lg:col-span-4 self-start">
             <div>
               <Label>Bio</Label>
               <Textarea
@@ -394,15 +396,11 @@ const ProfilePage = () => {
                 </Select>
               </div>
             </div>
-          </section>
+          </SectionCard>
 
 
           {/* About You */}
-          <section className="bento-tile p-5 lg:col-span-2 lg:row-span-2 space-y-4">
-            <div className="flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About you</span>
-            </div>
+          <SectionCard title="About You" className="lg:col-span-2 lg:row-span-2 space-y-4">
 
             <div>
               <Label>Gender</Label>
@@ -468,15 +466,11 @@ const ProfilePage = () => {
                 </SelectContent>
               </Select>
             </div>
-          </section>
+          </SectionCard>
 
 
           {/* Interest */}
-          <section className="bento-tile p-5 lg:col-span-6">
-            <div className="flex items-center gap-1.5 mb-3">
-              <Heart className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Looking for</span>
-            </div>
+          <SectionCard title="Looking For" className="lg:col-span-6">
             <div className="flex flex-wrap gap-2">
               {INTEREST_OPTIONS.map((interest) => (
                 <button
@@ -495,8 +489,10 @@ const ProfilePage = () => {
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">Select one interest</p>
+          </SectionCard>
 
-            <div className="mt-5 pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <SectionCard title="Discovery Preferences" className="lg:col-span-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label>Gender preference</Label>
                 <Select value={genderPreference} onValueChange={setGenderPreference}>
@@ -543,11 +539,10 @@ const ProfilePage = () => {
                 <Input type="number" min={18} max={120} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} />
               </div>
             </div>
-          </section>
+          </SectionCard>
 
           {/* Character — wide tile */}
-          <section className="bento-tile p-5 lg:col-span-4 space-y-4">
-            <h3 className="font-heading text-base font-bold text-foreground">My Character</h3>
+          <SectionCard title="My Character" className="lg:col-span-4">
 
             <div>
               <Label>Title</Label>
@@ -596,11 +591,10 @@ const ProfilePage = () => {
                 rows={4}
               />
             </div>
-          </section>
+          </SectionCard>
 
           {/* Languages */}
-          <section className="bento-tile p-5 lg:col-span-2 space-y-4">
-            <h3 className="font-heading text-base font-bold text-foreground">Languages</h3>
+          <SectionCard title="Languages" className="lg:col-span-2">
             <p className="text-[11px] text-muted-foreground">Incoming messages auto-translate into your primary language.</p>
             <div>
               <Label>Primary</Label>
@@ -628,17 +622,7 @@ const ProfilePage = () => {
               </div>
               <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
             </div>
-          </section>
-        </div>
-
-        {/* Sticky save bar */}
-        <div className="sticky bottom-4 z-10 flex justify-end">
-          <div className="bento-tile px-3 py-2 flex items-center gap-3 shadow-elevated">
-            <span className="text-xs text-muted-foreground hidden sm:inline">Changes are saved to your profile</span>
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </div>
+          </SectionCard>
         </div>
       </div>
     </AppLayout>

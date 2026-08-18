@@ -21,11 +21,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const mobileNav = [
-    { path: '/dashboard', icon: MessageCircle, label: 'Chats' },
-    { path: '/browse', icon: Search, label: 'Browse' },
-    { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
-    { path: '/profile', icon: User, label: 'Profile' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/app/home', icon: LayoutDashboard, label: 'Home' },
+    { path: '/app/chats', icon: MessageCircle, label: 'Chats' },
+    { path: '/app/browse', icon: Search, label: 'Browse' },
+    { path: '/app/mood-rooms', icon: Sparkles, label: 'Rooms' },
+    { path: '/app/profile', icon: User, label: 'Me' },
   ];
 
   const handleSignOut = async () => {
@@ -41,10 +41,9 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           size="icon"
           onClick={() => navigate('/admin')}
           className="rounded-full h-9 w-9 md:hidden"
-          aria-label="Open admin panel"
-          title="Admin Panel"
+          aria-label="Admin panel"
         >
-          <Shield className="h-4 w-4 text-primary" aria-hidden="true" />
+          <Shield className="h-4 w-4 text-primary" />
         </Button>
       )}
       <NotificationDropdown />
@@ -53,106 +52,89 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         size="icon"
         onClick={() => {
           if (mode === 'light' && profile?.dark_mode_blocked) {
-            navigate('/subscription');
+            navigate('/app/premium');
             return;
           }
           toggleMode();
         }}
         className="rounded-full h-9 w-9"
-        aria-label={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-        title={mode === 'light' ? 'Switch to dark' : 'Switch to light'}
+        aria-label="Toggle theme"
       >
-        {mode === 'light'
-          ? <Moon className="h-4 w-4" aria-hidden="true" />
-          : <Sun className="h-4 w-4" aria-hidden="true" />}
+        {mode === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleSignOut}
-        className="rounded-full h-9 w-9"
-        aria-label="Sign out"
-        title="Sign out"
-      >
-        <LogOut className="h-4 w-4" aria-hidden="true" />
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={() => navigate('/app/settings')}>
+            <Settings className="mr-2 h-4 w-4" /> Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => navigate('/app/premium')}>
+            <Crown className="mr-2 h-4 w-4" /> Premium
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
+            <LogOut className="mr-2 h-4 w-4" /> Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
-
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        {/* Desktop sidebar */}
-        <div className="hidden md:block">
-          <AppSidebar />
-        </div>
+        <AppSidebar />
 
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Desktop header */}
-          <header className="hidden md:flex sticky top-0 z-40 h-14 items-center gap-3 border-b border-border bg-card/90 backdrop-blur-lg px-4">
-            <SidebarTrigger className="-ml-1" />
-            <div className="h-6 w-px bg-border" />
-            <Breadcrumbs />
-            <div className="ml-auto">{ActionBar}</div>
-          </header>
-
-          {/* Mobile top bar */}
-          <header className="md:hidden sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-lg px-4 py-2.5">
-            <div className="max-w-2xl mx-auto flex items-center justify-between">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="flex items-center gap-2 min-w-0 rounded-lg"
-                aria-label="Go to dashboard"
-              >
-                <span className="text-2xl flex-shrink-0" aria-hidden="true">{profile?.emoji_avatar || '💫'}</span>
-                <div className="min-w-0 text-left">
-                  <span className="font-heading text-lg font-bold text-foreground leading-none block">Fur&amp;Fir</span>
-                  <span className="text-xs text-muted-foreground truncate block">{profile?.alias}</span>
+          {/* Header */}
+          <header className="sticky top-0 z-40 h-14 md:h-16 flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-md px-4">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <SidebarTrigger className="hidden md:flex" />
+              <div className="md:hidden">
+                <span className="text-2xl">{profile?.emoji_avatar || '💫'}</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h1 className="font-heading font-bold text-lg md:text-xl truncate md:hidden">Fur&Fir</h1>
+                <div className="hidden md:block">
+                  <Breadcrumbs />
                 </div>
-              </button>
-              {ActionBar}
+              </div>
             </div>
+            {ActionBar}
           </header>
 
-          <a href="#main-content" className="skip-link">Skip to content</a>
-
-          {/* Content */}
-          <main id="main-content" role="main" className="flex-1 w-full">
-            <div className="max-w-5xl mx-auto w-full px-0 md:px-6 md:py-6">{children}</div>
+          {/* Main Content */}
+          <main className="flex-1 w-full overflow-x-hidden">
+            <div className="max-w-5xl mx-auto w-full p-4 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              {children}
+            </div>
           </main>
 
-          {/* Mobile bottom nav */}
-          <nav
-            aria-label="Primary"
-            className="md:hidden sticky bottom-0 z-40 border-t border-border bg-card/90 backdrop-blur-lg safe-area-bottom"
-          >
-            <div className="max-w-2xl mx-auto flex justify-around py-1.5 sm:py-2">
+          {/* Mobile Bottom Nav */}
+          <nav className="md:hidden sticky bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur-lg safe-area-bottom pb-safe">
+            <div className="max-w-2xl mx-auto flex justify-around items-center h-16">
               {mobileNav.map((item) => {
-                const active = location.pathname === item.path;
+                const active = location.pathname === item.path || (item.path !== '/app/home' && location.pathname.startsWith(item.path));
                 return (
                   <button
                     key={item.path}
                     onClick={() => navigate(item.path)}
-                    aria-label={item.label}
-                    aria-current={active ? 'page' : undefined}
-                    className={`flex flex-col items-center gap-0.5 px-3 sm:px-4 py-1.5 min-h-11 rounded-lg transition-colors relative ${
-                      active ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                    className={`flex flex-col items-center justify-center gap-1 w-full h-full transition-colors relative ${
+                      active ? 'text-primary' : 'text-muted-foreground'
                     }`}
                   >
                     <div className="relative">
-                      <item.icon className="h-5 w-5" aria-hidden="true" />
-                      {item.path === '/dashboard' && totalUnread > 0 && (
-                        <span
-                          className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
-                          aria-label={`${totalUnread} unread`}
-                        >
+                      <item.icon className={`h-5 w-5 transition-transform ${active ? 'scale-110' : ''}`} />
+                      {item.path === '/app/chats' && totalUnread > 0 && (
+                        <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center border-2 border-card">
                           {totalUnread > 99 ? '99+' : totalUnread}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] sm:text-xs font-medium">{item.label}</span>
-                    {active && <div className="absolute -bottom-1.5 w-6 h-0.5 rounded-full bg-primary" />}
+                    <span className="text-[10px] font-medium tracking-tight">{item.label}</span>
                   </button>
                 );
               })}

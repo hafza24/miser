@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
+import { EmptyState } from '@/components/layout/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Plus, Sparkles, Crown } from 'lucide-react';
+import { Users, Plus, Sparkles, Crown, Settings } from 'lucide-react';
 import { useGroupAccess } from '@/hooks/useGroupAccess';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -30,22 +32,33 @@ const BrowseGroupsPage = () => {
   }, [hasAccess, profile?.receive_group_invites, accessLoading]);
 
   if (accessLoading) {
-    return <AppLayout><div className="p-6 text-muted-foreground">Loading…</div></AppLayout>;
+    return <AppLayout><div className="flex justify-center py-16 text-muted-foreground animate-pulse">Loading access rights…</div></AppLayout>;
   }
 
   if (!featureEnabled) {
-    return <AppLayout><div className="p-6 text-center text-muted-foreground">Group requests are currently disabled.</div></AppLayout>;
+    return (
+      <AppLayout>
+        <EmptyState
+          icon={Users}
+          title="Groups Disabled"
+          description="Group requests are currently disabled by the administrator."
+        />
+      </AppLayout>
+    );
   }
 
   if (!hasAccess) {
     return (
       <AppLayout>
-        <div className="p-6 text-center space-y-4">
-          <Crown className="h-12 w-12 mx-auto text-primary" />
-          <h2 className="font-heading text-2xl font-bold">Daily group limit reached</h2>
-          <p className="text-muted-foreground">Upgrade your plan to create or join more groups today.</p>
-          <Button onClick={() => navigate('/subscription')}>View plans</Button>
-        </div>
+        <EmptyState
+          icon={Crown}
+          title="Limit Reached"
+          description="Upgrade your plan to create or join more groups today."
+          action={{
+            label: "View Plans",
+            onClick: () => navigate('/app/premium')
+          }}
+        />
       </AppLayout>
     );
   }
@@ -53,62 +66,88 @@ const BrowseGroupsPage = () => {
   if (!profile?.receive_group_invites) {
     return (
       <AppLayout>
-        <div className="p-6 text-center space-y-4">
-          <h2 className="font-heading text-xl font-bold">Enable Group Invitations</h2>
-          <p className="text-muted-foreground">Turn on the toggle in Settings to browse and join groups.</p>
-          <Button onClick={() => navigate('/settings')}>Open Settings</Button>
-        </div>
+        <EmptyState
+          icon={Settings}
+          title="Invitations Off"
+          description="Enable 'Receive Group Invitations' in Settings to browse and join groups."
+          action={{
+            label: "Open Settings",
+            onClick: () => navigate('/app/settings')
+          }}
+        />
       </AppLayout>
     );
   }
 
   return (
     <AppLayout>
-      <div className="p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-2xl font-bold flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" /> Group Requests
-          </h2>
-          <Button size="sm" onClick={() => navigate('/groups/new')}>
-            <Plus className="h-4 w-4 mr-1" /> New
-          </Button>
-        </div>
+      <div className="space-y-6">
+        <PageHeader 
+          title="Group Requests" 
+          description="Find community groups that match your interests."
+          actions={
+            <Button size="sm" className="rounded-2xl" onClick={() => navigate('/app/groups/new')}>
+              <Plus className="h-4 w-4 mr-1.5" /> New Group
+            </Button>
+          }
+        />
 
         {loading ? (
-          <p className="text-muted-foreground">Loading…</p>
+          <div className="flex justify-center py-16 text-muted-foreground animate-pulse">Scanning for groups…</div>
         ) : requests.length === 0 ? (
-          <Card><CardContent className="p-6 text-center text-muted-foreground">
-            No open groups match you right now. Create one!
-          </CardContent></Card>
+          <EmptyState
+            icon={Sparkles}
+            title="No Groups Found"
+            description="No open groups match your profile right now. Why not create one?"
+            action={{
+              label: "Create New Group",
+              onClick: () => navigate('/app/groups/new')
+            }}
+          />
         ) : (
-          requests.map((r) => {
-            const gr = r.gender_requirements || {};
-            const compLabel = [
-              gr.men ? `${gr.men}M` : null,
-              gr.women ? `${gr.women}W` : null,
-              gr.any ? `${gr.any} any` : null,
-            ].filter(Boolean).join(' + ');
-            return (
-              <Card key={r.id} className="overflow-hidden hover:shadow-card transition-shadow cursor-pointer" onClick={() => navigate(`/groups/${r.id}`)}>
-                <CardContent className="p-4 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline">{r.topic}</Badge>
-                    <Badge>{r.member_limit} people</Badge>
+          <div className="grid gap-4">
+            {requests.map((r) => {
+              const gr = r.gender_requirements || {};
+              const compLabel = [
+                gr.men ? `${gr.men}M` : null,
+                gr.women ? `${gr.women}W` : null,
+                gr.any ? `${gr.any} any` : null,
+              ].filter(Boolean).join(' + ');
+              return (
+              <div 
+                key={r.id} 
+                className="bg-card border border-border rounded-3xl p-6 hover:border-primary/50 transition-all cursor-pointer shadow-sm hover:shadow-md group"
+                onClick={() => navigate(`/app/groups/${r.id}`)}
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="rounded-full px-3">{r.topic}</Badge>
+                    <Badge variant="outline" className="rounded-full px-3">{r.member_limit} members max</Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">{compLabel}</p>
-                  {r.ai_scene_title && (
-                    <div className="pt-2">
-                      <p className="font-heading font-semibold text-foreground flex items-center gap-1">
-                        <Sparkles className="h-4 w-4 text-primary" />{r.ai_scene_title}
-                      </p>
-                      <p className="text-sm text-muted-foreground line-clamp-2">{r.ai_scene_description}</p>
-                    </div>
-                  )}
-                  <Button size="sm" className="w-full mt-2">View & Join</Button>
-                </CardContent>
-              </Card>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-muted-foreground group-hover:text-primary transition-colors">
+                    {compLabel}
+                  </div>
+                </div>
+
+                {r.ai_scene_title && (
+                  <div className="space-y-2 mb-4">
+                    <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-primary" />
+                      {r.ai_scene_title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1">
+                      {r.ai_scene_description}
+                    </p>
+                  </div>
+                )}
+                
+                <Button variant="outline" className="w-full rounded-2xl border-primary/20 hover:bg-primary/5 font-bold">
+                  View Details & Join
+                </Button>
+              </div>
             );
-          })
+          })}
+          </div>
         )}
       </div>
     </AppLayout>

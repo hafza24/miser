@@ -15,6 +15,8 @@ import {
   Sun, Moon, Trash2, Shield, Volume2, BellRing, HelpCircle, Users,
   Eye, EyeOff, Heart, Globe, Languages as LangIcon, UserCheck,
 } from 'lucide-react';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
 import BlockedUsersList from '@/components/settings/BlockedUsersList';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -132,7 +134,7 @@ const SettingsPage = () => {
   };
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
-    if (newMode === 'dark' && profile?.dark_mode_blocked) { navigate('/subscription'); return; }
+    if (newMode === 'dark' && profile?.dark_mode_blocked) { navigate('/app/premium'); return; }
     if (newMode === 'light' && profile?.light_mode_blocked) { toast.error('Your access to Light mode has been restricted by an admin.'); return; }
     if (newMode === 'dark' && !profile?.age_verified) { setShowAgeVerify(true); return; }
     setMode(newMode);
@@ -144,7 +146,7 @@ const SettingsPage = () => {
 
   const confirmAgeAndSwitch = async () => {
     if (!ageConfirmed || !consentConfirmed) { toast.error('Please confirm both checkboxes'); return; }
-    if (profile?.dark_mode_blocked) { navigate('/subscription'); setShowAgeVerify(false); return; }
+    if (profile?.dark_mode_blocked) { navigate('/app/premium'); setShowAgeVerify(false); return; }
     if (user) {
       await supabase.from('profiles').update({ age_verified: true, mode_preference: 'dark' }).eq('user_id', user.id);
       await refreshProfile();
@@ -170,15 +172,15 @@ const SettingsPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 space-y-6 animate-fade-in pb-12">
-        <h2 className="font-heading text-2xl font-bold text-foreground">Settings</h2>
+      <div className="space-y-6">
+        <PageHeader title="Settings" description="Manage your preferences and privacy." />
 
-        {/* Presence Status */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <UserCheck className="h-5 w-5" /> Presence
-          </h3>
-          <p className="text-xs text-muted-foreground">How others see your activity status.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Presence Status */}
+          <SectionCard 
+            title="Presence" 
+            description="How others see your activity status."
+          >
           <div className="grid grid-cols-4 gap-2">
             {PRESENCE_OPTIONS.map((opt) => {
               const active = profile.presence_status === opt.value;
@@ -194,13 +196,13 @@ const SettingsPage = () => {
               );
             })}
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Discovery controls */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Eye className="h-5 w-5" /> Discovery
-          </h3>
+          {/* Discovery controls */}
+          <SectionCard 
+            title="Discovery" 
+            description="Control your visibility in the app."
+          >
           <div className="flex items-center justify-between">
             <div className="pr-4">
               <p className="font-medium text-foreground">Pause profile</p>
@@ -221,13 +223,10 @@ const SettingsPage = () => {
               onCheckedChange={(v) => updateProfile({ hidden_from_discovery: v }, v ? 'Hidden from discovery' : 'Visible in discovery')}
             />
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Group invitations */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Users className="h-5 w-5" /> Group Invitations
-          </h3>
+          {/* Group invitations */}
+          <SectionCard title="Groups">
           <div className="flex items-center justify-between">
             <div className="pr-4">
               <p className="font-medium text-foreground">Receive Group Invitations</p>
@@ -238,17 +237,13 @@ const SettingsPage = () => {
               onCheckedChange={(v) => updateProfile({ receive_group_invites: v }, v ? 'Group invitations enabled' : 'Group invitations disabled')}
             />
           </div>
-        </section>
+          </SectionCard>
 
         <BlockedUsersList />
 
 
         {/* Preferred languages */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <LangIcon className="h-5 w-5" /> Preferred languages
-          </h3>
-          <p className="text-xs text-muted-foreground">Match people you can talk to.</p>
+          <SectionCard title="Preferred Languages" description="Match with people you can talk to.">
           <div className="flex flex-wrap gap-2">
             {LANGUAGE_OPTIONS.map((lang) => {
               const active = (profile.preferred_languages ?? []).includes(lang);
@@ -264,13 +259,10 @@ const SettingsPage = () => {
               );
             })}
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Mode switch */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            {mode === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />} Experience Mode
-          </h3>
+          {/* Mode switch */}
+          <SectionCard title="Experience Mode">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">{mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}</p>
@@ -280,13 +272,10 @@ const SettingsPage = () => {
               Switch to {mode === 'light' ? '🌑 Dark' : '🌞 Light'}
             </Button>
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Notification preferences */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <BellRing className="h-5 w-5" /> Notifications
-          </h3>
+          {/* Notification preferences */}
+          <SectionCard title="Notifications" className="md:col-span-2">
 
           <div className="flex items-center justify-between">
             <div><p className="font-medium text-foreground flex items-center gap-2"><Volume2 className="h-4 w-4" /> Sound</p>
@@ -322,65 +311,58 @@ const SettingsPage = () => {
               />
             </div>
           ))}
-        </section>
+          </SectionCard>
 
-
-        {/* Privacy */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Shield className="h-5 w-5" /> Privacy
-          </h3>
+          {/* Privacy */}
+          <SectionCard title="Privacy & Safety">
           <ul className="text-sm text-muted-foreground space-y-2">
             <li>✅ Anonymous username & emoji avatar</li>
             <li>✅ No public profile browsing</li>
             <li>✅ Messages encrypted in database</li>
             <li>✅ Self-destruct chat support</li>
           </ul>
-        </section>
+          </SectionCard>
 
-        {/* Help & Support — mobile only */}
-        <section className="bg-card rounded-2xl p-6 shadow-card md:hidden">
-          <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center justify-between">
-            <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-              <HelpCircle className="h-5 w-5" /> Help & Support
-            </h3>
-            <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
-          </button>
-          {showHelp && (
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={() => { window.dispatchEvent(new CustomEvent('open-help-widget')); setShowHelp(false); }}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
-              >📖 FAQ & Contact Support</button>
+          {/* Help & Support — mobile only */}
+          <SectionCard title="Support" className="md:hidden">
+            <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center justify-between py-2">
+              <span className="font-medium text-foreground">Help Center</span>
+              <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
+            </button>
+            {showHelp && (
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-help-widget')); setShowHelp(false); }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+                >📖 FAQ & Contact Support</button>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {/* Legal & Info */}
+          <SectionCard title="Information">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Terms & Conditions', path: '/page/terms' },
+                { label: 'Privacy Policy',     path: '/page/privacy' },
+                { label: 'FAQ',                path: '/page/faq' },
+                { label: 'Contact Us',         path: '/page/contact' },
+                { label: 'About Us',           path: '/page/about' },
+                { label: 'Download App',       path: '/download' },
+              ].map((link) => (
+                <button key={link.path} onClick={() => navigate(link.path)} className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors border border-border">
+                  {link.label}
+                </button>
+              ))}
             </div>
-          )}
-        </section>
+          </SectionCard>
 
-
-        {/* Legal & Info */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-2">
-          <h3 className="font-heading font-semibold text-foreground mb-3">Information</h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Terms & Conditions', path: '/page/terms' },
-              { label: 'Privacy Policy',     path: '/page/privacy' },
-              { label: 'FAQ',                path: '/page/faq' },
-              { label: 'Contact Us',         path: '/page/contact' },
-              { label: 'About Us',           path: '/page/about' },
-              { label: 'Download App',       path: '/download' },
-            ].map((link) => (
-              <button key={link.path} onClick={() => navigate(link.path)} className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors border border-border">
-                {link.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Delete */}
-        <section className="bg-card rounded-2xl p-6 shadow-card">
-          <h3 className="font-heading font-semibold text-destructive flex items-center gap-2 mb-3">
-            <Trash2 className="h-5 w-5" /> Danger Zone
-          </h3>
+          {/* Delete */}
+          <SectionCard title="Danger Zone">
+            <p className="text-sm text-muted-foreground mb-4">Deleting your account is permanent after 24 hours.</p>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">Delete Account</Button>
@@ -398,7 +380,8 @@ const SettingsPage = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </section>
+          </SectionCard>
+        </div>
       </div>
 
       <Dialog open={showAgeVerify} onOpenChange={setShowAgeVerify}>

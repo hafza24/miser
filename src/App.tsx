@@ -34,6 +34,7 @@ const GroupRequestDetailPage = lazy(() => import("./pages/GroupRequestDetailPage
 const MoodRoomsPage = lazy(() => import("./pages/MoodRoomsPage"));
 
 // Admin bundle — separate chunks per page
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminModeration = lazy(() => import("./pages/admin/AdminModeration"));
 const AdminChats = lazy(() => import("./pages/admin/AdminChats"));
@@ -101,25 +102,37 @@ const AppRoutes = () => (
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/suspended" element={<SuspendedPage />} />
         <Route path="/mode-select" element={<ProtectedRoute><ModeSelectPage /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/chats" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-        <Route path="/chat/:chatId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<Navigate to="/app/home" replace />} />
+        <Route path="/chats" element={<Navigate to="/app/chats" replace />} />
+        
+        <Route path="/app/home" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/app/chats" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+        <Route path="/app/chat/:chatId" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
 
-        <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
-        <Route path="/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-        <Route path="/subscription" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
-        <Route path="/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
-        <Route path="/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
-        <Route path="/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
-        <Route path="/mood-rooms" element={<ProtectedRoute><MoodRoomsPage /></ProtectedRoute>} />
+        <Route path="/app/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+        <Route path="/app/browse" element={<ProtectedRoute><BrowseProfilesPage /></ProtectedRoute>} />
+        <Route path="/app/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+        <Route path="/app/premium" element={<ProtectedRoute><SubscriptionPage /></ProtectedRoute>} />
+        <Route path="/app/groups" element={<ProtectedRoute><BrowseGroupsPage /></ProtectedRoute>} />
+        <Route path="/app/groups/new" element={<ProtectedRoute><CreateGroupRequestPage /></ProtectedRoute>} />
+        <Route path="/app/groups/:id" element={<ProtectedRoute><GroupRequestDetailPage /></ProtectedRoute>} />
+        <Route path="/app/mood-rooms" element={<ProtectedRoute><MoodRoomsPage /></ProtectedRoute>} />
+
+        {/* Support old paths */}
+        <Route path="/profile" element={<Navigate to="/app/profile" replace />} />
+        <Route path="/browse" element={<Navigate to="/app/browse" replace />} />
+        <Route path="/settings" element={<Navigate to="/app/settings" replace />} />
+        <Route path="/subscription" element={<Navigate to="/app/premium" replace />} />
+        <Route path="/groups" element={<Navigate to="/app/groups" replace />} />
+        <Route path="/mood-rooms" element={<Navigate to="/app/mood-rooms" replace />} />
         {/* Public pages */}
         <Route path="/page/:slug" element={<SitePage />} />
         <Route path="/download" element={<DownloadPage />} />
         {/* Legacy redirect */}
-        <Route path="/unlock-dark-mode" element={<Navigate to="/subscription" replace />} />
+        <Route path="/unlock-dark-mode" element={<Navigate to="/app/premium" replace />} />
         {/* Admin routes */}
-        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
         <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
         <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />
