@@ -6,6 +6,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import AppLayout from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Send, Check, Clock, X, Sparkles, Globe, Timer, Users, Ban, SlidersHorizontal, RotateCcw, Heart, Plus } from 'lucide-react';
@@ -319,24 +320,23 @@ const BrowseProfilesPage = () => {
           </SectionCard>
 
           {/* Smart match tile */}
-          <SectionCard className="md:col-span-2 p-4">
-            <div className="flex items-start gap-2 min-w-0">
-              <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
+          <SectionCard className="md:col-span-2">
+            <div className="flex items-center justify-between gap-3 p-1">
+              <div className="flex items-start gap-2 min-w-0">
+                <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">Smart Match</div>
+                  <div className="text-[11px] text-muted-foreground line-clamp-2">Rank by preferences</div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-foreground">Smart match</div>
-                <div className="text-[11px] text-muted-foreground line-clamp-2">Rank by your preferences</div>
-              </div>
+              <Switch
+                checked={useSmartMatch}
+                onCheckedChange={setUseSmartMatch}
+              />
             </div>
-            <button
-              onClick={() => setUseSmartMatch((v) => !v)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors shrink-0 ${useSmartMatch ? 'bg-primary text-primary-foreground shadow-soft' : 'bg-muted text-muted-foreground'}`}
-              aria-pressed={useSmartMatch}
-            >
-              {useSmartMatch ? 'On' : 'Off'}
-            </button>
-          </div>
+          </SectionCard>
 
           {/* Interest tile — full width */}
           <SectionCard title="Interests" className="md:col-span-6">
