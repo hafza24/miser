@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import AdminLayout from '@/components/AdminLayout';
 import AdminTranslationSettings from './AdminTranslationSettings';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -128,29 +130,27 @@ const AdminDashboard = () => {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-heading text-2xl font-bold text-foreground">Dashboard Overview</h2>
-          <Badge variant="outline" className="text-xs">
-            <Clock className="h-3 w-3 mr-1" />
-            {new Date().toLocaleDateString()}
-          </Badge>
-        </div>
+        <PageHeader 
+          title="Admin Dashboard" 
+          description="Real-time overview of Fur&Fir's activity and safety."
+          actions={
+            <Badge variant="outline" className="text-xs h-9 px-3 rounded-full">
+              <Clock className="h-3.5 w-3.5 mr-2" />
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </Badge>
+          }
+        />
 
         {/* Alerts */}
         {alerts.length > 0 && (
-          <Card className="border-amber-500/30 bg-amber-500/5">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-4 w-4 text-amber-500" />
-                <h3 className="font-semibold text-sm text-foreground">Alerts</h3>
+          <div className="grid gap-2">
+            {alerts.map((alert, i) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 font-medium text-sm">
+                <Bell className="h-4 w-4 shrink-0" />
+                {alert}
               </div>
-              <div className="space-y-1">
-                {alerts.map((alert, i) => (
-                  <p key={i} className="text-sm text-foreground">{alert}</p>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            ))}
+          </div>
         )}
 
         {loading ? (
@@ -160,61 +160,45 @@ const AdminDashboard = () => {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {cards.map((card) => (
-                <Card key={card.title} className="overflow-hidden">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className={`p-2 rounded-lg ${card.bg}`}>
-                        <card.icon className={`h-4 w-4 ${card.color}`} />
-                      </div>
+                <div key={card.title} className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className={`p-2 rounded-xl ${card.bg}`}>
+                      <card.icon className={`h-4 w-4 ${card.color}`} />
                     </div>
-                    <p className="text-2xl font-bold text-foreground">
-                      {typeof card.value === 'number' ? card.value.toLocaleString() : card.value}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{card.title}</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                  <div className="text-2xl font-black text-foreground font-heading">
+                    {typeof card.value === 'number' ? card.value.toLocaleString() : card.value}
+                  </div>
+                  <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground mt-1">{card.title}</div>
+                </div>
               ))}
             </div>
 
             {/* Charts */}
             <div className="grid md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" /> Revenue (Last 7 Days)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: 12 }} />
-                      <Bar dataKey="revenue" fill="hsl(142 76% 36%)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              <SectionCard title="Revenue Trend" description="Last 7 days" className="md:col-span-1">
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip cursor={{fill: 'hsl(var(--primary)/0.05)'}} contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: 12 }} />
+                    <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </SectionCard>
 
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Users className="h-4 w-4" /> New Users (Last 7 Days)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={userGrowth}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: 12 }} />
-                      <Line type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ r: 4, fill: 'hsl(var(--primary))' }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
+              <SectionCard title="User Growth" description="New signups" className="md:col-span-1">
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={userGrowth}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 10 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '12px', fontSize: 12 }} />
+                    <Line type="monotone" dataKey="users" stroke="hsl(var(--primary))" strokeWidth={3} dot={{ r: 4, fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--card))' }} activeDot={{ r: 6 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </SectionCard>
             </div>
             <div className="mt-6">
               <AdminTranslationSettings />
