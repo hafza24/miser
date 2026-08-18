@@ -130,7 +130,8 @@ const AppRoutes = () => (
         {/* Legacy redirect */}
         <Route path="/unlock-dark-mode" element={<Navigate to="/app/premium" replace />} />
         {/* Admin routes */}
-        <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+        <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
         <Route path="/admin/moderation" element={<AdminRoute><AdminModeration /></AdminRoute>} />
         <Route path="/admin/chats" element={<AdminRoute><AdminChats /></AdminRoute>} />

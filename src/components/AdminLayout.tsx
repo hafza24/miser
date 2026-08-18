@@ -8,17 +8,14 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const navItems = [
+    { path: '/admin/dashboard', icon: Gauge, label: 'Overview' },
     { path: '/admin/users', icon: Users, label: 'Users' },
-    { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Moderation' },
-    { path: '/admin/blocked-emails', icon: ShieldBan, label: 'Blocked Emails' },
-    { path: '/admin/chats', icon: MessagesSquare, label: 'Chats' },
-    { path: '/admin/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
-
-    { path: '/admin/tickets', icon: Ticket, label: 'Tickets' },
-    { path: '/admin/subscriptions', icon: CreditCard, label: 'Subscriptions' },
-    { path: '/admin/reports', icon: BarChart3, label: 'Reports' },
-    { path: '/admin/pages', icon: FileText, label: 'Pages' },
-    { path: '/admin/payment-info', icon: Wallet, label: 'Payment Info' },
+    { path: '/admin/moderation', icon: MessageSquareWarning, label: 'Safety' },
+    { path: '/admin/chats', icon: MessagesSquare, label: 'Content' },
+    { path: '/admin/subscriptions', icon: CreditCard, label: 'Revenue' },
+    { path: '/admin/tickets', icon: Ticket, label: 'Inbox' },
+    { path: '/admin/pages', icon: FileText, label: 'CMS' },
+    { path: '/admin/notifications', icon: Bell, label: 'System' },
   ];
 
   const inboxActive = location.pathname === '/admin/notifications';
