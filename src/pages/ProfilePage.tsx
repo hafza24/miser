@@ -400,11 +400,7 @@ const ProfilePage = () => {
 
 
           {/* About You */}
-          <section className="bento-tile p-5 lg:col-span-2 lg:row-span-2 space-y-4">
-            <div className="flex items-center gap-1.5">
-              <User className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About you</span>
-            </div>
+          <SectionCard title="About You" className="lg:col-span-2 lg:row-span-2 space-y-4">
 
             <div>
               <Label>Gender</Label>
@@ -470,15 +466,11 @@ const ProfilePage = () => {
                 </SelectContent>
               </Select>
             </div>
-          </section>
+          </SectionCard>
 
 
           {/* Interest */}
-          <section className="bento-tile p-5 lg:col-span-6">
-            <div className="flex items-center gap-1.5 mb-3">
-              <Heart className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Looking for</span>
-            </div>
+          <SectionCard title="Looking For" className="lg:col-span-6">
             <div className="flex flex-wrap gap-2">
               {INTEREST_OPTIONS.map((interest) => (
                 <button
@@ -545,7 +537,7 @@ const ProfilePage = () => {
                 <Input type="number" min={18} max={120} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} />
               </div>
             </div>
-          </section>
+          </SectionCard>
 
           {/* Character — wide tile */}
           <section className="bento-tile p-5 lg:col-span-4 space-y-4">
