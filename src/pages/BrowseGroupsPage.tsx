@@ -89,7 +89,7 @@ const BrowseGroupsPage = () => {
               gr.any ? `${gr.any} any` : null,
             ].filter(Boolean).join(' + ');
             return (
-              <Card key={r.id} className="overflow-hidden hover:shadow-card transition-shadow cursor-pointer" onClick={() => navigate(`/groups/${r.id}`)}>
+              <Card key={r.id} className="overflow-hidden hover:shadow-card transition-shadow cursor-pointer" onClick={() => navigate(`/app/groups/${r.id}`)}>
                 <CardContent className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline">{r.topic}</Badge>

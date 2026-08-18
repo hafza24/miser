@@ -317,7 +317,7 @@ const DashboardPage = () => {
       if (accept) {
         toast.success('Joined group!');
         await loadChats();
-        if (chatId) navigate(`/chat/${chatId}`);
+        if (chatId) navigate(`/app/chat/${chatId}`);
       } else {
         toast.success('Invite declined.');
       }
@@ -400,7 +400,7 @@ const DashboardPage = () => {
       if (error) throw error;
       if (chatId) {
         toast.success('Matched! Opening chat...');
-        navigate(`/chat/${chatId}`);
+        navigate(`/app/chat/${chatId}`);
       } else {
         toast.info('No one available right now. Try again later!');
       }

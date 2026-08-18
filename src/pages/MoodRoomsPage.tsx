@@ -52,7 +52,7 @@ export default function MoodRoomsPage() {
     const { data, error } = await supabase.rpc('join_mood_room', { p_room_id: room.id });
     setJoining(null);
     if (error) { toast.error(error.message); return; }
-    if (data) navigate(`/chat/${data}`);
+    if (data) navigate(`/app/chat/${data}`);
   };
 
   const filtered = rooms.filter((r) => r.mode === mode);
