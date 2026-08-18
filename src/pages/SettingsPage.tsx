@@ -323,43 +323,44 @@ const SettingsPage = () => {
 
           {/* Help & Support — mobile only */}
           <SectionCard title="Support" className="md:hidden">
-            <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
-          </button>
-          {showHelp && (
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={() => { window.dispatchEvent(new CustomEvent('open-help-widget')); setShowHelp(false); }}
-                className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
-              >📖 FAQ & Contact Support</button>
+            <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center justify-between py-2">
+              <span className="font-medium text-foreground">Help Center</span>
+              <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
+            </button>
+            {showHelp && (
+              <div className="mt-4 space-y-2">
+                <button
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-help-widget')); setShowHelp(false); }}
+                  className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-muted transition-colors"
+                >📖 FAQ & Contact Support</button>
+              </div>
+            )}
+          </SectionCard>
+        </div>
+
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+          {/* Legal & Info */}
+          <SectionCard title="Information">
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: 'Terms & Conditions', path: '/page/terms' },
+                { label: 'Privacy Policy',     path: '/page/privacy' },
+                { label: 'FAQ',                path: '/page/faq' },
+                { label: 'Contact Us',         path: '/page/contact' },
+                { label: 'About Us',           path: '/page/about' },
+                { label: 'Download App',       path: '/download' },
+              ].map((link) => (
+                <button key={link.path} onClick={() => navigate(link.path)} className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors border border-border">
+                  {link.label}
+                </button>
+              ))}
             </div>
-          )}
-        </section>
+          </SectionCard>
 
-
-        {/* Legal & Info */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-2">
-          <h3 className="font-heading font-semibold text-foreground mb-3">Information</h3>
-          <div className="flex flex-wrap gap-2">
-            {[
-              { label: 'Terms & Conditions', path: '/page/terms' },
-              { label: 'Privacy Policy',     path: '/page/privacy' },
-              { label: 'FAQ',                path: '/page/faq' },
-              { label: 'Contact Us',         path: '/page/contact' },
-              { label: 'About Us',           path: '/page/about' },
-              { label: 'Download App',       path: '/download' },
-            ].map((link) => (
-              <button key={link.path} onClick={() => navigate(link.path)} className="px-3 py-2 rounded-lg text-sm text-foreground hover:bg-muted transition-colors border border-border">
-                {link.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Delete */}
-        <section className="bg-card rounded-2xl p-6 shadow-card">
-          <h3 className="font-heading font-semibold text-destructive flex items-center gap-2 mb-3">
-            <Trash2 className="h-5 w-5" /> Danger Zone
-          </h3>
+          {/* Delete */}
+          <SectionCard title="Danger Zone">
+            <p className="text-sm text-muted-foreground mb-4">Deleting your account is permanent after 24 hours.</p>
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full">Delete Account</Button>
@@ -377,7 +378,8 @@ const SettingsPage = () => {
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
-        </section>
+          </SectionCard>
+        </div>
       </div>
 
       <Dialog open={showAgeVerify} onOpenChange={setShowAgeVerify}>
