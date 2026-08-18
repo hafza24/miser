@@ -4,6 +4,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMode } from '@/contexts/ModeContext';
 import { supabase } from '@/integrations/supabase/client';
 import AppLayout from '@/components/AppLayout';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
+import { EmptyState } from '@/components/layout/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -12,7 +15,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import {
   Plus, Users, MessageCircle, Check, X,
   Inbox, SendHorizontal, Clock, Trash2, Sparkles, UserPlus, MoreVertical, ArrowUpRight,
-  Bell, Crown, UsersRound, TrendingUp, Calendar,
+  Bell, Crown, UsersRound, TrendingUp, Calendar, Search, LayoutDashboard
 } from 'lucide-react';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -416,54 +419,46 @@ const DashboardPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 md:p-0 space-y-6">
-        {/* Hero header */}
-        {!chatsOnly && (
-        <section
-          className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-card p-5 sm:p-7"
-          aria-labelledby="dashboard-title"
-        >
-
-          <div
-            aria-hidden="true"
-            className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-40 gradient-hero pointer-events-none"
-          />
-          <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div className="min-w-0">
-              <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {mode === 'light' ? 'Light Space' : 'Dark Space'}
+      <div className="space-y-6">
+        <PageHeader
+          title={chatsOnly ? "Conversations" : (mode === 'light' ? 'Light Space' : 'Dark Space')}
+          description={chatsOnly ? "Manage your 1:1 and group chats." : "Your activity and quick actions."}
+          actions={
+            !chatsOnly && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSurpriseMe}
+                  variant="outline"
+                  size="sm"
+                  disabled={surpriseLoading}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  {surpriseLoading ? 'Searching…' : 'Surprise Me'}
+                </Button>
+                <Button
+                  onClick={() => navigate('/app/browse')}
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Find People
+                </Button>
               </div>
-              <h1 id="dashboard-title" className="mt-1 font-heading text-2xl sm:text-3xl font-bold text-foreground text-balance">
-                {mode === 'light' ? '🌞 Emotional connections' : '🌑 18+ connections'}
-              </h1>
+            )
+          }
+        />
+
+        {!chatsOnly && (
+          <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <div className="absolute -top-24 -right-16 h-56 w-56 rounded-full blur-3xl opacity-20 bg-primary/30 pointer-events-none" />
+            <div className="relative">
+              <h2 className="font-heading text-xl font-bold text-foreground">
+                {mode === 'light' ? '🌞 Emotional Connections' : '🌑 18+ Exploration'}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your chats, invites, and requests — all in one place.
+                Safe, anonymous, and real human connection.
               </p>
             </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                onClick={handleSurpriseMe}
-                variant="outline"
-                size="sm"
-                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
-                disabled={surpriseLoading}
-                aria-label="Match with a random person"
-              >
-                <Sparkles className="h-4 w-4" aria-hidden="true" />
-                {surpriseLoading ? 'Searching…' : 'Surprise Me'}
-              </Button>
-              <Button
-                onClick={() => navigate('/app/browse')}
-                size="sm"
-                className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
-                aria-label="Browse people"
-              >
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                Find People
-              </Button>
-            </div>
-          </div>
-        </section>
+          </section>
         )}
 
         {/* Stats overview */}
