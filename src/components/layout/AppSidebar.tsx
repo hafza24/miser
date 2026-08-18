@@ -17,17 +17,17 @@ import { useAdminRole } from '@/hooks/useAdminRole';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 
 const mainItems = [
-  { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/chats', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
-  { path: '/browse', icon: Search, label: 'Browse' },
-  { path: '/groups', icon: UsersRound, label: 'Groups' },
-  { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
+  { path: '/app/home', icon: LayoutDashboard, label: 'Dashboard' },
+  { path: '/app/chats', icon: MessageCircle, label: 'Chats', badge: 'unread' as const },
+  { path: '/app/browse', icon: Search, label: 'Browse' },
+  { path: '/app/groups', icon: UsersRound, label: 'Groups' },
+  { path: '/app/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
 ];
 
 const accountItems = [
-  { path: '/profile', icon: User, label: 'Profile' },
-  { path: '/subscription', icon: Crown, label: 'Premium' },
-  { path: '/settings', icon: Settings, label: 'Settings' },
+  { path: '/app/profile', icon: User, label: 'Profile' },
+  { path: '/app/premium', icon: Crown, label: 'Premium' },
+  { path: '/app/settings', icon: Settings, label: 'Settings' },
 ];
 
 export function AppSidebar() {

@@ -21,11 +21,11 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const mobileNav = [
-    { path: '/dashboard', icon: MessageCircle, label: 'Chats' },
-    { path: '/browse', icon: Search, label: 'Browse' },
-    { path: '/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
-    { path: '/profile', icon: User, label: 'Profile' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/app/chats', icon: MessageCircle, label: 'Chats' },
+    { path: '/app/browse', icon: Search, label: 'Browse' },
+    { path: '/app/mood-rooms', icon: Sparkles, label: 'Mood Rooms' },
+    { path: '/app/profile', icon: User, label: 'Profile' },
+    { path: '/app/settings', icon: Settings, label: 'Settings' },
   ];
 
   const handleSignOut = async () => {
@@ -53,7 +53,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         size="icon"
         onClick={() => {
           if (mode === 'light' && profile?.dark_mode_blocked) {
-            navigate('/subscription');
+            navigate('/app/premium');
             return;
           }
           toggleMode();
@@ -101,7 +101,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
           <header className="md:hidden sticky top-0 z-40 border-b border-border bg-card/90 backdrop-blur-lg px-4 py-2.5">
             <div className="max-w-2xl mx-auto flex items-center justify-between">
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/app/home')}
                 className="flex items-center gap-2 min-w-0 rounded-lg"
                 aria-label="Go to dashboard"
               >
@@ -142,7 +142,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
                   >
                     <div className="relative">
                       <item.icon className="h-5 w-5" aria-hidden="true" />
-                      {item.path === '/dashboard' && totalUnread > 0 && (
+                      {item.path === '/app/chats' && totalUnread > 0 && (
                         <span
                           className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
                           aria-label={`${totalUnread} unread`}
