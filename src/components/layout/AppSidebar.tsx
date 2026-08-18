@@ -40,24 +40,27 @@ export function AppSidebar() {
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
-  const itemClass =
-    "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sidebar-foreground/70 font-medium transition-all hover:bg-sidebar-accent/60 hover:text-sidebar-foreground data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:backdrop-blur-sm data-[active=true]:shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.4),inset_0_1px_0_0_hsl(var(--primary)/0.15)] data-[active=true]:ring-1 data-[active=true]:ring-primary/15";
-
   const renderItem = (item: typeof mainItems[number]) => {
     const active = isActive(item.path);
     return (
       <SidebarMenuItem key={item.label}>
-        <SidebarMenuButton asChild isActive={active} tooltip={item.label} className={itemClass}>
-          <NavLink to={item.path}>
-            <item.icon className={`h-[18px] w-[18px] shrink-0 transition-opacity ${active ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`} />
-            {!collapsed && <span className="flex-1 text-[14px]">{item.label}</span>}
-            {!collapsed && item.badge === 'unread' && totalUnread > 0 && (
-              <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
-                {totalUnread > 99 ? '99+' : totalUnread}
+        <SidebarMenuButton
+          asChild
+          isActive={active}
+          tooltip={item.label}
+          className="rounded-xl transition-all duration-200 hover:bg-sidebar-accent/50 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+        >
+          <NavLink to={item.path} className="flex items-center w-full px-3 py-2">
+            <item.icon className={`h-[18px] w-[18px] shrink-0 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+            {!collapsed && (
+              <span className="ml-3 flex-1 text-sm font-medium tracking-tight">
+                {item.label}
               </span>
             )}
-            {!collapsed && active && !item.badge && (
-              <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
+            {!collapsed && item.badge === 'unread' && totalUnread > 0 && (
+              <span className="ml-auto min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
             )}
           </NavLink>
         </SidebarMenuButton>
@@ -65,63 +68,53 @@ export function AppSidebar() {
     );
   };
 
-  const groupLabelClass =
-    "px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/40 font-heading";
-
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border/60">
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-[0_4px_14px_-4px_hsl(var(--primary)/0.5)] text-lg">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border/50 bg-card/30 backdrop-blur-xl">
+      <SidebarHeader className="h-16 flex items-center px-4 border-b border-sidebar-border/50">
+        <div className="flex items-center gap-3 w-full">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20 text-lg">
             {profile?.emoji_avatar || '💫'}
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="font-heading text-base font-bold leading-tight tracking-tight">Fur&amp;Fir</div>
-              <div className="text-[11px] text-muted-foreground truncate">{profile?.alias}</div>
+              <div className="font-heading text-base font-bold tracking-tight text-foreground leading-none">Fur&Fir</div>
+              <div className="text-[10px] text-muted-foreground mt-1 font-medium truncate uppercase tracking-wider">{profile?.alias}</div>
             </div>
           )}
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-2 py-3 gap-6">
-        <SidebarGroup className="p-0">
-          <SidebarGroupLabel className={groupLabelClass}>Main</SidebarGroupLabel>
+      <SidebarContent className="px-2 py-4 gap-6 scrollbar-none">
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 font-heading">
+            Network
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">{mainItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="p-0">
-          <SidebarGroupLabel className={groupLabelClass}>Account</SidebarGroupLabel>
+        <SidebarGroup>
+          <SidebarGroupLabel className="px-3 pb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 font-heading">
+            Account
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu className="gap-1">{accountItems.map(renderItem)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {isAdmin && (
-          <SidebarGroup className="p-0">
-            <SidebarGroupLabel className={groupLabelClass}>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu className="gap-1">
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname.startsWith('/admin')}
-                    tooltip="Admin Panel"
-                    className="group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-primary/90 font-medium transition-all border border-transparent hover:bg-primary/10 hover:border-primary/20 data-[active=true]:bg-primary/10 data-[active=true]:border-primary/20 data-[active=true]:backdrop-blur-sm data-[active=true]:shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.4)]"
-                  >
-                    <NavLink to="/admin">
-                      <Shield className="h-[18px] w-[18px] shrink-0" />
-                      {!collapsed && <span className="text-[14px]">Admin Panel</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
       </SidebarContent>
+
+      {isAdmin && !collapsed && (
+        <div className="p-4 border-t border-sidebar-border/50">
+          <NavLink
+            to="/admin"
+            className="flex items-center gap-3 px-3 py-2 rounded-xl bg-primary/5 text-primary border border-primary/10 hover:bg-primary/10 transition-colors"
+          >
+            <Shield className="h-4 w-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Admin Panel</span>
+          </NavLink>
+        </div>
+      )}
     </Sidebar>
   );
 }
