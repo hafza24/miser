@@ -489,14 +489,8 @@ const ProfilePage = () => {
               ))}
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">Select one interest</p>
+          </SectionCard>
 
-            <div className="mt-5 pt-5 border-t border-border grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <Label>Gender preference</Label>
-                <Select value={genderPreference} onValueChange={setGenderPreference}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any</SelectItem>
           <SectionCard title="Discovery Preferences" className="lg:col-span-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
@@ -507,9 +501,6 @@ const ProfilePage = () => {
                     <SelectItem value="any">Any</SelectItem>
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
                   </SelectContent>
                 </Select>
               </div>
