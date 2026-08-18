@@ -307,23 +307,13 @@ const ProfilePage = () => {
         </SectionCard>
 
         {/* Bento grid — identity essentials */}
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 lg:auto-rows-min lg:grid-flow-dense">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-6 lg:auto-rows-min lg:grid-flow-dense">
           {/* Emoji picker */}
-          <section className="bento-tile p-5 lg:col-span-4 self-start">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Emoji avatar</span>
-              </div>
-              {emojiAvatar && (
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">Selected</span>
-                  <div className="h-9 w-9 rounded-xl bg-primary/10 ring-1 ring-primary/30 flex items-center justify-center text-xl shadow-[0_0_16px_hsl(var(--primary)/0.25)]">
-                    {emojiAvatar}
-                  </div>
-                </div>
-              )}
-            </div>
+          <SectionCard 
+            title="Emoji Avatar" 
+            description="Choose an emoji that represents you."
+            className="lg:col-span-4 self-start"
+          >
             {(() => {
               const COLLAPSED = 11;
               const base = EMOJI_OPTIONS.slice(0, COLLAPSED);
@@ -369,7 +359,7 @@ const ProfilePage = () => {
                 </div>
               );
             })()}
-          </section>
+          </SectionCard>
 
           {/* Basics — bio/country/availability (under avatar, left of About You) */}
           <section className="bento-tile p-5 lg:col-span-4 space-y-4 self-start">
