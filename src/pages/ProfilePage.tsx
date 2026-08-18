@@ -363,8 +363,7 @@ const ProfilePage = () => {
           </SectionCard>
 
           {/* Basics — bio/country/availability (under avatar, left of About You) */}
-          <section className="bento-tile p-5 lg:col-span-4 space-y-4 self-start">
-            <h3 className="font-heading text-base font-bold text-foreground">Basics</h3>
+          <SectionCard title="Basics" className="lg:col-span-4 self-start">
             <div>
               <Label>Bio</Label>
               <Textarea
@@ -397,7 +396,7 @@ const ProfilePage = () => {
                 </Select>
               </div>
             </div>
-          </section>
+          </SectionCard>
 
 
           {/* About You */}
