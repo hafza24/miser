@@ -15,6 +15,8 @@ import {
   Sun, Moon, Trash2, Shield, Volume2, BellRing, HelpCircle, Users,
   Eye, EyeOff, Heart, Globe, Languages as LangIcon, UserCheck,
 } from 'lucide-react';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
 import BlockedUsersList from '@/components/settings/BlockedUsersList';
 import { toast } from 'sonner';
 import { useNotifications } from '@/contexts/NotificationContext';
