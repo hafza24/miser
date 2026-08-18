@@ -722,124 +722,89 @@ const DashboardPage = () => {
 
         {/* Chat lists — only on /chats route */}
         {chatsOnly && (loading ? (
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="status" aria-label="Loading chats">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" role="status" aria-label="Loading chats">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-xl bg-muted/60 animate-pulse" />
+              <div key={i} className="h-24 rounded-2xl bg-muted/30 animate-pulse border border-border/50" />
             ))}
           </div>
         ) : activeChats.length === 0 ? (
-          <div className="text-center py-16 rounded-2xl border border-dashed border-border bg-card/40">
-            <div className="text-6xl mb-4" aria-hidden="true">{mode === 'light' ? '🌸' : '🌙'}</div>
-            <h3 className="font-heading text-xl font-semibold text-foreground mb-2">No conversations yet</h3>
-            <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
-              Browse profiles and send chat requests to connect
-            </p>
-            <Button onClick={() => navigate('/app/browse')} className="gap-2 min-h-11">
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Find People
-            </Button>
-          </div>
+          <EmptyState
+            icon={MessageCircle}
+            title="No conversations yet"
+            description="Start connecting with people to see your chats here."
+            action={{
+              label: "Find People",
+              onClick: () => navigate('/app/browse')
+            }}
+          />
         ) : (
-          <section aria-labelledby="chats-heading" className="space-y-3">
+          <div className="space-y-6">
             <div className="flex items-center justify-between gap-3 flex-wrap">
-              <h2 id="chats-heading" className="font-heading text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                <MessageCircle className="h-3.5 w-3.5" /> Chats
-                <span className="text-muted-foreground/70 normal-case font-normal">
-                  ({chatFilter === 'direct' ? directChats.length : chatFilter === 'group' ? groupChats.length : activeChats.length})
-                </span>
-              </h2>
-              <div className="inline-flex rounded-full bg-muted p-0.5" role="tablist" aria-label="Filter chats">
+              <div className="inline-flex rounded-full bg-muted p-1" role="tablist" aria-label="Filter chats">
                 {(['all','direct','group'] as const).map((k) => (
                   <button
                     key={k}
                     role="tab"
                     aria-selected={chatFilter === k}
                     onClick={() => setChatFilter(k)}
-                    className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${chatFilter === k ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                    className={`px-4 py-1.5 text-xs font-semibold rounded-full transition-all ${chatFilter === k ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     {k === 'all' ? 'All' : k === 'direct' ? 'Direct' : 'Groups'}
                   </button>
                 ))}
               </div>
             </div>
+            
             {(() => {
               const list = chatFilter === 'direct' ? directChats : chatFilter === 'group' ? groupChats : activeChats;
               if (list.length === 0) {
                 return (
-                  <p className="text-sm text-muted-foreground py-8 text-center">
-                    No {chatFilter === 'group' ? 'group ' : chatFilter === 'direct' ? 'direct ' : ''}chats yet.
-                  </p>
+                  <EmptyState
+                    icon={Search}
+                    title="No results"
+                    description={`You don't have any ${chatFilter === 'group' ? 'group ' : 'direct '}chats yet.`}
+                  />
                 );
               }
               return (
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {list.map((chat) => {
-                    const hasTimer = !chat.timer_stopped && chat.expires_at;
                     const unread = unreadCounts[chat.id] || 0;
-                    const title = chat.is_group
-                      ? (chat.name || 'Group chat')
-                      : (chat.participants.map(p => p.alias).join(', ') || 'Anonymous');
+                    const other = chat.participants[0] || { alias: 'Anonymous', emoji_avatar: '💫' };
+                    const title = chat.is_group ? (chat.name || 'Unnamed Group') : other.alias;
+                    const hasTimer = !chat.is_group && !chat.timer_stopped && chat.expires_at;
+
                     return (
-                      <li key={chat.id} className="relative">
-                        <button
-                          onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}
-                          className="w-full flex items-center gap-3 p-4 pr-10 bento-tile text-left"
-                          aria-label={`Open ${chat.is_group ? 'group' : 'chat'} ${title}${unread > 0 ? `, ${unread} unread` : ''}`}
-                        >
-                          <div className="text-2xl">
-                            {chat.is_group ? '👥' : (chat.participants[0]?.emoji_avatar || '💬')}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className={`font-medium truncate ${unread > 0 ? 'text-foreground font-semibold' : 'text-foreground'}`}>
-                                {title}
-                              </span>
-                              {chat.is_group && <Users className="h-3 w-3 text-muted-foreground" />}
-                              {hasTimer && <Clock className="h-3 w-3 text-muted-foreground" />}
-                              {chat.timer_stopped && <span className="text-[10px] text-primary font-medium">∞</span>}
-                            </div>
-                            <p className={`text-sm truncate ${unread > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-                              {chat.last_message || 'No messages yet'}
-                            </p>
-                          </div>
-                          {unread > 0 ? (
-                            <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center">
-                              {unread > 99 ? '99+' : unread}
+                      <button
+                        key={chat.id}
+                        onClick={() => { markChatAsRead(chat.id); navigate(`/app/chat/${chat.id}`); }}
+                        className="group relative flex items-center gap-4 p-4 rounded-2xl border border-border bg-card/50 hover:bg-accent/30 transition-all text-left shadow-sm hover:shadow-md"
+                      >
+                        <div className="relative h-14 w-14 shrink-0 flex items-center justify-center bg-muted rounded-2xl text-3xl shadow-inner">
+                          {chat.is_group ? '👥' : other.emoji_avatar}
+                          {unread > 0 && (
+                            <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary border-2 border-card flex items-center justify-center text-[10px] text-primary-foreground font-bold">
+                              {unread > 9 ? '+' : unread}
                             </span>
-                          ) : (
-                            <MessageCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           )}
-                        </button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              type="button"
-                              className="absolute top-2 right-2 h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground"
-                              aria-label="Chat actions"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreVertical className="h-4 w-4" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem onClick={() => { markChatAsRead(chat.id); navigate(`/chat/${chat.id}`); }}>
-                              <MessageCircle className="h-4 w-4 mr-2" /> Open chat
-                            </DropdownMenuItem>
-                            {!chat.is_group && (
-                              <DropdownMenuItem onClick={() => setConfirmChat(chat)}>
-                                <ArrowUpRight className="h-4 w-4 mr-2" /> Convert to group
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </li>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-heading font-bold text-foreground truncate">{title}</span>
+                            {hasTimer && <Clock className="h-3 w-3 text-primary animate-pulse" />}
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate mt-1">
+                            {chat.last_message || 'Start the conversation...'}
+                          </p>
+                        </div>
+                        <MoreVertical className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </button>
                     );
                   })}
-                </ul>
+                </div>
               );
             })()}
-          </section>
+          </div>
         ))}
 
 
