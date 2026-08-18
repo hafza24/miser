@@ -35,7 +35,7 @@ const ModeSelectPage = () => {
       return;
     }
     if (mode === 'dark' && darkBlocked) {
-      navigate('/subscription');
+      navigate('/app/premium');
       return;
     }
     setMode(mode);
@@ -46,7 +46,7 @@ const ModeSelectPage = () => {
         .eq('user_id', user.id);
       await refreshProfile();
     }
-    navigate('/dashboard');
+    navigate('/app/home');
   };
 
   return (

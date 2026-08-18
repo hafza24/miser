@@ -532,7 +532,7 @@ const ChatPage = () => {
       const { error } = await supabase.from('chat_participants').delete().eq('chat_id', chatId).eq('user_id', userId);
       if (error) throw error;
       toast.success('You left the chat.');
-      navigate('/dashboard');
+      navigate('/app/home');
     } catch (err: any) {
       toast.error('Failed to end chat: ' + (err.message || 'Unknown error'));
     }
@@ -560,7 +560,7 @@ const ChatPage = () => {
     else {
       toast.success(`${otherUser?.alias || 'User'} has been blocked.`);
       await supabase.from('chat_participants').delete().eq('chat_id', chatId!).eq('user_id', userId);
-      navigate('/dashboard');
+      navigate('/app/home');
     }
   };
 
@@ -646,7 +646,7 @@ const ChatPage = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md px-3 py-2.5">
         <div className="max-w-2xl mx-auto flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="rounded-full flex-shrink-0 h-8 w-8">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/app/home')} className="rounded-full flex-shrink-0 h-8 w-8">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <span className="text-xl flex-shrink-0">{chatInfo?.is_group ? '👥' : (otherUser?.emoji_avatar || '💬')}</span>
@@ -824,7 +824,7 @@ const ChatPage = () => {
             <div className="text-6xl mb-4">🚫</div>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Chat Ended</h3>
             <p className="text-muted-foreground text-sm mb-6">This chat has been ended.</p>
-            <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+            <Button onClick={() => navigate('/app/home')}>Back to Dashboard</Button>
           </div>
         </div>
       )}
@@ -836,7 +836,7 @@ const ChatPage = () => {
             <div className="text-6xl mb-4">⏰</div>
             <h3 className="font-heading text-xl font-semibold text-foreground mb-2">Chat Expired</h3>
             <p className="text-muted-foreground text-sm mb-6">This 24-hour chat has ended.</p>
-            <Button onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+            <Button onClick={() => navigate('/app/home')}>Back to Dashboard</Button>
           </div>
         </div>
       )}
@@ -1039,7 +1039,7 @@ const ChatPage = () => {
           onOpenChange={setGroupInfoOpen}
           chatId={chatId}
           currentUserId={userId}
-          onLeft={() => { setGroupInfoOpen(false); navigate('/dashboard'); }}
+          onLeft={() => { setGroupInfoOpen(false); navigate('/app/home'); }}
         />
       )}
 

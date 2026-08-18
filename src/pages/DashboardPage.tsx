@@ -453,7 +453,7 @@ const DashboardPage = () => {
                 {surpriseLoading ? 'Searching…' : 'Surprise Me'}
               </Button>
               <Button
-                onClick={() => navigate('/browse')}
+                onClick={() => navigate('/app/browse')}
                 size="sm"
                 className="gap-2 flex-1 sm:flex-initial min-h-11 sm:min-h-9"
                 aria-label="Browse people"
@@ -740,7 +740,7 @@ const DashboardPage = () => {
             <p className="text-muted-foreground text-sm mb-6 max-w-sm mx-auto text-pretty">
               Browse profiles and send chat requests to connect
             </p>
-            <Button onClick={() => navigate('/browse')} className="gap-2 min-h-11">
+            <Button onClick={() => navigate('/app/browse')} className="gap-2 min-h-11">
               <Plus className="h-4 w-4" aria-hidden="true" />
               Find People
             </Button>
