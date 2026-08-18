@@ -170,15 +170,15 @@ const SettingsPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 space-y-6 animate-fade-in pb-12">
-        <h2 className="font-heading text-2xl font-bold text-foreground">Settings</h2>
+      <div className="space-y-6">
+        <PageHeader title="Settings" description="Manage your preferences and privacy." />
 
-        {/* Presence Status */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <UserCheck className="h-5 w-5" /> Presence
-          </h3>
-          <p className="text-xs text-muted-foreground">How others see your activity status.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Presence Status */}
+          <SectionCard 
+            title="Presence" 
+            description="How others see your activity status."
+          >
           <div className="grid grid-cols-4 gap-2">
             {PRESENCE_OPTIONS.map((opt) => {
               const active = profile.presence_status === opt.value;
@@ -194,13 +194,13 @@ const SettingsPage = () => {
               );
             })}
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Discovery controls */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Eye className="h-5 w-5" /> Discovery
-          </h3>
+          {/* Discovery controls */}
+          <SectionCard 
+            title="Discovery" 
+            description="Control your visibility in the app."
+          >
           <div className="flex items-center justify-between">
             <div className="pr-4">
               <p className="font-medium text-foreground">Pause profile</p>
@@ -221,13 +221,10 @@ const SettingsPage = () => {
               onCheckedChange={(v) => updateProfile({ hidden_from_discovery: v }, v ? 'Hidden from discovery' : 'Visible in discovery')}
             />
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Group invitations */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Users className="h-5 w-5" /> Group Invitations
-          </h3>
+          {/* Group invitations */}
+          <SectionCard title="Groups">
           <div className="flex items-center justify-between">
             <div className="pr-4">
               <p className="font-medium text-foreground">Receive Group Invitations</p>
@@ -238,17 +235,13 @@ const SettingsPage = () => {
               onCheckedChange={(v) => updateProfile({ receive_group_invites: v }, v ? 'Group invitations enabled' : 'Group invitations disabled')}
             />
           </div>
-        </section>
+          </SectionCard>
 
         <BlockedUsersList />
 
 
         {/* Preferred languages */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <LangIcon className="h-5 w-5" /> Preferred languages
-          </h3>
-          <p className="text-xs text-muted-foreground">Match people you can talk to.</p>
+          <SectionCard title="Preferred Languages" description="Match with people you can talk to.">
           <div className="flex flex-wrap gap-2">
             {LANGUAGE_OPTIONS.map((lang) => {
               const active = (profile.preferred_languages ?? []).includes(lang);
@@ -264,13 +257,10 @@ const SettingsPage = () => {
               );
             })}
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Mode switch */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            {mode === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />} Experience Mode
-          </h3>
+          {/* Mode switch */}
+          <SectionCard title="Experience Mode">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">{mode === 'light' ? '🌞 Light Mode' : '🌑 Dark Mode'}</p>
@@ -280,13 +270,10 @@ const SettingsPage = () => {
               Switch to {mode === 'light' ? '🌑 Dark' : '🌞 Light'}
             </Button>
           </div>
-        </section>
+          </SectionCard>
 
-        {/* Notification preferences */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-4">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <BellRing className="h-5 w-5" /> Notifications
-          </h3>
+          {/* Notification preferences */}
+          <SectionCard title="Notifications" className="md:col-span-2">
 
           <div className="flex items-center justify-between">
             <div><p className="font-medium text-foreground flex items-center gap-2"><Volume2 className="h-4 w-4" /> Sound</p>
@@ -322,28 +309,20 @@ const SettingsPage = () => {
               />
             </div>
           ))}
-        </section>
+          </SectionCard>
 
-
-        {/* Privacy */}
-        <section className="bg-card rounded-2xl p-6 shadow-card space-y-3">
-          <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-            <Shield className="h-5 w-5" /> Privacy
-          </h3>
+          {/* Privacy */}
+          <SectionCard title="Privacy & Safety">
           <ul className="text-sm text-muted-foreground space-y-2">
             <li>✅ Anonymous username & emoji avatar</li>
             <li>✅ No public profile browsing</li>
             <li>✅ Messages encrypted in database</li>
             <li>✅ Self-destruct chat support</li>
           </ul>
-        </section>
+          </SectionCard>
 
-        {/* Help & Support — mobile only */}
-        <section className="bg-card rounded-2xl p-6 shadow-card md:hidden">
-          <button onClick={() => setShowHelp(!showHelp)} className="w-full flex items-center justify-between">
-            <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
-              <HelpCircle className="h-5 w-5" /> Help & Support
-            </h3>
+          {/* Help & Support — mobile only */}
+          <SectionCard title="Support" className="md:hidden">
             <span className="text-xs text-muted-foreground">{showHelp ? 'Hide' : 'Open'}</span>
           </button>
           {showHelp && (
