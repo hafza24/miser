@@ -106,13 +106,14 @@ const BrowseGroupsPage = () => {
           />
         ) : (
           <div className="grid gap-4">
-            const gr = r.gender_requirements || {};
-            const compLabel = [
-              gr.men ? `${gr.men}M` : null,
-              gr.women ? `${gr.women}W` : null,
-              gr.any ? `${gr.any} any` : null,
-            ].filter(Boolean).join(' + ');
-            return (
+            {requests.map((r) => {
+              const gr = r.gender_requirements || {};
+              const compLabel = [
+                gr.men ? `${gr.men}M` : null,
+                gr.women ? `${gr.women}W` : null,
+                gr.any ? `${gr.any} any` : null,
+              ].filter(Boolean).join(' + ');
+              return (
               <div 
                 key={r.id} 
                 className="bg-card border border-border rounded-3xl p-6 hover:border-primary/50 transition-all cursor-pointer shadow-sm hover:shadow-md group"
@@ -145,7 +146,10 @@ const BrowseGroupsPage = () => {
                 </Button>
               </div>
             );
-          })
+              </div>
+            );
+          })}
+          </div>
         )}
       </div>
     </AppLayout>
