@@ -497,8 +497,19 @@ const ProfilePage = () => {
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="any">Any</SelectItem>
+          <SectionCard title="Discovery Preferences" className="lg:col-span-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div>
+                <Label>Gender preference</Label>
+                <Select value={genderPreference} onValueChange={setGenderPreference}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="any">Any</SelectItem>
                     <SelectItem value="male">Male</SelectItem>
                     <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
                   </SelectContent>
                 </Select>
               </div>
@@ -540,8 +551,7 @@ const ProfilePage = () => {
           </SectionCard>
 
           {/* Character — wide tile */}
-          <section className="bento-tile p-5 lg:col-span-4 space-y-4">
-            <h3 className="font-heading text-base font-bold text-foreground">My Character</h3>
+          <SectionCard title="My Character" className="lg:col-span-4">
 
             <div>
               <Label>Title</Label>
@@ -590,11 +600,10 @@ const ProfilePage = () => {
                 rows={4}
               />
             </div>
-          </section>
+          </SectionCard>
 
           {/* Languages */}
-          <section className="bento-tile p-5 lg:col-span-2 space-y-4">
-            <h3 className="font-heading text-base font-bold text-foreground">Languages</h3>
+          <SectionCard title="Languages" className="lg:col-span-2">
             <p className="text-[11px] text-muted-foreground">Incoming messages auto-translate into your primary language.</p>
             <div>
               <Label>Primary</Label>
@@ -622,17 +631,7 @@ const ProfilePage = () => {
               </div>
               <Switch checked={autoTranslate} onCheckedChange={setAutoTranslate} />
             </div>
-          </section>
-        </div>
-
-        {/* Sticky save bar */}
-        <div className="sticky bottom-4 z-10 flex justify-end">
-          <div className="bento-tile px-3 py-2 flex items-center gap-3 shadow-elevated">
-            <span className="text-xs text-muted-foreground hidden sm:inline">Changes are saved to your profile</span>
-            <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? 'Saving...' : 'Save Profile'}
-            </Button>
-          </div>
+          </SectionCard>
         </div>
       </div>
     </AppLayout>
