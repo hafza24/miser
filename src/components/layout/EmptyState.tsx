@@ -9,7 +9,7 @@ interface EmptyStateProps {
   action?: {
     label: string;
     onClick: () => void;
-  };
+  } | React.ReactNode;
 }
 
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
@@ -23,9 +23,15 @@ export function EmptyState({ icon: Icon, title, description, action }: EmptyStat
         {description}
       </p>
       {action && (
-        <Button onClick={action.onClick} className="mt-6 rounded-full px-6">
-          {action.label}
-        </Button>
+        <div className="mt-6">
+          {React.isValidElement(action) ? (
+            action
+          ) : (
+            <Button onClick={(action as any).onClick} className="rounded-full px-6">
+              {(action as any).label}
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );
