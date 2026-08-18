@@ -132,7 +132,7 @@ const SettingsPage = () => {
   };
 
   const handleModeSwitch = async (newMode: 'light' | 'dark') => {
-    if (newMode === 'dark' && profile?.dark_mode_blocked) { navigate('/subscription'); return; }
+    if (newMode === 'dark' && profile?.dark_mode_blocked) { navigate('/app/premium'); return; }
     if (newMode === 'light' && profile?.light_mode_blocked) { toast.error('Your access to Light mode has been restricted by an admin.'); return; }
     if (newMode === 'dark' && !profile?.age_verified) { setShowAgeVerify(true); return; }
     setMode(newMode);
@@ -144,7 +144,7 @@ const SettingsPage = () => {
 
   const confirmAgeAndSwitch = async () => {
     if (!ageConfirmed || !consentConfirmed) { toast.error('Please confirm both checkboxes'); return; }
-    if (profile?.dark_mode_blocked) { navigate('/subscription'); setShowAgeVerify(false); return; }
+    if (profile?.dark_mode_blocked) { navigate('/app/premium'); setShowAgeVerify(false); return; }
     if (user) {
       await supabase.from('profiles').update({ age_verified: true, mode_preference: 'dark' }).eq('user_id', user.id);
       await refreshProfile();
