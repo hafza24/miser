@@ -267,7 +267,7 @@ const BrowseProfilesPage = () => {
 
   return (
     <AppLayout>
-      <div className="p-4 sm:p-6 space-y-5">
+      <div className="space-y-6">
         <PageHeader
           title={mode === 'light' ? '🌸 Discover People' : '🔮 Discover People'}
           description="Find someone who understands you"
@@ -298,10 +298,10 @@ const BrowseProfilesPage = () => {
           }
         />
 
-        {/* Bento control grid */}
+        {/* Search & Matching */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
           {/* Search — spans wide */}
-          <div className="bento-tile p-4 md:col-span-4">
+          <SectionCard className="md:col-span-4 p-4">
             <div className="flex items-center gap-1.5 mb-2">
               <Search className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Search</span>
@@ -316,10 +316,10 @@ const BrowseProfilesPage = () => {
                 maxLength={100}
               />
             </div>
-          </div>
+          </SectionCard>
 
           {/* Smart match tile */}
-          <div className="bento-tile p-4 md:col-span-2 flex items-center justify-between gap-3">
+          <SectionCard className="md:col-span-2 p-4">
             <div className="flex items-start gap-2 min-w-0">
               <div className="h-9 w-9 shrink-0 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -339,7 +339,7 @@ const BrowseProfilesPage = () => {
           </div>
 
           {/* Interest tile — full width */}
-          <div className="bento-tile p-4 md:col-span-6">
+          <SectionCard title="Interests" className="md:col-span-6">
             <div className="flex items-center gap-1.5 mb-3">
               <Heart className="h-3.5 w-3.5 text-primary" />
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interests</span>
@@ -363,12 +363,12 @@ const BrowseProfilesPage = () => {
                 );
               })}
             </div>
-          </div>
+          </SectionCard>
         </div>
 
         {/* Collapsible Filters */}
         {showFilters && (
-          <div className="bento-tile p-4 space-y-4 animate-fade-in">
+          <SectionCard title="More Filters" className="animate-fade-in">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">More Filters</span>
               {hasActiveFilters && (
@@ -430,7 +430,7 @@ const BrowseProfilesPage = () => {
                 ))}
               </div>
             </div>
-          </div>
+          </SectionCard>
         )}
 
         {loading ? (
