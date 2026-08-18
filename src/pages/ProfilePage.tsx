@@ -15,6 +15,7 @@ import { COUNTRIES, AVAILABILITY_OPTIONS } from '@/lib/countries';
 import { LANGUAGES } from '@/lib/languages';
 import { Switch } from '@/components/ui/switch';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { SectionCard } from '@/components/layout/SectionCard';
 
 
 const GENDER_OPTIONS: { value: string; label: string }[] = [
